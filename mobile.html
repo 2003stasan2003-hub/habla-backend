@@ -85,32 +85,22 @@
             const loadingId = appendMessage("Переклад...", 'incoming');
 
             try {
-                const response = toBackendCall(text, lang, loadingId);
-            } catch (error) {
-                if (loadingId) loadingId.remove();
-                appendMessage("Помилка мережі.", 'incoming'); 
-            }
-        }
-
-        async function toBackendCall(text, lang, loadingId) {
-            try {
                 const response = await fetch(BACKEND_URL, { 
                     method: 'POST', 
                     headers: { 'Content-Type': 'application/json' }, 
                     body: JSON.stringify({ text: text, targetLanguage: lang }) 
                 });
 
-                if (loadingId) loadingId.remove();
+                loadingId.remove();
 
                 if (response.ok) {
                     const data = await response.json();
-                    // Виводимо саме перекладений текст
                     appendMessage(data.translatedText, 'incoming');
                 } else { 
                     appendMessage("Помилка сервера при перекладі.", 'incoming'); 
                 }
             } catch (err) {
-                if (loadingId) loadingId.remove();
+                loadingId.remove();
                 appendMessage("Помилка з'єднання з сервером.", 'incoming');
             }
         }
