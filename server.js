@@ -9,7 +9,7 @@ app.use(express.json());
 // Роздаємо статичні файли (index.html, desktop.html, mobile.html)
 app.use(express.static(path.join(__dirname)));
 
-// Реальний ендпоинт для перекладу через публічний API
+// Ендпоинт для перекладу через вбудований fetch
 app.post('/api/translate', async (req, res) => {
     const { text, targetLanguage } = req.body;
     
@@ -28,8 +28,8 @@ app.post('/api/translate', async (req, res) => {
         const encodedText = encodeURIComponent(text);
         const url = `https://api.mymemory.translated.net/get?q=${encodedText}&langpair=uk|${langCode}`;
 
-        const fetchModule = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
-        const response = await fetchModule(url);
+        // Використовуємо вбудований у Node.js fetch безпосередньо
+        const response = await fetch(url);
         const data = await response.json();
 
         if (data && data.responseData && data.responseData.translatedText) {
