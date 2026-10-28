@@ -9,7 +9,7 @@ app.use(express.json());
 // Роздаємо статичні файли (index.html, desktop.html, mobile.html)
 app.use(express.static(path.join(__dirname)));
 
-// Реальний ендпоинт для перекладу
+// Реальний ендпоинт для перекладу через публічний API
 app.post('/api/translate', async (req, res) => {
     const { text, targetLanguage } = req.body;
     
@@ -18,8 +18,6 @@ app.post('/api/translate', async (req, res) => {
     }
 
     try {
-        // Використовуємо безкоштовний публічний API перекладу (MyMemory Translation API)
-        // Визначаємо код мови призначення
         let langCode = 'en';
         if (targetLanguage === 'Spanish') langCode = 'es';
         else if (targetLanguage === 'Ukrainian') langCode = 'uk';
@@ -31,9 +29,7 @@ app.post('/api/translate', async (req, res) => {
         const url = `https://api.mymemory.translated.net/get?q=${encodedText}&langpair=uk|${langCode}`;
 
         const fetchModule = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
-        
-        // Робимо запит до сервісу перекладу
-        const response = await fetch(url);
+        const response = await fetchModule(url);
         const data = await response.json();
 
         if (data && data.responseData && data.responseData.translatedText) {
@@ -49,7 +45,7 @@ app.post('/api/translate', async (req, res) => {
         }
     } catch (error) {
         console.error("Помилка сервера:", error);
-        res.status(500).json({ error: "Помилка серверну під час перекладу" });
+        res.status(500).json({ error: "Помилка сервера під час перекладу" });
     }
 });
 
