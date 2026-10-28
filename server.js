@@ -1,18 +1,13 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-const { GoogleGenAI } = require('@google/genai');
-
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
-// Роздаємо статичні файли (index.html, desktop.html, mobile.html)
+// Роздаємо статичні файли
 app.use(express.static(path.join(__dirname)));
-
-// Ініціалізація Gemini API (ключ автоматично береться зі змінної середовища GEMINI_API_KEY на Render)
-const ai = new GoogleGenAI();
 
 app.post('/api/translate', async (req, res) => {
     const { text, targetLanguage } = req.body;
@@ -21,25 +16,39 @@ app.post('/api/translate', async (req, res) => {
         return res.status(400).json({ error: "Текст відсутній" });
     }
 
+    // Беремо ключ із налаштувань Render (перевірте, щоб змінна називалася GEMINI_API_KEY)
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+        return res.status(500).json({ error: "API ключ Gemini не налаштовано на сервері" });
+    }
+
     try {
-        // Формуємо запит до Gemini для перекладу
-        const prompt = `Translate the following text into ${targetLanguage || 'English'}. Return ONLY the translated text, without any extra explanations, quotes, or notes:\n\n${text}`;
+        let targetLang = targetLanguage || 'English';
+        const prompt = `Translate the following text into ${targetLang}. Return ONLY the translated text without any formatting, quotes, or markdown:\n\n${text}`;
 
-        const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: prompt,
+        // Прямий запит до офіційного Gemini API без важких бібліотек
+        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+        
+        const response = await fetch(geminiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt }] }]
+            })
         });
 
-        const translatedText = response.text ? response.text.trim() : "Помилка генерації перекладу.";
+        const data = await response.json();
 
-        res.json({
-            detectedLanguage: "auto",
-            translatedText: translatedText
-        });
+        if (data.candidates && data.candidates[0].content.parts[0].text) {
+            const translatedText = data.candidates[0].content.parts[0].text.trim();
+            res.json({ detectedLanguage: "auto", translatedText });
+        } else {
+            res.status(500).json({ error: "Не вдалося отримати переклад від Gemini" });
+        }
 
     } catch (error) {
-        console.error("Помилка Gemini API:", error);
-        res.status(500).json({ error: "Помилка сервера під час перекладу через Gemini" });
+        console.error("Помилка сервера:", error);
+        res.status(500).json({ error: "Помилка сервера під час перекладу" });
     }
 });
 
