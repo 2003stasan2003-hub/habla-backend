@@ -6,17 +6,51 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Роздаємо всі статичні файли (index.html, desktop.html, mobile.html) з папки проєкту
+// Роздаємо статичні файли (index.html, desktop.html, mobile.html)
 app.use(express.static(path.join(__dirname)));
 
-// Ваш поточний API для перекладу
-app.post('/api/translate', (req, res) => {
+// Реальний ендпоинт для перекладу
+app.post('/api/translate', async (req, res) => {
     const { text, targetLanguage } = req.body;
-    // Логіка перекладу, яка у вас вже була
-    res.json({
-        detectedLanguage: "en",
-        translatedText: "Перекладено: " + text
-    });
+    
+    if (!text) {
+        return res.status(400).json({ error: "Текст відсутній" });
+    }
+
+    try {
+        // Використовуємо безкоштовний публічний API перекладу (MyMemory Translation API)
+        // Визначаємо код мови призначення
+        let langCode = 'en';
+        if (targetLanguage === 'Spanish') langCode = 'es';
+        else if (targetLanguage === 'Ukrainian') langCode = 'uk';
+        else if (targetLanguage === 'German') langCode = 'de';
+        else if (targetLanguage === 'French') langCode = 'fr';
+        else if (targetLanguage === 'English') langCode = 'en';
+
+        const encodedText = encodeURIComponent(text);
+        const url = `https://api.mymemory.translated.net/get?q=${encodedText}&langpair=uk|${langCode}`;
+
+        const fetchModule = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+        
+        // Робимо запит до сервісу перекладу
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (data && data.responseData && data.responseData.translatedText) {
+            res.json({
+                detectedLanguage: "uk",
+                translatedText: data.responseData.translatedText
+            });
+        } else {
+            res.json({
+                detectedLanguage: "uk",
+                translatedText: "Помилка перекладу від сервісу."
+            });
+        }
+    } catch (error) {
+        console.error("Помилка сервера:", error);
+        res.status(500).json({ error: "Помилка серверну під час перекладу" });
+    }
 });
 
 const PORT = process.env.PORT || 10000;
