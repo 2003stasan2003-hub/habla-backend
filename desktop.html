@@ -100,7 +100,7 @@
             appendMessage(text, 'outgoing');
             inputField.value = '';
 
-            const loadingId = appendMessage("Переклад...", 'incoming');
+            const loadingId = appendMessage("Переклад через Gemini...", 'incoming');
 
             try {
                 const response = await fetch(BACKEND_URL, { 
@@ -119,7 +119,7 @@
                 }
             } catch (error) {
                 if (loadingId) loadingId.remove();
-                appendMessage("Помилка мережі.", 'incoming'); 
+                appendMessage("Помилка мережі (сервер недоступний).", 'incoming'); 
             }
         }
 
