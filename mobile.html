@@ -7,16 +7,7 @@
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         body, html { width: 100%; height: 100%; background-color: #0b0f12; color: #ffffff; overflow: hidden; }
-        
-        .app-container { 
-            width: 100vw; 
-            height: 100vh; 
-            height: 100dvh; 
-            background-color: #121619; 
-            display: flex; 
-            flex-direction: column; 
-            overflow: hidden; 
-        }
+        .app-container { width: 100vw; height: 100vh; height: 100dvh; background-color: #121619; display: flex; flex-direction: column; overflow: hidden; }
         
         .header { display: flex; align-items: center; justify-content: space-between; padding: 10px 15px; background-color: #121619; border-bottom: 1px solid #1a2228; flex-shrink: 0; }
         .back-link { color: #00e5ff; text-decoration: none; font-size: 20px; }
@@ -30,33 +21,10 @@
         .message.incoming { background-color: #182026; border: 1px solid #00e5ff44; align-self: flex-start; }
         .message.outgoing { background-color: #1a2228; border: 1px solid #00e5ff; align-self: flex-end; }
         
-        .footer { 
-            padding: 10px 15px 25px 15px; 
-            background-color: #121619; 
-            border-top: 1px solid #1a2228; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            gap: 10px; 
-            flex-shrink: 0; 
-        }
+        .footer { padding: 10px 15px 25px 15px; background-color: #121619; border-top: 1px solid #1a2228; display: flex; flex-direction: column; align-items: center; gap: 10px; flex-shrink: 0; }
         .input-box { width: 100%; display: flex; background: #182026; border: 1px solid #00e5ff; border-radius: 12px; padding: 6px 10px; align-items: center; }
         .input-box input { flex: 1; background: transparent; border: none; color: white; font-size: 14px; outline: none; }
-        
-        /* Робимо стрілочку гарантовано клікабельною на Android */
-        .send-btn { 
-            background: transparent; 
-            border: none; 
-            color: #00e5ff; 
-            font-size: 22px; 
-            cursor: pointer; 
-            padding: 10px; 
-            min-width: 44px; 
-            min-height: 44px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-        }
+        .send-btn { background: transparent; border: none; color: #00e5ff; font-size: 22px; cursor: pointer; padding: 10px; min-width: 44px; min-height: 44px; display: flex; align-items: center; justify-content: center; }
         
         .mic-container { display: flex; flex-direction: column; align-items: center; gap: 4px; margin-bottom: 5px; }
         .mic-label { font-size: 11px; color: #8c9ba5; }
@@ -72,16 +40,16 @@
             <a href="index.html" class="back-link">←</a>
             <div class="header-info"><h3>Habla Mobile</h3><p>David</p></div>
             <select id="targetLang" class="lang-select">
-                <option value="English">EN</option>
-                <option value="Ukrainian">UA</option>
-                <option value="Spanish" selected>ES</option>
-                <option value="German">DE</option>
-                <option value="French">FR</option>
+                <option value="English">English</option>
+                <option value="Ukrainian">Ukrainian</option>
+                <option value="Spanish" selected>Spanish</option>
+                <option value="German">German</option>
+                <option value="French">French</option>
             </select>
         </div>
         <div class="chat-messages" id="chatMessages">
-            <div class="message incoming">🇪🇸 ¡Hola! ¿Cómo estás?</div>
-            <div class="message outgoing">🇺🇦 Привіт, як справи?</div>
+            <div class="message incoming">¡Hola! ¿Cómo estás?</div>
+            <div class="message outgoing">Привіт, як справи?</div>
         </div>
         <div class="footer">
             <div class="input-box">
@@ -110,11 +78,21 @@
             
             if (!text) return;
             
+            // Показуємо оригінальний текст користувача
             appendMessage(text, 'outgoing');
             inputField.value = '';
 
             const loadingId = appendMessage("Переклад...", 'incoming');
 
+            try {
+                const response = toBackendCall(text, lang, loadingId);
+            } catch (error) {
+                if (loadingId) loadingId.remove();
+                appendMessage("Помилка мережі.", 'incoming'); 
+            }
+        }
+
+        async function toBackendCall(text, lang, loadingId) {
             try {
                 const response = await fetch(BACKEND_URL, { 
                     method: 'POST', 
@@ -126,13 +104,14 @@
 
                 if (response.ok) {
                     const data = await response.json();
-                    appendMessage(`[${data.detectedLanguage} -> ${lang}] ${data.translatedText}`, 'incoming');
+                    // Виводимо саме перекладений текст
+                    appendMessage(data.translatedText, 'incoming');
                 } else { 
                     appendMessage("Помилка сервера при перекладі.", 'incoming'); 
                 }
-            } catch (error) {
+            } catch (err) {
                 if (loadingId) loadingId.remove();
-                appendMessage("Помилка мережі (сервер прокидається...).", 'incoming'); 
+                appendMessage("Помилка з'єднання з сервером.", 'incoming');
             }
         }
 
@@ -145,19 +124,9 @@
             return msgDiv;
         }
 
-        // Гарантоване реагування на натискання стрілочки на сенсорних екранах Android
-        sendBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            sendMessage();
-        });
-        sendBtn.addEventListener('touchend', (e) => {
-            e.preventDefault();
-            sendMessage();
-        });
-
-        inputField.addEventListener('keypress', e => { 
-            if (e.key === 'Enter') sendMessage(); 
-        });
+        sendBtn.addEventListener('click', (e) => { e.preventDefault(); sendMessage(); });
+        sendBtn.addEventListener('touchend', (e) => { e.preventDefault(); sendMessage(); });
+        inputField.addEventListener('keypress', e => { if (e.key === 'Enter') sendMessage(); });
 
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -177,13 +146,13 @@
         }
 
         micBtn.addEventListener('click', () => {
-            if (!recognition) { alert("Використовуйте Google Chrome на Android."); return; }
+            if (!recognition) { alert("Використовуйте Google Chrome."); return; }
             if (!isRecording) {
-                recognition.lang = 'uk-UA'; // Слухаємо вашу українську мову
+                recognition.lang = 'uk-UA';
                 recognition.start(); 
                 isRecording = true; 
                 micBtn.classList.add('recording');
-                micStatus.innerText = "Йде запис... Говоріть. Натисніть знову, коли закінчите.";
+                micStatus.innerText = "Йде запис... Говоріть. Натисніть знову, щоб зупинити.";
             } else { 
                 recognition.stop(); 
                 stopRec(); 
