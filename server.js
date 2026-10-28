@@ -9,27 +9,31 @@ app.use(express.json());
 // Роздаємо статичні файли
 app.use(express.static(path.join(__dirname)));
 
+// Простий шлях перевірки, щоб Render бачив, що сервер живий
+app.get('/health', (req, res) => {
+    res.status(200).send('OK');
+});
+
 app.post('/api/translate', async (req, res) => {
-    const { text, targetLanguage } = req.body;
-    
-    if (!text) {
-        return res.status(400).json({ error: "Текст відсутній" });
-    }
-
-    // Беремо ключ із налаштувань Render (перевірте, щоб змінна називалася GEMINI_API_KEY)
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-        return res.status(500).json({ error: "API ключ Gemini не налаштовано на сервері" });
-    }
-
     try {
-        let targetLang = targetLanguage || 'English';
-        const prompt = `Translate the following text into ${targetLang}. Return ONLY the translated text without any formatting, quotes, or markdown:\n\n${text}`;
-
-        // Прямий запит до офіційного Gemini API без важких бібліотек
-        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+        const { text, targetLanguage } = req.body;
         
-        const response = await fetch(geminiUrl, {
+        if (!text) {
+            return res.status(400).json({ error: "Текст відсутній" });
+        }
+
+        const apiKey = process.env.GEMINI_API_KEY;
+        if (!apiKey) {
+            console.error("Помилка: GEMINI_API_KEY не знайдено в Environment!");
+            return res.status(500).json({ error: "Ключ API не налаштовано на сервері" });
+        }
+
+        const targetLang = targetLanguage || 'English';
+        const prompt = `Translate the following text into ${targetLang}. Return ONLY the translated text without any formatting, quotes, or notes:\n\n${text}`;
+
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+        
+        const response = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -43,16 +47,17 @@ app.post('/api/translate', async (req, res) => {
             const translatedText = data.candidates[0].content.parts[0].text.trim();
             res.json({ detectedLanguage: "auto", translatedText });
         } else {
-            res.status(500).json({ error: "Не вдалося отримати переклад від Gemini" });
+            console.error("Несподівана відповідь від Gemini:", data);
+            res.status(500).json({ error: "Помилка обробки від Gemini" });
         }
 
     } catch (error) {
-        console.error("Помилка сервера:", error);
-        res.status(500).json({ error: "Помилка сервера під час перекладу" });
+        console.error("Критична помилка сервера:", error.message);
+        res.status(500).json({ error: "Серверна помилка під час перекладу" });
     }
 });
 
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
-    console.log(`Сервер Habla запущено на порту ${PORT}`);
+    console.log(`Сервер Habla успішно запущено на порту ${PORT}`);
 });
