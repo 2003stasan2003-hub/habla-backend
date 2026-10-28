@@ -59,12 +59,16 @@
             <div class="header">
                 <div class="header-info"><h3>Habla Desktop</h3><p>David</p></div>
                 <select id="targetLang" class="lang-select">
-                    <option value="English">EN</option><option value="Ukrainian">UA</option><option value="Spanish">ES</option><option value="German">DE</option><option value="French">FR</option>
+                    <option value="English">English</option>
+                    <option value="Ukrainian">Ukrainian</option>
+                    <option value="Spanish" selected>Spanish</option>
+                    <option value="German">German</option>
+                    <option value="French">French</option>
                 </select>
             </div>
             <div class="chat-messages" id="chatMessages">
-                <div class="message incoming">🇬🇧 Good Day! How are you?</div>
-                <div class="message outgoing">🇺🇦 Добрий день! Як справи?</div>
+                <div class="message incoming">¡Hola! ¿Cómo estás?</div>
+                <div class="message outgoing">Привіт, як справи?</div>
             </div>
             <div class="footer">
                 <div class="input-box">
@@ -81,27 +85,56 @@
     <script>
         const BACKEND_URL = "https://habla-backend-ipqk.onrender.com/api/translate";
         let isRecording = false, recognition = null;
-        const inputField = document.getElementById('userInput'), sendBtn = document.getElementById('sendBtn'), chatMessages = document.getElementById('chatMessages'), targetLang = document.getElementById('targetLang'), micBtn = document.getElementById('micBtn'), micStatus = document.getElementById('micStatus');
+        const inputField = document.getElementById('userInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const chatMessages = document.getElementById('chatMessages');
+        const targetLang = document.getElementById('targetLang');
+        const micBtn = document.getElementById('micBtn');
+        const micStatus = document.getElementById('micStatus');
 
         async function sendMessage() {
-            const text = inputField.value.trim(), lang = targetLang.value;
+            const text = inputField.value.trim();
+            const lang = targetLang.value;
             if (!text) return;
+
             appendMessage(text, 'outgoing');
             inputField.value = '';
+
+            const loadingId = appendMessage("Переклад...", 'incoming');
+
             try {
-                const response = await fetch(BACKEND_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text, targetLanguage: lang }) });
+                const response = await fetch(BACKEND_URL, { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify({ text: text, targetLanguage: lang }) 
+                });
+
+                if (loadingId) loadingId.remove();
+
                 if (response.ok) {
                     const data = await response.json();
-                    appendMessage(`[${data.detectedLanguage}] ${data.translatedText}`, 'incoming');
-                } else { appendMessage("Помилка сервера при перекладі.", 'incoming'); }
-            } catch (error) { appendMessage("Помилка мережі (сервер прокидається...).", 'incoming'); }
+                    appendMessage(data.translatedText, 'incoming');
+                } else { 
+                    appendMessage("Помилка сервера при перекладі.", 'incoming'); 
+                }
+            } catch (error) {
+                if (loadingId) loadingId.remove();
+                appendMessage("Помилка мережі.", 'incoming'); 
+            }
         }
+
         function appendMessage(text, type) {
-            const msgDiv = document.createElement('div'); msgDiv.className = `message ${type}`; msgDiv.innerText = text;
-            chatMessages.appendChild(msgDiv); chatMessages.scrollTop = chatMessages.scrollHeight;
+            const msgDiv = document.createElement('div'); 
+            msgDiv.className = `message ${type}`; 
+            msgDiv.innerText = text;
+            chatMessages.appendChild(msgDiv); 
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            return msgDiv;
         }
+
         sendBtn.addEventListener('click', sendMessage);
         inputField.addEventListener('keypress', e => { if (e.key === 'Enter') sendMessage(); });
+
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             recognition = new SpeechRecognition(); recognition.continuous = true; recognition.interimResults = true;
@@ -111,17 +144,19 @@
             };
             recognition.onerror = () => stopRec(); recognition.onend = () => stopRec();
         }
+
         micBtn.addEventListener('click', () => {
             if (!recognition) { alert("Використовуйте Google Chrome."); return; }
             if (!isRecording) {
-                recognition.lang = targetLang.value === 'Ukrainian' ? 'uk-UA' : 'en-US';
+                recognition.lang = 'uk-UA';
                 recognition.start(); isRecording = true; micBtn.classList.add('recording');
                 micStatus.innerText = "Йде запис... Натисніть знову, щоб зупинити.";
             } else { recognition.stop(); stopRec(); }
         });
+
         function stopRec() {
             isRecording = false; micBtn.classList.remove('recording');
-            micStatus.innerText = "Запис завершено. Натисніть стрілочку для відправки ➔";
+            micStatus.innerText = "Записано! Натисніть стрілочку ➔ для відправки.";
         }
     </script>
 </body>
