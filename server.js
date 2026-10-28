@@ -1,14 +1,14 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
-const { GoogleGenAI } = require('@google/genai');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 const app = express();
 app.use(express.json());
 app.use(cors());
 
-// Ініціалізація Gemini SDK з вашим ключем
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+// Ініціалізація Gemini з вашим ключем з Render
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 app.post('/api/translate', async (req, res) => {
     try {
@@ -18,7 +18,9 @@ app.post('/api/translate', async (req, res) => {
             return res.status(400).json({ error: 'Текст для перекладу відсутній.' });
         }
 
-        // Промпт для автовизначення мови та перекладу
+        // Використовуємо найстабільнішу модель
+        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+
         const prompt = `Task: 
 1. Automatically detect the source language of the following text.
 2. Translate it into "${targetLanguage || 'English'}".
@@ -26,13 +28,9 @@ app.post('/api/translate', async (req, res) => {
 
 Text to process: "${text}"`;
 
-        // Використовуємо стабільну швидку модель Flash
-        const response = await ai.models.generateContent({
-            model: 'gemini-1.5-flash',
-            contents: prompt,
-        });
-
-        let rawResponse = response.text;
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        let rawResponse = response.text();
         
         // Очищення від markdown-тегів якщо вони є
         rawResponse = rawResponse.replace(/```json/g, '').replace(/```/g, '').trim();
@@ -42,11 +40,11 @@ Text to process: "${text}"`;
 
     } catch (error) {
         console.error('Помилка сервера:', error);
-        res.status(5005).json({ error: 'Помилка під час обробки запиту ШІ.' });
+        res.status(500).json({ error: 'Помилка під час обробки запиту ШІ.' });
     }
 });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Сервер Habla 1.0 запущено на порту ${PORT}`);
+    console.log(`Сервер Habla запущено на порту ${PORT}`);
 });
