@@ -7,7 +7,16 @@
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         body, html { width: 100%; height: 100%; background-color: #0b0f12; color: #ffffff; overflow: hidden; }
-        .app-container { width: 100vw; height: 100vh; background-color: #121619; display: flex; flex-direction: column; overflow: hidden; }
+        
+        .app-container { 
+            width: 100vw; 
+            height: 100vh; 
+            height: 100dvh; /* Динамічна висота для мобільних браузерів */
+            background-color: #121619; 
+            display: flex; 
+            flex-direction: column; 
+            overflow: hidden; 
+        }
         
         .header { display: flex; align-items: center; justify-content: space-between; padding: 10px 15px; background-color: #121619; border-bottom: 1px solid #1a2228; flex-shrink: 0; }
         .back-link { color: #00e5ff; text-decoration: none; font-size: 20px; }
@@ -21,17 +30,27 @@
         .message.incoming { background-color: #182026; border: 1px solid #00e5ff44; align-self: flex-start; }
         .message.outgoing { background-color: #1a2228; border: 1px solid #00e5ff; align-self: flex-end; }
         
-        .footer { padding: 10px 15px 15px 15px; background-color: #121619; border-top: 1px solid #1a2228; display: flex; flex-direction: column; align-items: center; gap: 8px; flex-shrink: 0; }
+        /* Збільшуємо відступи знизу, щоб мікрофон гарантовано піднявся вище системних панелей Android */
+        .footer { 
+            padding: 10px 15px 25px 15px; 
+            background-color: #121619; 
+            border-top: 1px solid #1a2228; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            gap: 10px; 
+            flex-shrink: 0; 
+        }
         .input-box { width: 100%; display: flex; background: #182026; border: 1px solid #00e5ff; border-radius: 12px; padding: 6px 10px; align-items: center; }
         .input-box input { flex: 1; background: transparent; border: none; color: white; font-size: 14px; outline: none; }
         .send-btn { background: transparent; border: none; color: #00e5ff; font-size: 18px; cursor: pointer; padding: 0 4px; }
         
-        .mic-container { display: flex; flex-direction: column; align-items: center; gap: 3px; }
-        .mic-label { font-size: 10px; color: #8c9ba5; }
-        .mic-btn { width: 50px; height: 50px; background: #182026; border: 2px solid #00e5ff; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 0 12px rgba(0, 229, 255, 0.25); }
+        .mic-container { display: flex; flex-direction: column; align-items: center; gap: 4px; margin-bottom: 5px; }
+        .mic-label { font-size: 11px; color: #8c9ba5; }
+        .mic-btn { width: 54px; height: 54px; background: #182026; border: 2px solid #00e5ff; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 0 15px rgba(0, 229, 255, 0.3); }
         .mic-btn.recording { background: #00e5ff; }
         .mic-btn.recording .mic-icon { color: #121619; }
-        .mic-icon { font-size: 20px; color: #00e5ff; }
+        .mic-icon { font-size: 22px; color: #00e5ff; }
     </style>
 </head>
 <body>
@@ -53,7 +72,7 @@
                 <button class="send-btn" id="sendBtn">➤</button>
             </div>
             <div class="mic-container">
-                <span class="mic-label" id="micStatus">Натисніть мікрофон...</span>
+                <span class="mic-label" id="micStatus">Натисніть мікрофон для запису...</span>
                 <button class="mic-btn" id="micBtn"><span class="mic-icon">🎙</span></button>
             </div>
         </div>
@@ -66,41 +85,81 @@
         async function sendMessage() {
             const text = inputField.value.trim(), lang = targetLang.value;
             if (!text) return;
+            
             appendMessage(text, 'outgoing');
             inputField.value = '';
+
+            // Показуємо індикатор завантаження, якщо сервер прокидається
+            const loadingId = appendMessage("Переклад...", 'incoming loading');
+
             try {
-                const response = await fetch(BACKEND_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text, targetLanguage: lang }) });
+                const response = await fetch(BACKEND_URL, { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify({ text: text, targetLanguage: lang }) 
+                });
+
+                // Видаляємо індикатор завантаження
+                if (loadingId) loadingId.remove();
+
                 if (response.ok) {
                     const data = await response.json();
                     appendMessage(`[${data.detectedLanguage}] ${data.translatedText}`, 'incoming');
-                } else { appendMessage("Помилка сервера при перекладі.", 'incoming'); }
-            } catch (error) { appendMessage("Помилка мережі...", 'incoming'); }
+                } else { 
+                    appendMessage("Помилка сервера при перекладі.", 'incoming'); 
+                }
+            } catch (error) {
+                if (loadingId) loadingId.remove();
+                appendMessage("Помилка мережі (сервер прокидається...).", 'incoming'); 
+            }
         }
+
         function appendMessage(text, type) {
-            const msgDiv = document.createElement('div'); msgDiv.className = `message ${type}`; msgDiv.innerText = text;
-            chatMessages.appendChild(msgDiv); chatMessages.scrollTop = chatMessages.scrollHeight;
+            const msgDiv = document.createElement('div'); 
+            msgDiv.className = `message ${type}`; 
+            msgDiv.innerText = text;
+            chatMessages.appendChild(msgDiv); 
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            return msgDiv;
         }
+
         sendBtn.addEventListener('click', sendMessage);
-        inputField.addEventListener('keypress', e => { if (e.key === 'Enter') sendMessage(); });
+        inputField.addEventListener('keypress', e => { 
+            if (e.key === 'Enter') sendMessage(); 
+        });
+
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            recognition = new SpeechRecognition(); recognition.continuous = true; recognition.interimResults = true;
+            recognition = new SpeechRecognition(); 
+            recognition.continuous = true; 
+            recognition.interimResults = true;
+            
             recognition.onresult = e => {
-                let t = ''; for (let i = e.resultIndex; i < e.results.length; i++) t += e.results[i][0].transcript;
+                let t = ''; 
+                for (let i = e.resultIndex; i < e.results.length; i++) t += e.results[i][0].transcript;
                 inputField.value = t;
             };
-            recognition.onerror = () => stopRec(); recognition.onend = () => stopRec();
+            recognition.onerror = () => stopRec(); 
+            recognition.onend = () => stopRec();
         }
+
         micBtn.addEventListener('click', () => {
-            if (!recognition) { alert("Використовуйте Google Chrome."); return; }
+            if (!recognition) { alert("Використовуйте Google Chrome на Android."); return; }
             if (!isRecording) {
                 recognition.lang = targetLang.value === 'Ukrainian' ? 'uk-UA' : 'en-US';
-                recognition.start(); isRecording = true; micBtn.classList.add('recording');
-                micStatus.innerText = "Йде запис...";
-            } else { recognition.stop(); stopRec(); }
+                recognition.start(); 
+                isRecording = true; 
+                micBtn.classList.add('recording');
+                micStatus.innerText = "Йде запис... Натисніть знову, щоб зупинити.";
+            } else { 
+                recognition.stop(); 
+                stopRec(); 
+            }
         });
+
         function stopRec() {
-            isRecording = false; micBtn.classList.remove('recording');
+            isRecording = false; 
+            micBtn.classList.remove('recording');
             micStatus.innerText = "Завершено. Натисніть стрілочку ➔";
         }
     </script>
