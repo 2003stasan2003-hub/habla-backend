@@ -7,9 +7,10 @@
   "theme_color": "#1e293b",
   "icons": [
     {
-      "src": "/icon.png",
+      "src": "https://habla-backend-ipqk.onrender.com/icon.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
