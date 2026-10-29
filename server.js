@@ -6,7 +6,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Роздаємо статичні файли (index.html, desktop.html, mobile.html)
+// Роздаємо статичні файли
 app.use(express.static(path.join(__dirname)));
 
 // Перевірка працездатності сервера
@@ -22,7 +22,6 @@ app.post('/api/translate', async (req, res) => {
             return res.status(400).json({ error: "Текст відсутній" });
         }
 
-        // Беремо ключ Groq із налаштувань Render
         const apiKey = process.env.GROQ_API_KEY;
         if (!apiKey) {
             console.error("Помилка: GROQ_API_KEY не знайдено в Environment!");
@@ -32,7 +31,6 @@ app.post('/api/translate', async (req, res) => {
         const targetLang = targetLanguage || 'English';
         const prompt = `Translate the following text into ${targetLang}. Return ONLY the translated text without any formatting, quotes, or markdown:\n\n${text}`;
 
-        // Офіційний endpoint від Groq API
         const url = `https://api.groq.com/openai/v1/chat/completions`;
         
         const response = await fetch(url, {
@@ -42,7 +40,7 @@ app.post('/api/translate', async (req, res) => {
                 'Authorization': `Bearer ${apiKey}`
             },
             body: JSON.stringify({
-                model: "llama-3.3-70b-versatile",
+                model: "mixtral-8x7b-32768",
                 messages: [{ role: "user", content: prompt }]
             })
         });
