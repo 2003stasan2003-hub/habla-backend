@@ -1,16 +1,14 @@
 {
   "name": "habla-backend",
-  "version": "1.0.0",
-  "description": "Habla Backend",
+  "version": "2.0.0",
+  "description": "Habla 2.0 Real-time Translator Chat",
   "main": "server.js",
-  "engines": {
-    "node": ">=18.0.0"
-  },
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
-    "express": "^4.19.2"
+    "express": "^4.18.2",
+    "socket.io": "^4.7.2"
   }
 }
