@@ -14,6 +14,15 @@ app.get('/health', (req, res) => {
     res.status(200).send('OK');
 });
 
+// Список моделей за пріоритетом. Якщо перша не працює — сервер автоматично спробує наступну.
+const CANDIDATE_MODELS = [
+    "llama-3.1-8b-instant",
+    "llama-3.2-3b-preview",
+    "llama-3.3-70b-versatile",
+    "gemma2-9b-it",
+    "llama3-8b-8192"
+];
+
 app.post('/api/translate', async (req, res) => {
     try {
         const { text, targetLanguage } = req.body;
@@ -30,29 +39,48 @@ app.post('/api/translate', async (req, res) => {
 
         const targetLang = targetLanguage || 'English';
         const prompt = `Translate the following text into ${targetLang}. Return ONLY the translated text without any formatting, quotes, or markdown:\n\n${text}`;
-
         const url = `https://api.groq.com/openai/v1/chat/completions`;
-        
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
-            },
-            body: JSON.stringify({
-                model: "llama-3.2-3b-preview",
-                messages: [{ role: "user", content: prompt }]
-            })
-        });
 
-        const data = await response.json();
+        let translatedText = null;
+        let lastError = null;
 
-        if (data.choices && data.choices[0].message && data.choices[0].message.content) {
-            const translatedText = data.choices[0].message.content.trim();
-            res.json({ detectedLanguage: "auto", translatedText });
+        // Цикл автоматичного перебору моделей
+        for (const model of CANDIDATE_MODELS) {
+            try {
+                console.log(`Спроба перекладу через модель: ${model}...`);
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: model,
+                        messages: [{ role: "user", content: prompt }]
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.choices && data.choices[0] && data.choices[0].message) {
+                    translatedText = data.choices[0].message.content.trim();
+                    console.log(`Успішно перекладено через модель: ${model}`);
+                    break; // Вдалося перекласти — перериваємо цикл і віддаємо результат
+                } else {
+                    console.warn(`Модель ${model} недоступна (${data.error?.code || 'помилка'}). Переходимо до наступної...`);
+                    lastError = data.error?.message || "Помилка відповіді";
+                }
+            } catch (err) {
+                console.warn(`Помилка запиту до ${model}:`, err.message);
+                lastError = err.message;
+            }
+        }
+
+        if (translatedText) {
+            return res.json({ detectedLanguage: "auto", translatedText });
         } else {
-            console.error("Несподівана відповідь від Groq:", data);
-            res.status(500).json({ error: "Помилка обробки від Groq" });
+            console.error("Усі моделі зі списку повернули помилку.");
+            return res.status(500).json({ error: `Жодна модель не відповіла. Остання помилка: ${lastError}` });
         }
 
     } catch (error) {
