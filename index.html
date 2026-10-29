@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Хабла 2.0 - Синхронний чат</title>
+    <title>Habla</title>
+    <!-- Підключення маніфесту для Android-додатка та іконки -->
+    <link rel="manifest" href="/manifest.json">
     <!-- Підключення клієнтської частини Socket.io -->
     <script src="/socket.io/socket.io.js"></script>
     <style>
@@ -108,7 +110,7 @@
 <div class="card">
     <!-- ЕКРАН АВТОРИЗАЦІЇ (НІКНЕЙМ) -->
     <div id="auth-screen">
-        <h2>Хабла 2.0</h2>
+        <h2>Habla</h2>
         <p style="text-align: center; font-size: 14px; color: #94a3b8;">Введіть ваше унікальне ім'я:</p>
         <input type="text" id="username-input" placeholder="Наприклад: Стас" autocomplete="off">
         <button onclick="registerUser()">Увійти в систему</button>
@@ -199,7 +201,6 @@
             return;
         }
 
-        // Автоматично формуємо унікальну кімнату для двох за їхніми іменами (в алфавітному порядку)
         const names = [myUsername, partner].sort();
         currentRoom = `room_${names[0]}_${names[1]}`;
 
@@ -218,7 +219,6 @@
             return;
         }
 
-        // Відображаємо своє оригінальне повідомлення в чаті
         appendMessage(`Я: ${text}`, 'my-msg');
 
         socket.emit('send-message', {
@@ -236,11 +236,9 @@
         }
     }
 
-    // Отримання перекладеного повідомлення від співрозмовника
     socket.on('receive-message', (data) => {
         playNotificationSound();
 
-        // Змінюємо колір індикатора на синій (сигналізує про нову смс)
         connectionDot.style.backgroundColor = '#3b82f6';
         setTimeout(() => {
             connectionDot.style.backgroundColor = '#22c55e';
@@ -270,7 +268,6 @@
         box.scrollTop = box.scrollHeight;
     }
 
-    // Звукове сповіщення (короткий «пін»)
     function playNotificationSound() {
         try {
             const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
