@@ -30,7 +30,8 @@ app.post('/api/translate', async (req, res) => {
         const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
         
         const completion = await groq.chat.completions.create({
-            model: "qwen/qwen3.8-27b", // Модель із вашого реального списку доступних
+            model: "qwen/qwen3.8-27b",
+            max_tokens: 250, // Жорстко обмежуємо відповідь, щоб не перевищувати ліміт токенів за хвилину
             messages: [
                 { role: "system", content: `Translate the following text to ${targetLanguage}. Return ONLY the translated text without extra comments or quotation marks.` },
                 { role: "user", content: text }
