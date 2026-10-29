@@ -3,415 +3,290 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Habla - Вибір версії додатку</title>
+    <title>Хабла 2.0 - Синхронний чат</title>
+    <!-- Підключення клієнтської частини Socket.io -->
+    <script src="/socket.io/socket.io.js"></script>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        }
         body {
-            background-color: #0b0f12;
-            color: #ffffff;
+            font-family: Arial, sans-serif;
+            background: #0f172a;
+            color: #f8fafc;
+            margin: 0;
+            padding: 20px;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            overflow: hidden;
+            box-sizing: border-box;
         }
-        .container {
-            text-align: center;
-            background: #121619;
-            padding: 40px;
-            border-radius: 20px;
-            border: 1px solid #1a2228;
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8);
-            max-width: 450px;
-            width: 90%;
-        }
-        h1 {
-            font-size: 28px;
-            color: #ffffff;
-            margin-bottom: 10px;
-        }
-        p {
-            font-size: 14px;
-            color: #8c9ba5;
-            margin-bottom: 30px;
-        }
-        .btn-group {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-        .download-btn {
-            background: #182026;
-            color: #00e5ff;
-            border: 2px solid #00e5ff;
-            padding: 14px 20px;
+        .card {
+            background: #1e293b;
+            padding: 20px;
             border-radius: 12px;
-            font-size: 16px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+        }
+        h2 {
+            margin-top: 0;
+            text-align: center;
+            color: #38bdf8;
+        }
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            border: 1px solid #475569;
+            background: #0f172a;
+            color: #fff;
+            box-sizing: border-box;
+        }
+        button {
+            background: #3b82f6;
+            border: none;
             font-weight: bold;
             cursor: pointer;
-            transition: 0.2s;
-            text-decoration: none;
-            display: block;
-            box-shadow: 0 0 15px rgba(0, 229, 255, 0.15);
         }
-        .download-btn:hover {
-            background: #00e5ff;
-            color: #121619;
-            box-shadow: 0 0 25px rgba(0, 229, 255, 0.4);
-            transform: scale(1.02);
+        button:hover {
+            background: #2563eb;
+        }
+        .hidden {
+            display: none !important;
+        }
+        .chat-box {
+            height: 260px;
+            overflow-y: auto;
+            border: 1px solid #475569;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            background: #0f172a;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .message {
+            padding: 8px 12px;
+            border-radius: 6px;
+            max-width: 85%;
+            font-size: 14px;
+            word-break: break-word;
+        }
+        .my-msg {
+            background: #1d4ed8;
+            align-self: flex-end;
+        }
+        .partner-msg {
+            background: #334155;
+            align-self: flex-start;
+        }
+        .status-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 15px;
+            font-size: 13px;
+        }
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #ef4444;
+            display: inline-block;
+        }
+        .error-text {
+            color: #f87171;
+            font-size: 12px;
+            text-align: center;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Habla Messenger</h1>
-        <p>Оберіть версію для вашого пристрою:</p>
-        <div class="btn-group">
-            <a href="desktop.html" class="download-btn">💻 Версія для ПК (Desktop)</a>
-            <a href="mobile.html" class="download-btn">📱 Версія для Android (Мобільна)</a>
-        </div>
+
+<div class="card">
+    <!-- ЕКРАН АВТОРИЗАЦІЇ (НІКНЕЙМ) -->
+    <div id="auth-screen">
+        <h2>Хабла 2.0</h2>
+        <p style="text-align: center; font-size: 14px; color: #94a3b8;">Введіть ваше унікальне ім'я:</p>
+        <input type="text" id="username-input" placeholder="Наприклад: Стас" autocomplete="off">
+        <button onclick="registerUser()">Увійти в систему</button>
+        <div id="auth-error" class="error-text"></div>
     </div>
-</body>
-</html>
-```[cite: 14]
 
----
+    <!-- ЕКРАН МЕСЕНДЖЕРА -->
+    <div id="chat-screen" class="hidden">
+        <div class="status-bar">
+            <span id="connection-dot" class="dot"></span>
+            <span id="status-text">Підключення...</span>
+        </div>
 
-### 2. Файл `desktop.html`
-*(Десктопна версія без зайвих сервісів та з прямим підключенням до вашого бекенду)*[cite: 13]
-
-```html
-<!DOCTYPE html>
-<html lang="uk">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Habla - Desktop Version</title>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        body, html { width: 100%; height: 100%; background-color: #0b0f12; color: #ffffff; overflow: hidden; }
-        .app-container { width: 100vw; height: 100vh; background-color: #121619; display: flex; overflow: hidden; }
-        .sidebar { width: 380px; background-color: #121619; border-right: 1px solid #1a2228; display: flex; flex-direction: column; }
-        .sidebar-header { padding: 20px; border-bottom: 1px solid #1a2228; display: flex; align-items: center; justify-content: space-between; }
-        .sidebar-header h2 { font-size: 20px; color: #ffffff; }
-        .back-link { color: #00e5ff; text-decoration: none; font-size: 14px; }
-        .search-box { padding: 15px 20px; }
-        .search-box input { width: 100%; background: #182026; border: 1px solid #222b32; padding: 10px 14px; border-radius: 10px; color: white; outline: none; }
-        .chats-list { flex: 1; overflow-y: auto; }
-        .chat-item { padding: 15px 20px; display: flex; align-items: center; gap: 15px; background-color: #161d22; border-left: 4px solid #00e5ff; }
-        .avatar { width: 48px; height: 48px; background: #222b32; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #00e5ff; }
-        .chat-info h4 { font-size: 15px; color: #ffffff; }
-        .chat-info p { font-size: 13px; color: #8c9ba5; margin-top: 3px; }
-        .chat-main { flex: 1; display: flex; flex-direction: column; background-color: #0e1215; }
-        .header { display: flex; align-items: center; justify-content: space-between; padding: 18px 25px; background-color: #121619; border-bottom: 1px solid #1a2228; }
-        .header-info h3 { font-size: 18px; font-weight: 600; }
-        .header-info p { font-size: 12px; color: #8c9ba5; }
-        .lang-select { background: #182026; color: #00e5ff; border: 1px solid #00e5ff55; padding: 8px 14px; border-radius: 8px; outline: none; cursor: pointer; }
-        .chat-messages { flex: 1; padding: 25px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; }
-        .message { max-width: 70%; padding: 14px 18px; border-radius: 16px; font-size: 15px; line-height: 1.5; word-wrap: break-word; }
-        .message.incoming { background-color: #182026; border: 1px solid #00e5ff44; align-self: flex-start; }
-        .message.outgoing { background-color: #1a2228; border: 1px solid #00e5ff; align-self: flex-end; }
-        .footer { padding: 20px 25px; background-color: #121619; border-top: 1px solid #1a2228; display: flex; flex-direction: column; align-items: center; gap: 12px; }
-        .input-box { width: 100%; display: flex; background: #182026; border: 1px solid #00e5ff; border-radius: 12px; padding: 10px 15px; align-items: center; }
-        .input-box input { flex: 1; background: transparent; border: none; color: white; font-size: 15px; outline: none; }
-        .send-btn { background: transparent; border: none; color: #00e5ff; font-size: 20px; cursor: pointer; padding: 0 6px; }
-        .mic-container { display: flex; flex-direction: column; align-items: center; gap: 6px; }
-        .mic-label { font-size: 12px; color: #8c9ba5; }
-        .mic-btn { width: 60px; height: 60px; background: #182026; border: 2px solid #00e5ff; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 0 18px rgba(0, 229, 255, 0.25); }
-        .mic-btn.recording { background: #00e5ff; }
-        .mic-btn.recording .mic-icon { color: #121619; }
-        .mic-icon { font-size: 24px; color: #00e5ff; }
-    </style>
-</head>
-<body>
-    <div class="app-container">
-        <div class="sidebar">
-            <div class="sidebar-header">
-                <h2>Habla [ПК]</h2>
-                <a href="index.html" class="back-link">← Головна</a>
-            </div>
-            <div class="search-box"><input type="text" placeholder="Search chats..."></div>
-            <div class="chats-list">
-                <div class="chat-item">
-                    <div class="avatar">D</div>
-                    <div class="chat-info"><h4>David</h4><p>Good Day! How are you?</p></div>
-                </div>
+        <div style="margin-bottom: 10px;">
+            <label style="font-size: 12px; color: #94a3b8;">З ким створити чат (ім'я друга):</label>
+            <div style="display: flex; gap: 5px;">
+                <input type="text" id="partner-input" placeholder="Ім'я співрозмовника" style="margin-top: 5px; margin-bottom: 0;">
+                <button onclick="connectToRoom()" style="margin-top: 5px; width: 110px;">З'єднатися</button>
             </div>
         </div>
-        <div class="chat-main">
-            <div class="header">
-                <div class="header-info"><h3>Habla Desktop</h3><p>David</p></div>
-                <select id="targetLang" class="lang-select">
-                    <option value="English">English</option>
-                    <option value="Ukrainian">Ukrainian</option>
-                    <option value="Spanish" selected>Spanish</option>
-                    <option value="German">German</option>
-                    <option value="French">French</option>
-                </select>
-            </div>
-            <div class="chat-messages" id="chatMessages">
-                <div class="message incoming">¡Hola! ¿Cómo estás?</div>
-                <div class="message outgoing">Привіт, як справи?</div>
-            </div>
-            <div class="footer">
-                <div class="input-box">
-                    <input type="text" id="userInput" placeholder="Введіть текст або натисніть мікрофон...">
-                    <button class="send-btn" id="sendBtn">➤</button>
-                </div>
-                <div class="mic-container">
-                    <span class="mic-label" id="micStatus">Натисніть мікрофон для запису...</span>
-                    <button class="mic-btn" id="micBtn"><span class="mic-icon">🎙</span></button>
-                </div>
-            </div>
-        </div>
-    </div>
-    <script>
-        const BACKEND_URL = "https://habla-backend-ipqk.onrender.com/api/translate";
-        let isRecording = false, recognition = null;
-        const inputField = document.getElementById('userInput');
-        const sendBtn = document.getElementById('sendBtn');
-        const chatMessages = document.getElementById('chatMessages');
-        const targetLang = document.getElementById('targetLang');
-        const micBtn = document.getElementById('micBtn');
-        const micStatus = document.getElementById('micStatus');
 
-        async function sendMessage() {
-            const text = inputField.value.trim();
-            const lang = targetLang.value;
-            if (!text) return;
-
-            appendMessage(text, 'outgoing');
-            inputField.value = '';
-
-            const loadingId = appendMessage("Обробка...", 'incoming');
-
-            try {
-                const response = await fetch(BACKEND_URL, { 
-                    method: 'POST', 
-                    headers: { 'Content-Type': 'application/json' }, 
-                    body: JSON.stringify({ text: text, targetLanguage: lang }) 
-                });
-
-                if (loadingId) loadingId.remove();
-
-                if (response.ok) {
-                    const data = await response.json();
-                    appendMessage(data.translatedText, 'incoming');
-                } else { 
-                    appendMessage("Помилка сервера при обробці.", 'incoming'); 
-                }
-            } catch (error) {
-                if (loadingId) loadingId.remove();
-                appendMessage("Помилка мережі.", 'incoming'); 
-            }
-        }
-
-        function appendMessage(text, type) {
-            const msgDiv = document.createElement('div'); 
-            msgDiv.className = `message ${type}`; 
-            msgDiv.innerText = text;
-            chatMessages.appendChild(msgDiv); 
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-            return msgDiv;
-        }
-
-        sendBtn.addEventListener('click', sendMessage);
-        inputField.addEventListener('keypress', e => { if (e.key === 'Enter') sendMessage(); });
-
-        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            recognition = new SpeechRecognition(); recognition.continuous = true; recognition.interimResults = true;
-            recognition.onresult = e => {
-                let t = ''; for (let i = e.resultIndex; i < e.results.length; i++) t += e.results[i][0].transcript;
-                inputField.value = t;
-            };
-            recognition.onerror = () => stopRec(); recognition.onend = () => stopRec();
-        }
-
-        micBtn.addEventListener('click', () => {
-            if (!recognition) { alert("Використовуйте Google Chrome."); return; }
-            if (!isRecording) {
-                recognition.lang = 'uk-UA';
-                recognition.start(); isRecording = true; micBtn.classList.add('recording');
-                micStatus.innerText = "Йде запис... Натисніть знову, щоб зупинити.";
-            } else { recognition.stop(); stopRec(); }
-        });
-
-        function stopRec() {
-            isRecording = false; micBtn.classList.remove('recording');
-            micStatus.innerText = "Записано! Натисніть стрілочку ➔ для відправки.";
-        }
-    </script>
-</body>
-</html>
-```[cite: 13]
-
----
-
-### 3. Файл `mobile.html`
-*(Мобільна версія для Android без сторонніх гальмівних сервісів)*[cite: 15]
-
-```html
-<!DOCTYPE html>
-<html lang="uk">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Habla - Mobile Version</title>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        body, html { width: 100%; height: 100%; background-color: #0b0f12; color: #ffffff; overflow: hidden; }
-        .app-container { width: 100vw; height: 100vh; height: 100dvh; background-color: #121619; display: flex; flex-direction: column; overflow: hidden; }
-        
-        .header { display: flex; align-items: center; justify-content: space-between; padding: 10px 15px; background-color: #121619; border-bottom: 1px solid #1a2228; flex-shrink: 0; }
-        .back-link { color: #00e5ff; text-decoration: none; font-size: 20px; }
-        .header-info { text-align: center; }
-        .header-info h3 { font-size: 15px; font-weight: 600; }
-        .header-info p { font-size: 11px; color: #8c9ba5; }
-        .lang-select { background: #182026; color: #00e5ff; border: 1px solid #00e5ff55; padding: 4px 8px; border-radius: 8px; outline: none; font-size: 13px; }
-        
-        .chat-messages { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
-        .message { max-width: 85%; padding: 10px 14px; border-radius: 14px; font-size: 14px; line-height: 1.4; word-wrap: break-word; }
-        .message.incoming { background-color: #182026; border: 1px solid #00e5ff44; align-self: flex-start; }
-        .message.outgoing { background-color: #1a2228; border: 1px solid #00e5ff; align-self: flex-end; }
-        
-        .footer { padding: 10px 15px 25px 15px; background-color: #121619; border-top: 1px solid #1a2228; display: flex; flex-direction: column; align-items: center; gap: 10px; flex-shrink: 0; }
-        .input-box { width: 100%; display: flex; background: #182026; border: 1px solid #00e5ff; border-radius: 12px; padding: 6px 10px; align-items: center; }
-        .input-box input { flex: 1; background: transparent; border: none; color: white; font-size: 14px; outline: none; }
-        .send-btn { background: transparent; border: none; color: #00e5ff; font-size: 22px; cursor: pointer; padding: 10px; min-width: 44px; min-height: 44px; display: flex; align-items: center; justify-content: center; }
-        
-        .mic-container { display: flex; flex-direction: column; align-items: center; gap: 4px; margin-bottom: 5px; }
-        .mic-label { font-size: 11px; color: #8c9ba5; }
-        .mic-btn { width: 54px; height: 54px; background: #182026; border: 2px solid #00e5ff; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 0 15px rgba(0, 229, 255, 0.3); }
-        .mic-btn.recording { background: #00e5ff; }
-        .mic-btn.recording .mic-icon { color: #121619; }
-        .mic-icon { font-size: 22px; color: #00e5ff; }
-    </style>
-</head>
-<body>
-    <div class="app-container">
-        <div class="header">
-            <a href="index.html" class="back-link">←</a>
-            <div class="header-info"><h3>Habla Mobile</h3><p>David</p></div>
-            <select id="targetLang" class="lang-select">
-                <option value="English">English</option>
-                <option value="Ukrainian">Ukrainian</option>
-                <option value="Spanish" selected>Spanish</option>
-                <option value="German">German</option>
-                <option value="French">French</option>
+        <div style="margin-bottom: 10px;">
+            <label style="font-size: 12px; color: #94a3b8;">Мова перекладу для співрозмовника:</label>
+            <select id="target-lang">
+                <option value="English">English (Англійська)</option>
+                <option value="Ukrainian">Ukrainian (Українська)</option>
+                <option value="Spanish">Spanish (Іспанська)</option>
+                <option value="German">German (Німецька)</option>
+                <option value="French">French (Французька)</option>
             </select>
         </div>
-        <div class="chat-messages" id="chatMessages">
-            <div class="message incoming">¡Hola! ¿Cómo estás?</div>
-            <div class="message outgoing">Привіт, як справи?</div>
-        </div>
-        <div class="footer">
-            <div class="input-box">
-                <input type="text" id="userInput" placeholder="Введіть текст або мікрофон...">
-                <button class="send-btn" id="sendBtn" title="Надіслати">➤</button>
-            </div>
-            <div class="mic-container">
-                <span class="mic-label" id="micStatus">Натисніть мікрофон для запису...</span>
-                <button class="mic-btn" id="micBtn" title="Голосовий ввід"><span class="mic-icon">🎙</span></button>
-            </div>
+
+        <div id="chat-messages" class="chat-box"></div>
+
+        <div style="display: flex; gap: 5px;">
+            <input type="text" id="message-input" placeholder="Введіть текст..." style="margin: 0;" onkeypress="handleKeyPress(event)">
+            <button onclick="sendMessage()" style="margin: 0; width: 85px;">Надіслати</button>
         </div>
     </div>
-    <script>
-        const BACKEND_URL = "https://habla-backend-ipqk.onrender.com/api/translate";
-        let isRecording = false, recognition = null;
-        const inputField = document.getElementById('userInput');
-        const sendBtn = document.getElementById('sendBtn');
-        const chatMessages = document.getElementById('chatMessages');
-        const targetLang = document.getElementById('targetLang');
-        const micBtn = document.getElementById('micBtn');
-        const micStatus = document.getElementById('micStatus');
+</div>
 
-        async function sendMessage() {
-            const text = inputField.value.trim();
-            const lang = targetLang.value;
-            
-            if (!text) return;
-            
-            appendMessage(text, 'outgoing');
-            inputField.value = '';
+<script>
+    const socket = io();
+    let myUsername = '';
+    let currentRoom = '';
 
-            const loadingId = appendMessage("Обробка...", 'incoming');
+    const connectionDot = document.getElementById('connection-dot');
+    const statusText = document.getElementById('status-text');
 
-            try {
-                const response = await fetch(BACKEND_URL, { 
-                    method: 'POST', 
-                    headers: { 'Content-Type': 'application/json' }, 
-                    body: JSON.stringify({ text: text, targetLanguage: lang }) 
-                });
+    socket.on('connect', () => {
+        connectionDot.style.backgroundColor = '#22c55e';
+        statusText.innerText = 'Сервер активний';
+    });
 
-                if (loadingId) loadingId.remove();
+    socket.on('disconnect', () => {
+        connectionDot.style.backgroundColor = '#ef4444';
+        statusText.innerText = 'Зв\'язок втрачено...';
+    });
 
-                if (response.ok) {
-                    const data = await response.json();
-                    appendMessage(data.translatedText, 'incoming');
-                } else { 
-                    appendMessage("Помилка сервера при обробці.", 'incoming'); 
-                }
-            } catch (err) {
-                if (loadingId) loadingId.remove();
-                appendMessage("Помилка з'єднання з сервером.", 'incoming');
-            }
+    function registerUser() {
+        const username = document.getElementById('username-input').value.trim();
+        const errorDiv = document.getElementById('auth-error');
+
+        if (!username) {
+            errorDiv.innerText = "Будь ласка, введіть ім'я!";
+            return;
         }
 
-        function appendMessage(text, type) {
-            const msgDiv = document.createElement('div'); 
-            msgDiv.className = `message ${type}`; 
-            msgDiv.innerText = text;
-            chatMessages.appendChild(msgDiv); 
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-            return msgDiv;
-        }
-
-        sendBtn.addEventListener('click', (e) => { e.preventDefault(); sendMessage(); });
-        sendBtn.addEventListener('touchend', (e) => { e.preventDefault(); sendMessage(); });
-        inputField.addEventListener('keypress', e => { if (e.key === 'Enter') sendMessage(); });
-
-        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            recognition = new SpeechRecognition(); 
-            recognition.continuous = true; 
-            recognition.interimResults = true;
-            
-            recognition.onresult = e => {
-                let t = ''; 
-                for (let i = e.resultIndex; i < e.results.length; i++) {
-                    t += e.results[i][0].transcript;
-                }
-                inputField.value = t;
-            };
-            recognition.onerror = () => stopRec(); 
-            recognition.onend = () => stopRec();
-        }
-
-        micBtn.addEventListener('click', () => {
-            if (!recognition) { alert("Використовуйте Google Chrome."); return; }
-            if (!isRecording) {
-                recognition.lang = 'uk-UA';
-                recognition.start(); 
-                isRecording = true; 
-                micBtn.classList.add('recording');
-                micStatus.innerText = "Йде запис... Говоріть. Натисніть знову, щоб зупинити.";
-            } else { 
-                recognition.stop(); 
-                stopRec(); 
+        socket.emit('register-username', username, (response) => {
+            if (response.success) {
+                myUsername = username;
+                document.getElementById('auth-screen').classList.add('hidden');
+                document.getElementById('chat-screen').classList.remove('hidden');
+            } else {
+                errorDiv.innerText = response.message;
             }
         });
+    }
 
-        function stopRec() {
-            isRecording = false; 
-            micBtn.classList.remove('recording');
-            micStatus.innerText = "Записано! Натисніть стрілочку ➔ для відправки.";
+    function connectToRoom() {
+        const partner = document.getElementById('partner-input').value.trim();
+        if (!partner) {
+            alert("Будь ласка, введіть ім'я співрозмовника!");
+            return;
         }
-    </script>
+        if (partner === myUsername) {
+            alert("Не можна створювати чат із самим собою!");
+            return;
+        }
+
+        // Автоматично формуємо унікальну кімнату для двох за їхніми іменами (в алфавітному порядку)
+        const names = [myUsername, partner].sort();
+        currentRoom = `room_${names[0]}_${names[1]}`;
+
+        socket.emit('join-room', currentRoom);
+        appendSystemMessage(`Створено приватний чат із користувачем: ${partner}`);
+    }
+
+    function sendMessage() {
+        const textInput = document.getElementById('message-input');
+        const text = textInput.value.trim();
+        const targetLang = document.getElementById('target-lang').value;
+
+        if (!text) return;
+        if (!currentRoom) {
+            alert("Спершу введіть ім'я співрозмовника та натисніть «З'єднатися»!");
+            return;
+        }
+
+        // Відображаємо своє оригінальне повідомлення в чаті
+        appendMessage(`Я: ${text}`, 'my-msg');
+
+        socket.emit('send-message', {
+            room: currentRoom,
+            text: text,
+            targetLanguage: targetLang
+        });
+
+        textInput.value = '';
+    }
+
+    function handleKeyPress(e) {
+        if (e.key === 'Enter') {
+            sendMessage();
+        }
+    }
+
+    // Отримання перекладеного повідомлення від співрозмовника
+    socket.on('receive-message', (data) => {
+        playNotificationSound();
+
+        // Змінюємо колір індикатора на синій (сигналізує про нову смс)
+        connectionDot.style.backgroundColor = '#3b82f6';
+        setTimeout(() => {
+            connectionDot.style.backgroundColor = '#22c55e';
+        }, 3000);
+
+        appendMessage(`${data.sender}: ${data.translatedText}`, 'partner-msg');
+    });
+
+    function appendMessage(text, className) {
+        const box = document.getElementById('chat-messages');
+        const div = document.createElement('div');
+        div.className = `message ${className}`;
+        div.innerText = text;
+        box.appendChild(div);
+        box.scrollTop = box.scrollHeight;
+    }
+
+    function appendSystemMessage(text) {
+        const box = document.getElementById('chat-messages');
+        const div = document.createElement('div');
+        div.style.textAlign = 'center';
+        div.style.color = '#94a3b8';
+        div.style.fontSize = '12px';
+        div.style.margin = '5px 0';
+        div.innerText = text;
+        box.appendChild(div);
+        box.scrollTop = box.scrollHeight;
+    }
+
+    // Звукове сповіщення (короткий «пін»)
+    function playNotificationSound() {
+        try {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.15);
+        } catch (e) {
+            console.log("Аудіо заблоковано браузером до першої взаємодії");
+        }
+    }
+</script>
 </body>
 </html>
