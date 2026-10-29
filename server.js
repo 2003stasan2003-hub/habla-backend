@@ -56,7 +56,7 @@ async function translateText(text, targetLanguage) {
     }
 }
 
-// HTTP ендпоінт для сумісності зі звичайними запитами перекладу
+// HTTP ендпоінт для сумісності
 app.post('/api/translate', async (req, res) => {
     try {
         const { text, targetLanguage } = req.body;
@@ -70,7 +70,7 @@ app.post('/api/translate', async (req, res) => {
     }
 });
 
-// Зберігаємо список активних нікнеймів у пам'яті сервера (захист від однакових імен типу "Стас")
+// Зберігаємо список активних нікнеймів у пам'яті сервера (захист від однакових імен)
 const activeUsers = new Set();
 
 io.on('connection', (socket) => {
@@ -85,13 +85,11 @@ io.on('connection', (socket) => {
         const cleanName = username.trim();
         
         if (activeUsers.has(cleanName)) {
-            // Ім'я вже зайняте іншим користувачем
             callback({ 
                 success: false, 
                 message: `Ім'я "${cleanName}" вже зайняте! Спробуйте інше, наприклад, "${cleanName}_01"` 
             });
         } else {
-            // Ім'я вільне, реєструємо
             activeUsers.add(cleanName);
             socket.username = cleanName;
             console.log(`Користувач успішно зареєстрований під ніком: ${cleanName}`);
@@ -105,16 +103,14 @@ io.on('connection', (socket) => {
         console.log(`Користувач [${socket.username || socket.id}] зайшов у кімнату: ${room}`);
     });
 
-    // Отримання повідомлення, переклад на льоту і розсилка в кімнату
+    // Отримання повідомлення, переклад і розсилка в кімнату
     socket.on('send-message', async (data) => {
         try {
             const { room, text, targetLanguage } = data;
             if (!text || !room) return;
 
-            // Перекладаємо текст через Groq API
             const translatedText = await translateText(text, targetLanguage);
 
-            // Надсилаємо перекладене повідомлення іншим учасникам кімнати
             socket.to(room).emit('receive-message', {
                 sender: socket.username || "Співрозмовник",
                 originalText: text,
@@ -127,7 +123,6 @@ io.on('connection', (socket) => {
         }
     });
 
-    // Очищення нікнейму при відключенні користувача
     socket.on('disconnect', () => {
         if (socket.username) {
             activeUsers.delete(socket.username);
