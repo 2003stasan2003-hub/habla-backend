@@ -6,10 +6,10 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Роздаємо статичні файли
+// Роздаємо статичні файли (index.html, desktop.html, mobile.html)
 app.use(express.static(path.join(__dirname)));
 
-// Простий шлях перевірки, щоб Render бачив, що сервер живий
+// Перевірка працездатності сервера
 app.get('/health', (req, res) => {
     res.status(200).send('OK');
 });
@@ -22,33 +22,39 @@ app.post('/api/translate', async (req, res) => {
             return res.status(400).json({ error: "Текст відсутній" });
         }
 
-        const apiKey = process.env.GEMINI_API_KEY;
+        // Беремо ключ Groq із налаштувань Render
+        const apiKey = process.env.GROQ_API_KEY;
         if (!apiKey) {
-            console.error("Помилка: GEMINI_API_KEY не знайдено в Environment!");
-            return res.status(500).json({ error: "Ключ API не налаштовано на сервері" });
+            console.error("Помилка: GROQ_API_KEY не знайдено в Environment!");
+            return res.status(500).json({ error: "API ключ Groq не налаштовано на сервері" });
         }
 
         const targetLang = targetLanguage || 'English';
-        const prompt = `Translate the following text into ${targetLang}. Return ONLY the translated text without any formatting, quotes, or notes:\n\n${text}`;
+        const prompt = `Translate the following text into ${targetLang}. Return ONLY the translated text without any formatting, quotes, or markdown:\n\n${text}`;
 
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+        // Офіційний endpoint від Groq API
+        const url = `https://api.groq.com/openai/v1/chat/completions`;
         
         const response = await fetch(url, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+            },
             body: JSON.stringify({
-                contents: [{ parts: [{ text: prompt }] }]
+                model: "llama-3.3-70b-versatile",
+                messages: [{ role: "user", content: prompt }]
             })
         });
 
         const data = await response.json();
 
-        if (data.candidates && data.candidates[0].content.parts[0].text) {
-            const translatedText = data.candidates[0].content.parts[0].text.trim();
+        if (data.choices && data.choices[0].message && data.choices[0].message.content) {
+            const translatedText = data.choices[0].message.content.trim();
             res.json({ detectedLanguage: "auto", translatedText });
         } else {
-            console.error("Несподівана відповідь від Gemini:", data);
-            res.status(500).json({ error: "Помилка обробки від Gemini" });
+            console.error("Несподівана відповідь від Groq:", data);
+            res.status(500).json({ error: "Помилка обробки від Groq" });
         }
 
     } catch (error) {
