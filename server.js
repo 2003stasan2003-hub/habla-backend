@@ -6,7 +6,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Роздаємо статичні файли
+// Роздаємо статичні файли (index.html, desktop.html, mobile.html)
 app.use(express.static(path.join(__dirname)));
 
 // Перевірка працездатності сервера
@@ -40,7 +40,7 @@ app.post('/api/translate', async (req, res) => {
                 'Authorization': `Bearer ${apiKey}`
             },
             body: JSON.stringify({
-                model: "llama-3.1-8b-instant",
+                model: "llama-3.2-3b-preview",
                 messages: [{ role: "user", content: prompt }]
             })
         });
