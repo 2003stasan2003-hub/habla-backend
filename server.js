@@ -44,7 +44,6 @@ app.post('/api/translate', async (req, res) => {
         const Groq = require('groq-sdk');
         const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
         
-        // Поки що використовуємо базову модель, але логи покажуть точну правду
         const completion = await groq.chat.completions.create({
             model: "llama-3.1-8b-instant", 
             messages: [
@@ -56,7 +55,7 @@ app.post('/api/translate', async (req, res) => {
         const translatedText = completion.choices[0]?.message?.content?.trim() || text;
         res.json({ translatedText });
 
-    }, catch (err) {
+    } catch (err) { // Виправлено: прибрано зайву кому перед catch
         console.error("Помилка перекладу Groq:", err);
         res.status(500).json({ error: "Помилка перекладу на сервері" });
     }
