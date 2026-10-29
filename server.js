@@ -30,7 +30,7 @@ app.post('/api/translate', async (req, res) => {
         const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
         
         const completion = await groq.chat.completions.create({
-            model: "llama-3.1-8b-instant", // Актуальна робоча модель Groq
+            model: "llama3-8b-8192", // Наступна модель для перевірки
             messages: [
                 { role: "system", content: `Translate the following text to ${targetLanguage}. Return ONLY the translated text without extra comments or quotation marks.` },
                 { role: "user", content: text }
