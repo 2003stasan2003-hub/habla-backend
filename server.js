@@ -9,7 +9,7 @@ const io = new Server(server);
 // Обов'язково для читання JSON у POST-запитах від мобільного додатка
 app.use(express.json());
 
-// Роздача статичних файлів (HTML, іконка, маніфест) з кореня
+// Роздача статичних файлів з кореня
 app.use(express.static(__dirname));
 
 const PORT = process.env.PORT || 10000;
@@ -21,25 +21,29 @@ app.post('/api/translate', async (req, res) => {
         return res.status(400).json({ error: "Текст не вказано" });
     }
 
-    let translatedText = text;
     try {
-        if (process.env.GROQ_API_KEY) {
-            const Groq = require('groq-sdk');
-            const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
-            const completion = await groq.chat.completions.create({
-                model: "openai/gpt-oss-20b",
-                messages: [
-                    { role: "system", content: `Translate the following text to ${targetLanguage}. Return ONLY the translated text without extra comments.` },
-                    { role: "user", content: text }
-                ]
-            });
-            translatedText = completion.choices[0]?.message?.content || text;
+        if (!process.env.GROQ_API_KEY) {
+            return res.status(500).json({ error: "GROQ_API_KEY не налаштовано на сервері" });
         }
+
+        const Groq = require('groq-sdk');
+        const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+        
+        const completion = await groq.chat.completions.create({
+            model: "llama-3.3-70b-versatile", // Стабільна та робоча модель Groq
+            messages: [
+                { role: "system", content: `Translate the following text to ${targetLanguage}. Return ONLY the translated text without extra comments or quotation marks.` },
+                { role: "user", content: text }
+            ]
+        });
+
+        const translatedText = completion.choices[0]?.message?.content?.trim() || text;
+        res.json({ translatedText });
+
     } catch (err) {
         console.error("Помилка перекладу Groq:", err);
+        res.status(500).json({ error: "Помилка перекладу на сервері" });
     }
-
-    res.json({ translatedText });
 });
 
 // Зберігаємо зареєстровані унікальні нікнейми
