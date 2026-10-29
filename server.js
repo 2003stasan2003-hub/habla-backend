@@ -30,7 +30,7 @@ app.post('/api/translate', async (req, res) => {
         const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
         
         const completion = await groq.chat.completions.create({
-            model: "llama3-70b-8192", // Оригінальна модель Habla 2.0, сумісна з вашим ключем
+            model: "llama-3.1-70b-versatile", // Актуальна робоча модель Groq на заміну застарілої
             messages: [
                 { role: "system", content: `Translate the following text to ${targetLanguage}. Return ONLY the translated text without extra comments or quotation marks.` },
                 { role: "user", content: text }
