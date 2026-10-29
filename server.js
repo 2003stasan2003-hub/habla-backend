@@ -6,13 +6,28 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-// Обов'язково для читання JSON у POST-запитах від мобільного додатка
 app.use(express.json());
-
-// Роздача статичних файлів з кореня
 app.use(express.static(__dirname));
 
 const PORT = process.env.PORT || 10000;
+
+// Функція для автоматичного сканування доступних моделей для вашого ключа
+async function logAvailableModels() {
+    try {
+        if (!process.env.GROQ_API_KEY) return;
+        const Groq = require('groq-sdk');
+        const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+        const models = await groq.models.list();
+        console.log("=== ДОСТУПНІ МОДЕЛІ ДЛЯ ВАШОГО КЛЮЧА ===");
+        models.data.forEach(m => console.log(`- ${m.id}`));
+        console.log("========================================");
+    } catch (err) {
+        console.error("Не вдалося отримати список моделей:", err.message);
+    }
+}
+
+// Запускаємо перевірку при старті сервера
+logAvailableModels();
 
 // API маршрут для перекладу на льоту
 app.post('/api/translate', async (req, res) => {
@@ -29,8 +44,9 @@ app.post('/api/translate', async (req, res) => {
         const Groq = require('groq-sdk');
         const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
         
+        // Поки що використовуємо базову модель, але логи покажуть точну правду
         const completion = await groq.chat.completions.create({
-            model: "llama-3.1-8b-instant", // Актуальна модель для нового ключа
+            model: "llama-3.1-8b-instant", 
             messages: [
                 { role: "system", content: `Translate the following text to ${targetLanguage}. Return ONLY the translated text without extra comments or quotation marks.` },
                 { role: "user", content: text }
@@ -40,18 +56,15 @@ app.post('/api/translate', async (req, res) => {
         const translatedText = completion.choices[0]?.message?.content?.trim() || text;
         res.json({ translatedText });
 
-    } catch (err) {
+    }, catch (err) {
         console.error("Помилка перекладу Groq:", err);
         res.status(500).json({ error: "Помилка перекладу на сервері" });
     }
 });
 
-// Зберігаємо зареєстровані унікальні нікнейми
 const registeredUsers = new Set();
 
 io.on('connection', (socket) => {
-    console.log('Користувач підключився:', socket.id);
-
     socket.on('register-username', (username, callback) => {
         if (!username || typeof username !== 'string') {
             return callback({ success: false, message: "Некоректне ім'я!" });
@@ -73,7 +86,6 @@ io.on('connection', (socket) => {
         if (socket.username) {
             registeredUsers.delete(socket.username);
         }
-        console.log('Користувач відключився:', socket.id);
     });
 });
 
