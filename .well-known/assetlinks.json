@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "com.onrender.habla_backend_ipqk.twa",
+        "sha256_cert_fingerprints": ["68:D8:99:34:23:1F:68:66:B2:84:13:4E:E1:D9:69:11:EA:F6:E5:B0:FC:D9:E0:36:AD:96:AE:F3:41:21:BC:5C"]
+      }
+    }]
