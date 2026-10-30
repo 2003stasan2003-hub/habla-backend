@@ -9,12 +9,13 @@
         body, html { width: 100%; height: 100%; background-color: #0b0f12; color: #ffffff; overflow: hidden; }
         .app-container { width: 100vw; height: 100vh; height: 100dvh; background-color: #121619; display: flex; flex-direction: column; overflow: hidden; }
         
-        .header { display: flex; align-items: center; justify-content: space-between; padding: 10px 15px; background-color: #121619; border-bottom: 1px solid #1a2228; flex-shrink: 0; }
+        .header { display: flex; align-items: center; justify-content: space-between; padding: 10px 15px; background-color: #121619; border-bottom: 1px solid #1a2228; flex-shrink: 0; gap: 8px; }
         .back-link { color: #00e5ff; text-decoration: none; font-size: 20px; }
-        .header-info { text-align: center; }
+        .header-info { text-align: center; flex: 1; }
         .header-info h3 { font-size: 15px; font-weight: 600; }
         .header-info p { font-size: 11px; color: #8c9ba5; }
-        .lang-select { background: #182026; color: #00e5ff; border: 1px solid #00e5ff55; padding: 4px 8px; border-radius: 8px; outline: none; font-size: 13px; max-width: 130px; }
+        .settings-btn { background: transparent; border: none; color: #00e5ff; font-size: 18px; cursor: pointer; padding: 4px; }
+        .lang-select { background: #182026; color: #00e5ff; border: 1px solid #00e5ff55; padding: 4px 8px; border-radius: 8px; outline: none; font-size: 13px; max-width: 120px; }
         
         .chat-messages { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
         .message { max-width: 85%; padding: 10px 14px; border-radius: 14px; font-size: 14px; line-height: 1.4; word-wrap: break-word; }
@@ -35,13 +36,24 @@
     </style>
 </head>
 <body>
-    <!-- Модальне вікно для введення нікнейму -->
+    <!-- Модальне вікно для первинного введення нікнейму -->
     <div id="nicknameModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; display:flex; align-items:center; justify-content:center;">
         <div style="background:#121619; padding:25px; border-radius:12px; width:90%; max-width:320px; text-align:center; border: 1px solid #00e5ff;">
             <h3 style="color:#fff; margin-bottom:15px; font-family:sans-serif;">Введіть ваш нікнейм</h3>
             <p style="color:#8c9ba5; font-size:13px; margin-bottom:20px; font-family:sans-serif;">Це необхідно для ідентифікації тестувальника.</p>
             <input type="text" id="nicknameInput" placeholder="Ваш нікнейм..." style="width:100%; padding:10px; border-radius:6px; border:1px solid #00e5ff55; background:#182026; color:#fff; font-size:16px; box-sizing:border-box; margin-bottom:15px; outline:none;">
             <button onclick="saveNickname()" style="width:100%; padding:10px; background:#00e5ff; color:#121619; border:none; border-radius:6px; font-weight:bold; font-size:16px; cursor:pointer;">Зберегти</button>
+        </div>
+    </div>
+
+    <!-- Модальне вікно Налаштування (⚙️) -->
+    <div id="settingsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; display:flex; align-items:center; justify-content:center;">
+        <div style="background:#121619; padding:25px; border-radius:12px; width:90%; max-width:320px; text-align:center; border: 1px solid #00e5ff;">
+            <h3 style="color:#fff; margin-bottom:15px; font-family:sans-serif;">⚙️ Налаштування</h3>
+            <p style="color:#8c9ba5; font-size:13px; margin-bottom:10px; font-family:sans-serif; text-align:left;">Змінити ваш нікнейм:</p>
+            <input type="text" id="settingsNicknameInput" placeholder="Новий нікнейм..." style="width:100%; padding:10px; border-radius:6px; border:1px solid #00e5ff55; background:#182026; color:#fff; font-size:16px; box-sizing:border-box; margin-bottom:15px; outline:none;">
+            <button onclick="updateNickname()" style="width:100%; padding:10px; background:#00e5ff; color:#121619; border:none; border-radius:6px; font-weight:bold; font-size:15px; cursor:pointer; margin-bottom:10px;">Оновити нікнейм</button>
+            <button onclick="closeSettings()" style="width:100%; padding:8px; background:transparent; color:#8c9ba5; border:1px solid #333; border-radius:6px; font-size:14px; cursor:pointer;">Закрити</button>
         </div>
     </div>
 
@@ -58,6 +70,7 @@
         <div class="header">
             <a href="index.html" class="back-link">←</a>
             <div class="header-info"><h3>Habla Mobile</h3><p id="headerUser">David</p></div>
+            <button class="settings-btn" onclick="openSettings()" title="Налаштування">⚙️</button>
             <select id="targetLang" class="lang-select">
                 <option value="Ukrainian">Українська</option>
                 <option value="Spanish" selected>Spanish</option>
@@ -88,7 +101,7 @@
     <script>
         const BACKEND_URL = "https://habla-backend-ipqk.onrender.com/api/translate";
         let isRecording = false, recognition = null;
-        let lastValidLang = "Spanish"; // Запам'ятовуємо останню обрану безпечну мову
+        let lastValidLang = "Spanish"; 
         
         const inputField = document.getElementById('userInput');
         const sendBtn = document.getElementById('sendBtn');
@@ -127,12 +140,37 @@
             if (headerUser) headerUser.innerText = nickname;
         }
 
+        // Функції керування модальним вікном налаштувань (⚙️)
+        function openSettings() {
+            const currentNickname = localStorage.getItem('habla_nickname') || '';
+            document.getElementById('settingsNicknameInput').value = currentNickname;
+            document.getElementById('settingsModal').style.display = 'flex';
+        }
+
+        function closeSettings() {
+            document.getElementById('settingsModal').style.display = 'none';
+        }
+
+        function updateNickname() {
+            const input = document.getElementById('settingsNicknameInput');
+            const nickname = input.value.trim();
+            
+            if (nickname.length < 2) {
+                alert('Будь ласка, введіть коректний нікнейм (мінімум 2 символи)');
+                return;
+            }
+            
+            localStorage.setItem('habla_nickname', nickname);
+            const headerUser = document.getElementById('headerUser');
+            if (headerUser) headerUser.innerText = nickname;
+            
+            closeSettings();
+        }
+
         // Логіка мовного меню та захисту від "Агресора"
         targetLang.addEventListener('change', (e) => {
             if (e.target.value === 'Russian') {
-                // Повертаємо попередню безпечну мову
                 e.target.value = lastValidLang;
-                // Показуємо модальне вікно "Агресор"
                 document.getElementById('aggressorModal').style.display = 'flex';
             } else {
                 lastValidLang = e.target.value;
