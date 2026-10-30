@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Habla - Mobile Version</title>
+    <!-- Підключення маніфесту для Android / PWA -->
+    <link rel="manifest" href="manifest.json">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         body, html { width: 100%; height: 100%; background-color: #0b0f12; color: #ffffff; overflow: hidden; }
@@ -311,7 +313,6 @@
             }
         }
 
-        // Перевірка та збереження нікнейму та мови інтерфейсу при завантаженні
         window.addEventListener('DOMContentLoaded', () => {
             const savedNickname = localStorage.getItem('habla_nickname');
             const savedUiLang = localStorage.getItem('habla_ui_lang') || 'Ukrainian';
@@ -347,7 +348,6 @@
             if (headerUser) headerUser.innerText = nickname;
         }
 
-        // Функції керування модальним вікном налаштувань (⚙️)
         function openSettings() {
             const currentNickname = localStorage.getItem('habla_nickname') || '';
             document.getElementById('settingsNicknameInput').value = currentNickname;
@@ -378,7 +378,6 @@
             closeSettings();
         }
 
-        // Логіка мовного меню на головному екрані та захист від "Агресора"
         targetLang.addEventListener('change', (e) => {
             if (e.target.value === 'Russian') {
                 e.target.value = lastValidLang;
