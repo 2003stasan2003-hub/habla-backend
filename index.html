@@ -75,4 +75,275 @@
     </div>
 
     <!-- Модальне вікно Налаштувань -->
-    <div id="settingsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z
+    <div id="settingsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; align-items:center; justify-content:center;">
+        <div style="background:#121619; padding:25px; border-radius:12px; width:90%; max-width:320px; text-align:center; border: 1px solid #00e5ff;">
+            <h3 style="color:#fff; margin-bottom:15px;">⚙️ Налаштування</h3>
+            <input type="text" id="settingsNicknameInput" placeholder="Новий нікнейм..." style="width:100%; padding:10px; border-radius:6px; border:1px solid #00e5ff55; background:#182026; color:#fff; font-size:16px; margin-bottom:10px; outline:none;">
+            <button onclick="updateNickname()" style="width:100%; padding:9px; background:#00e5ff; color:#121619; border:none; border-radius:6px; font-weight:bold; font-size:14px; cursor:pointer; margin-bottom:15px;">Оновити нікнейм</button>
+            <button onclick="closeSettings()" style="width:100%; padding:8px; background:transparent; color:#8c9ba5; border:1px solid #333; border-radius:6px; font-size:14px; cursor:pointer;">Закрити</button>
+        </div>
+    </div>
+
+    <div class="app-container">
+        <div class="header">
+            <span class="back-link" id="backBtn" onclick="showContacts()" style="display:none;">←</span>
+            <div class="header-info">
+                <h3 id="headerTitle">Habla Chats</h3>
+                <p id="headerUser">STASAN</p>
+            </div>
+            <select id="targetLang" class="lang-select" style="display:none;">
+                <option value="Ukrainian">Українська</option>
+                <option value="Spanish" selected>Spanish</option>
+                <option value="English">English</option>
+                <option value="German">German</option>
+                <option value="French">French</option>
+                <option value="Italian">Italian</option>
+                <option value="Georgian">Georgian</option>
+                <option value="Japanese">Japanese</option>
+            </select>
+            <button class="settings-btn" onclick="openSettings()" title="Налаштування">⚙️</button>
+        </div>
+
+        <!-- ЕКРАН 1: Список абонентів -->
+        <div id="contactsView">
+            <div class="contacts-header">
+                <div class="contacts-title">Ваші абоненти:</div>
+                <button class="add-contact-btn" onclick="openAddContact()">+ Додати</button>
+            </div>
+            <div id="contactsList">
+                <!-- Контакти будуть додаватися сюди -->
+            </div>
+        </div>
+
+        <!-- ЕКРАН 2: Активний чат -->
+        <div id="chatView">
+            <div class="chat-messages" id="chatMessages">
+                <div class="message incoming">¡Hola! ¿Cómo estás?</div>
+                <div class="message outgoing">Привіт, як справи?</div>
+            </div>
+            <div class="footer">
+                <div class="input-box">
+                    <input type="text" id="userInput" placeholder="Введіть текст або мікрофон...">
+                    <button class="send-btn" id="sendBtn" title="Надіслати">➤</button>
+                </div>
+                <div class="mic-container">
+                    <span class="mic-label" id="micStatus">Натисніть мікрофон для запису...</span>
+                    <button class="mic-btn" id="micBtn" title="Голосовий ввід"><span class="mic-icon">🎙</span></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const BACKEND_URL = "https://habla-backend-ipqk.onrender.com/api/translate";
+        let isRecording = false, recognition = null;
+        
+        const inputField = document.getElementById('userInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const chatMessages = document.getElementById('chatMessages');
+        const targetLang = document.getElementById('targetLang');
+        const micBtn = document.getElementById('micBtn');
+        const micStatus = document.getElementById('micStatus');
+        
+        const contactsView = document.getElementById('contactsView');
+        const chatView = document.getElementById('chatView');
+        const backBtn = document.getElementById('backBtn');
+        const headerTitle = document.getElementById('headerTitle');
+        const headerUser = document.getElementById('headerUser');
+        const contactsList = document.getElementById('contactsList');
+
+        // Список контактів тепер за замовчуванням повністю порожній
+        let contacts = JSON.parse(localStorage.getItem('habla_contacts')) || [];
+
+        function saveContactsToStorage() {
+            localStorage.setItem('habla_contacts', JSON.stringify(contacts));
+        }
+
+        function renderContacts() {
+            contactsList.innerHTML = '';
+            
+            if (contacts.length === 0) {
+                contactsList.innerHTML = '<div class="empty-list">Список абонентів порожній.<br>Натисніть «+ Додати», щоб створити першого абонента.</div>';
+                return;
+            }
+
+            contacts.forEach((contact, index) => {
+                const initials = contact.name.substring(0, 2).toUpperCase();
+                const item = document.createElement('div');
+                item.className = 'contact-item';
+                item.innerHTML = `
+                    <div class="contact-left" onclick="openChat('${contact.name}')">
+                        <div class="contact-avatar">${initials}</div>
+                        <div class="contact-info">
+                            <h4>${contact.name}</h4>
+                            <p>${contact.desc || 'Натисніть для перекладу і чату'}</p>
+                        </div>
+                    </div>
+                    <button class="delete-contact" onclick="deleteContact(event, ${index})" title="Видалити">✕</button>
+                `;
+                contactsList.appendChild(item);
+            });
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedNickname = localStorage.getItem('habla_nickname');
+            if (!savedNickname) {
+                document.getElementById('nicknameModal').style.display = 'flex';
+            } else {
+                headerUser.innerText = savedNickname;
+            }
+            renderContacts();
+        });
+
+        function saveNickname() {
+            const nickname = document.getElementById('nicknameInput').value.trim();
+            if (nickname.length < 2) { alert('Введіть мінімум 2 символи'); return; }
+            localStorage.setItem('habla_nickname', nickname);
+            document.getElementById('nicknameModal').style.display = 'none';
+            headerUser.innerText = nickname;
+        }
+
+        function openAddContact() {
+            document.getElementById('newContactInput').value = '';
+            document.getElementById('addContactModal').style.display = 'flex';
+        }
+
+        function closeAddContact() {
+            document.getElementById('addContactModal').style.display = 'none';
+        }
+
+        function saveNewContact() {
+            const name = document.getElementById('newContactInput').value.trim();
+            if (!name) { alert('Введіть нікнейм або ім’я абонента'); return; }
+            contacts.push({ name: name, desc: "Користувач" });
+            saveContactsToStorage();
+            renderContacts();
+            closeAddContact();
+        }
+
+        function deleteContact(event, index) {
+            event.stopPropagation();
+            if (confirm("Видалити цього абонента зі списку?")) {
+                contacts.splice(index, 1);
+                saveContactsToStorage();
+                renderContacts();
+            }
+        }
+
+        function openSettings() {
+            document.getElementById('settingsNicknameInput').value = localStorage.getItem('habla_nickname') || '';
+            document.getElementById('settingsModal').style.display = 'flex';
+        }
+
+        function closeSettings() {
+            document.getElementById('settingsModal').style.display = 'none';
+        }
+
+        function updateNickname() {
+            const nickname = document.getElementById('settingsNicknameInput').value.trim();
+            if (nickname.length < 2) { alert('Введіть мінімум 2 символи'); return; }
+            localStorage.setItem('habla_nickname', nickname);
+            headerUser.innerText = nickname;
+            closeSettings();
+        }
+
+        function openChat(contactName) {
+            contactsView.style.display = 'none';
+            chatView.style.display = 'flex';
+            backBtn.style.display = 'block';
+            targetLang.style.display = 'block';
+            headerTitle.innerText = contactName;
+        }
+
+        function showContacts() {
+            chatView.style.display = 'none';
+            contactsView.style.display = 'flex';
+            backBtn.style.display = 'none';
+            targetLang.style.display = 'none';
+            headerTitle.innerText = "Habla Chats";
+        }
+
+        async function sendMessage() {
+            const text = inputField.value.trim();
+            const lang = targetLang.value;
+            if (!text) return;
+            
+            appendMessage(text, 'outgoing');
+            inputField.value = '';
+
+            const loadingId = appendMessage("Переклад...", 'incoming');
+
+            try {
+                const response = await fetch(BACKEND_URL, { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify({ text: text, targetLanguage: lang }) 
+                });
+                loadingId.remove();
+                if (response.ok) {
+                    const data = await response.json();
+                    appendMessage(data.translatedText, 'incoming');
+                } else { 
+                    appendMessage("Помилка сервера.", 'incoming'); 
+                }
+            } catch (err) {
+                loadingId.remove();
+                appendMessage("Помилка з'єднання.", 'incoming');
+            }
+        }
+
+        function appendMessage(text, type) {
+            const msgDiv = document.createElement('div'); 
+            msgDiv.className = `message ${type}`; 
+            msgDiv.innerText = text;
+            chatMessages.appendChild(msgDiv); 
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            return msgDiv;
+        }
+
+        sendBtn.addEventListener('click', (e) => { e.preventDefault(); sendMessage(); });
+        inputField.addEventListener('keypress', e => { if (e.key === 'Enter') sendMessage(); });
+
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition(); 
+            recognition.continuous = true; 
+            recognition.interimResults = true;
+            recognition.onresult = e => {
+                let t = ''; 
+                for (let i = e.resultIndex; i < e.results.length; i++) {
+                    t += e.results[i][0].transcript;
+                }
+                inputField.value = t;
+            };
+            recognition.onerror = () => stopRec(); 
+            recognition.onend = () => stopRec();
+        }
+
+        micBtn.addEventListener('click', () => {
+            if (!recognition) { alert("Використовуйте Google Chrome."); return; }
+            if (!isRecording) {
+                navigator.mediaDevices.getUserMedia({ audio: true })
+                    .then(stream => {
+                        stream.getTracks().forEach(track => track.stop());
+                        recognition.lang = 'uk-UA';
+                        recognition.start(); 
+                        isRecording = true; 
+                        micBtn.classList.add('recording');
+                        micStatus.innerText = "Йде запис... Говоріть.";
+                    })
+                    .catch(() => alert("Доступ до мікрофона заблоковано."));
+            } else { 
+                recognition.stop(); 
+                stopRec(); 
+            }
+        });
+
+        function stopRec() {
+            isRecording = false; 
+            micBtn.classList.remove('recording');
+            micStatus.innerText = "Натисніть мікрофон для запису...";
+        }
+    </script>
+</body>
+</html>
