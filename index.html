@@ -10,7 +10,6 @@
         body, html { width: 100%; height: 100%; background-color: #0b0f12; color: #ffffff; overflow: hidden; }
         .app-container { width: 100vw; height: 100vh; height: 100dvh; background-color: #121619; display: flex; flex-direction: column; overflow: hidden; }
         
-        /* Загальний стиль шапки */
         .header { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background-color: #121619; border-bottom: 1px solid #1a2228; flex-shrink: 0; gap: 6px; }
         .back-link { color: #00e5ff; text-decoration: none; font-size: 20px; cursor: pointer; }
         .header-info { text-align: center; flex: 1; }
@@ -19,14 +18,19 @@
         .lang-select { background: #182026; color: #00e5ff; border: 1px solid #00e5ff55; padding: 4px 6px; border-radius: 8px; outline: none; font-size: 12px; max-width: 110px; }
         .settings-btn { background: transparent; border: none; color: #00e5ff; font-size: 18px; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center; }
 
-        /* Екран контактів / списку чатів */
+        /* Екран контактів */
         #contactsView { display: flex; flex-direction: column; flex: 1; overflow-y: auto; padding: 15px; }
-        .contacts-title { font-size: 16px; font-weight: bold; margin-bottom: 15px; color: #00e5ff; }
-        .contact-item { display: flex; align-items: center; background: #182026; border: 1px solid #1a2228; padding: 12px 15px; border-radius: 12px; margin-bottom: 10px; cursor: pointer; transition: 0.2s; }
+        .contacts-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .contacts-title { font-size: 15px; font-weight: bold; color: #00e5ff; }
+        .add-contact-btn { background: #00e5ff; color: #121619; border: none; padding: 6px 12px; border-radius: 8px; font-weight: bold; font-size: 13px; cursor: pointer; }
+        
+        .contact-item { display: flex; align-items: center; background: #182026; border: 1px solid #1a2228; padding: 12px 15px; border-radius: 12px; margin-bottom: 10px; cursor: pointer; transition: 0.2s; justify-content: space-between; }
         .contact-item:hover { border-color: #00e5ff; }
-        .contact-avatar { width: 40px; height: 40px; background: #00e5ff22; border: 1px solid #00e5ff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #00e5ff; margin-right: 12px; }
+        .contact-left { display: flex; align-items: center; flex: 1; }
+        .contact-avatar { width: 40px; height: 40px; background: #00e5ff22; border: 1px solid #00e5ff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #00e5ff; margin-right: 12px; flex-shrink: 0; }
         .contact-info h4 { font-size: 15px; color: #fff; }
         .contact-info p { font-size: 12px; color: #8c9ba5; margin-top: 2px; }
+        .delete-contact { background: transparent; border: none; color: #ff4d4d; font-size: 16px; cursor: pointer; padding: 5px; }
 
         /* Екран чату */
         #chatView { display: none; flex-direction: column; flex: 1; overflow: hidden; }
@@ -49,12 +53,22 @@
     </style>
 </head>
 <body>
-    <!-- Модальне вікно нікнейму -->
+    <!-- Модальне вікно нікнейму власника -->
     <div id="nicknameModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; align-items:center; justify-content:center;">
         <div style="background:#121619; padding:25px; border-radius:12px; width:90%; max-width:320px; text-align:center; border: 1px solid #00e5ff;">
             <h3 style="color:#fff; margin-bottom:15px;">Введіть ваш нікнейм</h3>
             <input type="text" id="nicknameInput" placeholder="Ваш нікнейм..." style="width:100%; padding:10px; border-radius:6px; border:1px solid #00e5ff55; background:#182026; color:#fff; font-size:16px; margin-bottom:15px; outline:none;">
             <button onclick="saveNickname()" style="width:100%; padding:10px; background:#00e5ff; color:#121619; border:none; border-radius:6px; font-weight:bold; font-size:16px; cursor:pointer;">Зберегти</button>
+        </div>
+    </div>
+
+    <!-- Модальне вікно додавання нового контакту -->
+    <div id="addContactModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; align-items:center; justify-content:center;">
+        <div style="background:#121619; padding:25px; border-radius:12px; width:90%; max-width:320px; text-align:center; border: 1px solid #00e5ff;">
+            <h3 style="color:#fff; margin-bottom:15px;">Додати абонента</h3>
+            <input type="text" id="newContactInput" placeholder="Нікнейм (наприклад: Максим)..." style="width:100%; padding:10px; border-radius:6px; border:1px solid #00e5ff55; background:#182026; color:#fff; font-size:16px; margin-bottom:15px; outline:none;">
+            <button onclick="saveNewContact()" style="width:100%; padding:10px; background:#00e5ff; color:#121619; border:none; border-radius:6px; font-weight:bold; font-size:16px; cursor:pointer; margin-bottom:10px;">Додати</button>
+            <button onclick="closeAddContact()" style="width:100%; padding:8px; background:transparent; color:#8c9ba5; border:1px solid #333; border-radius:6px; font-size:14px; cursor:pointer;">Скасувати</button>
         </div>
     </div>
 
@@ -69,7 +83,6 @@
     </div>
 
     <div class="app-container">
-        <!-- Шапка програми -->
         <div class="header">
             <span class="back-link" id="backBtn" onclick="showContacts()" style="display:none;">←</span>
             <div class="header-info">
@@ -89,28 +102,18 @@
             <button class="settings-btn" onclick="openSettings()" title="Налаштування">⚙️</button>
         </div>
 
-        <!-- ЕКРАН 1: Список доступних абонентів / контактів -->
+        <!-- ЕКРАН 1: Список абонентів -->
         <div id="contactsView">
-            <div class="contacts-title">Виберіть абонента для спілкування:</div>
-            
-            <div class="contact-item" onclick="openChat('Тестовий співрозмовник 1')">
-                <div class="contact-avatar">Т1</div>
-                <div class="contact-info">
-                    <h4>Тестовий співрозмовник 1</h4>
-                    <p>Натисніть, щоб почати переклад і чат</p>
-                </div>
+            <div class="contacts-header">
+                <div class="contacts-title">Ваші абоненти:</div>
+                <button class="add-contact-btn" onclick="openAddContact()">+ Додати</button>
             </div>
-
-            <div class="contact-item" onclick="openChat('Міжнародна кімната')">
-                <div class="contact-avatar">МК</div>
-                <div class="contact-info">
-                    <h4>Міжнародна кімната</h4>
-                    <p>Загальний перекладач</p>
-                </div>
+            <div id="contactsList">
+                <!-- Контакти будуть додаватися сюди автоматично -->
             </div>
         </div>
 
-        <!-- ЕКРАН 2: Активний чат (спочатку прихований) -->
+        <!-- ЕКРАН 2: Активний чат -->
         <div id="chatView">
             <div class="chat-messages" id="chatMessages">
                 <div class="message incoming">¡Hola! ¿Cómo estás?</div>
@@ -145,25 +148,81 @@
         const backBtn = document.getElementById('backBtn');
         const headerTitle = document.getElementById('headerTitle');
         const headerUser = document.getElementById('headerUser');
+        const contactsList = document.getElementById('contactsList');
+
+        // Початкові контакти за замовчуванням (Максим та Тест, як ви хотіли)
+        let contacts = JSON.parse(localStorage.getItem('habla_contacts')) || [
+            { name: "Максим", desc: "Тестувальник додатку" },
+            { name: "Тест", desc: "Кімната для перевірки" }
+        ];
+
+        function saveContactsToStorage() {
+            localStorage.setItem('habla_contacts', JSON.stringify(contacts));
+        }
+
+        function renderContacts() {
+            contactsList.innerHTML = '';
+            contacts.forEach((contact, index) => {
+                const initials = contact.name.substring(0, 2).toUpperCase();
+                const item = document.createElement('div');
+                item.className = 'contact-item';
+                item.innerHTML = `
+                    <div class="contact-left" onclick="openChat('${contact.name}')">
+                        <div class="contact-avatar">${initials}</div>
+                        <div class="contact-info">
+                            <h4>${contact.name}</h4>
+                            <p>${contact.desc || 'Натисніть для перекладу і чату'}</p>
+                        </div>
+                    </div>
+                    <button class="delete-contact" onclick="deleteContact(event, ${index})" title="Видалити">✕</button>
+                `;
+                contactsList.appendChild(item);
+            });
+        }
 
         window.addEventListener('DOMContentLoaded', () => {
             const savedNickname = localStorage.getItem('habla_nickname');
-            const modal = document.getElementById('nicknameModal');
-            
             if (!savedNickname) {
-                modal.style.display = 'flex';
+                document.getElementById('nicknameModal').style.display = 'flex';
             } else {
                 headerUser.innerText = savedNickname;
             }
+            renderContacts();
         });
 
         function saveNickname() {
-            const input = document.getElementById('nicknameInput');
-            const nickname = input.value.trim();
+            const nickname = document.getElementById('nicknameInput').value.trim();
             if (nickname.length < 2) { alert('Введіть мінімум 2 символи'); return; }
             localStorage.setItem('habla_nickname', nickname);
             document.getElementById('nicknameModal').style.display = 'none';
             headerUser.innerText = nickname;
+        }
+
+        function openAddContact() {
+            document.getElementById('newContactInput').value = '';
+            document.getElementById('addContactModal').style.display = 'flex';
+        }
+
+        function closeAddContact() {
+            document.getElementById('addContactModal').style.display = 'none';
+        }
+
+        function saveNewContact() {
+            const name = document.getElementById('newContactInput').value.trim();
+            if (!name) { alert('Введіть нікнейм або ім’я абонента'); return; }
+            contacts.push({ name: name, desc: "Доданий користувач" });
+            saveContactsToStorage();
+            renderContacts();
+            closeAddContact();
+        }
+
+        function deleteContact(event, index) {
+            event.stopPropagation();
+            if (confirm("Видалити цього абонента зі списку?")) {
+                contacts.splice(index, 1);
+                saveContactsToStorage();
+                renderContacts();
+            }
         }
 
         function openSettings() {
@@ -183,7 +242,6 @@
             closeSettings();
         }
 
-        // Логіка перемикання між списком контактів і чатом
         function openChat(contactName) {
             contactsView.style.display = 'none';
             chatView.style.display = 'flex';
