@@ -1,3 +1,4 @@
+HTML
 <!DOCTYPE html>
 <html lang="uk">
 <head>
@@ -11,34 +12,46 @@
         
         .app-container { width: 100vw; height: 100vh; height: 100dvh; background-color: #121619; display: flex; overflow: hidden; position: relative; }
         
-        /* ЛІВА КОЛОНКА (Список контактів) */
-        .sidebar { width: 300px; background-color: #121619; border-right: 1px solid #1a2228; display: flex; flex-direction: column; flex-shrink: 0; z-index: 100; transition: transform 0.3s ease; }
-        .sidebar-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 15px; background-color: #161b20; border-bottom: 1px solid #1a2228; }
-        .sidebar-title { font-size: 16px; font-weight: bold; color: #00e5ff; }
-        .add-contact-btn { background: #00e5ff; color: #121619; border: none; padding: 6px 12px; border-radius: 8px; font-weight: bold; font-size: 13px; cursor: pointer; }
+        /* ЛІВА КОЛОНКА (Список контактів) - ОНОВЛЕНО */
+        .sidebar { width: 300px; background-color: #111418; border-right: 1px solid #1a2228; display: flex; flex-direction: column; flex-shrink: 0; z-index: 100; transition: transform 0.3s ease; }
+        .sidebar-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; background-color: #111418; }
+        .sidebar-title { font-size: 18px; font-weight: 600; color: #ffffff; }
         
-        .contacts-list { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
-        .contact-item { display: flex; align-items: center; background: #182026; border: 1px solid #1a2228; padding: 10px 12px; border-radius: 12px; cursor: pointer; transition: 0.2s; justify-content: space-between; }
-        .contact-item:hover, .contact-item.active { border-color: #00e5ff; background: #1a222c; }
-        .contact-left { display: flex; align-items: center; flex: 1; overflow: hidden; gap: 10px; }
-        .contact-avatar { width: 42px; height: 42px; background: #00e5ff22; border: 1px solid #00e5ff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #00e5ff; flex-shrink: 0; font-size: 15px; }
+        .add-contact-btn { background: #00e5ff; color: #0b0f12; border: none; padding: 6px 14px; border-radius: 20px; font-weight: 600; font-size: 13px; cursor: pointer; }
+        
+        .contacts-list { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+        
+        /* Елемент контакту - ОНОВЛЕНО ВІЗУАЛЬНО */
+        .contact-item { display: flex; align-items: center; background: #181d22; border-radius: 16px; padding: 12px 14px; cursor: pointer; transition: background 0.2s; justify-content: space-between; border: 1px solid transparent; }
+        .contact-item:hover, .contact-item.active { background: #1f252b; border-color: #00e5ff55; }
+        
+        .contact-left { display: flex; align-items: center; flex: 1; overflow: hidden; gap: 12px; }
+        
+        /* Аватарки - ОНОВЛЕНО (Градієнт) */
+        .contact-avatar { width: 44px; height: 44px; background: linear-gradient(135deg, #00e5ff, #00c897); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #0b0f12; flex-shrink: 0; font-size: 17px; }
+        
         .contact-info { overflow: hidden; }
-        .contact-info h4 { font-size: 14px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .contact-info p { font-size: 11px; color: #8c9ba5; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .delete-contact { background: transparent; border: none; color: #ff4d4d; font-size: 15px; cursor: pointer; padding: 6px; }
+        
+        /* Текст контакту - ОНОВЛЕНО */
+        .contact-info h4 { font-size: 15px; color: #ffffff; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .contact-info p { font-size: 12px; color: #a0aab3; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        
+        /* Іконка видалення - ОНОВЛЕНО (Стримана) */
+        .delete-contact { background: transparent; border: none; color: #707b85; font-size: 18px; cursor: pointer; padding: 4px; transition: color 0.2s; }
+        .delete-contact:hover { color: #ff4d4d; }
 
         .empty-contacts { text-align: center; color: #8c9ba5; font-size: 13px; margin-top: 40px; padding: 0 20px; line-height: 1.5; }
 
-        /* Затінення екрана під час відкриття меню на телефоні */
+        /* Затінення фону */
         .sidebar-overlay { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 90; }
 
         /* ПРАВА ЧАСТИНА (Область чату) */
         .chat-area { flex: 1; display: flex; flex-direction: column; background-color: #0b0f12; overflow: hidden; position: relative; }
         
-        .header { display: flex; align-items: center; justify-content: space-between; padding: 10px 15px; background-color: #121619; border-bottom: 1px solid #1a2228; flex-shrink: 0; gap: 10px; }
+        .header { display: flex; align-items: center; justify-content: space-between; padding: 10px 15px; background-color: #111418; border-bottom: 1px solid #1a2228; flex-shrink: 0; gap: 10px; }
         .menu-btn { background: transparent; border: none; color: #00e5ff; font-size: 22px; cursor: pointer; display: none; padding: 0 5px; }
         .header-info { text-align: left; flex: 1; }
-        .header-info h3 { font-size: 14px; font-weight: 600; }
+        .header-info h3 { font-size: 14px; font-weight: 600; color: #ffffff; }
         .header-info p { font-size: 11px; color: #8c9ba5; }
         
         .lang-select { background: #182026; color: #00e5ff; border: 1px solid #00e5ff55; padding: 4px 8px; border-radius: 8px; outline: none; font-size: 12px; max-width: 120px; }
@@ -49,7 +62,7 @@
         .message.incoming { background-color: #182026; border: 1px solid #00e5ff44; align-self: flex-start; }
         .message.outgoing { background-color: #1a2228; border: 1px solid #00e5ff; align-self: flex-end; }
         
-        .footer { padding: 10px 15px 20px 15px; background-color: #121619; border-top: 1px solid #1a2228; display: flex; flex-direction: column; align-items: center; gap: 8px; flex-shrink: 0; }
+        .footer { padding: 10px 15px 20px 15px; background-color: #111418; border-top: 1px solid #1a2228; display: flex; flex-direction: column; align-items: center; gap: 8px; flex-shrink: 0; }
         .input-box { width: 100%; display: flex; background: #182026; border: 1px solid #00e5ff; border-radius: 12px; padding: 6px 10px; align-items: center; }
         .input-box input { flex: 1; background: transparent; border: none; color: white; font-size: 14px; outline: none; }
         .send-btn { background: transparent; border: none; color: #00e5ff; font-size: 22px; cursor: pointer; padding: 10px; min-width: 44px; min-height: 44px; display: flex; align-items: center; justify-content: center; }
@@ -61,7 +74,7 @@
         .mic-btn.recording .mic-icon { color: #121619; }
         .mic-icon { font-size: 20px; color: #00e5ff; }
 
-        /* Мобільні стилі: робимо сайдбар виїзним меню */
+        /* Мобільні стилі */
         @media (max-width: 768px) {
             .sidebar { position: absolute; height: 100%; left: 0; top: 0; transform: translateX(-100%); width: 280px; }
             .sidebar.open { transform: translateX(0); }
@@ -100,7 +113,7 @@
             <button id="settingsUpdateBtn" onclick="updateNickname()" style="width:100%; padding:9px; background:#00e5ff; color:#121619; border:none; border-radius:6px; font-weight:bold; font-size:14px; cursor:pointer; margin-bottom:15px;">Оновити нікнейм</button>
 
             <p id="settingsUiLangLabel" style="color:#8c9ba5; font-size:13px; margin-bottom:6px; text-align:left;">Мова інтерфейсу:</p>
-            <select id="uiLangSelect" style="width:100%; padding:10px; border-radius:6px; border:1px solid #00e5ff55; background:#182026; color:#00e5ff; font-size:15px; margin-bottom:20px; outline:none;" onchange="handleUiLangChange(this)">
+            <select id="uiLangSelect" style="width:100%; padding:10px; border-radius:6px; border:1px solid #00e5ff55; background:#182026; color:#00e5ff; font-size:15px; margin-bottom:20px; outline:none;" onchangehandleUiLangChange(this)">
                 <option value="Ukrainian">Українська</option>
                 <option value="Spanish">Spanish</option>
                 <option value="English">English</option>
@@ -129,18 +142,18 @@
         <!-- Затемнення фону при відкритті меню на телефоні -->
         <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar(false)"></div>
 
-        <!-- ЛІВА КОЛОНКА (на ПК видно завжди, на Android виїжджає по кнопці ☰) -->
+        <!-- ЛІВА КОЛОНКА -->
         <div class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <span class="sidebar-title">Habla Chats</span>
                 <button class="add-contact-btn" onclick="openAddContact()">+ Додати</button>
             </div>
             <div class="contacts-list" id="contactsList">
-                <!-- Контакти -->
+                <!-- Сюди динамічно додаються контакти -->
             </div>
         </div>
 
-        <!-- ПРАВА ЧАСТИНА (Область чату) -->
+        <!-- ПРАВА ЧАСТИНА -->
         <div class="chat-area" id="chatArea">
             <div class="header">
                 <button class="menu-btn" onclick="toggleSidebar(true)">☰</button>
@@ -198,6 +211,7 @@
         const activeChatTitle = document.getElementById('activeChatTitle');
         const headerUser = document.getElementById('headerUser');
 
+        // Список контактів (зберігається в localStorage)
         let contacts = JSON.parse(localStorage.getItem('habla_contacts')) || [];
 
         function saveContacts() {
@@ -286,184 +300,4 @@
             Ukrainian: { nicknameTitle: "Введіть ваш нікнейм", nicknameDesc: "Це необхідно для ідентифікації тестувальника.", nicknamePlaceholder: "Ваш нікнейм...", saveBtn: "Зберегти", settingsTitle: "⚙️ Налаштування", nicknameLabel: "Змінити ваш нікнейм:", updateBtn: "Оновити нікнейм", uiLangLabel: "Мова інтерфейсу програми:", closeBtn: "Закрити", aggressorTitle: "Увага", aggressorText: "Агресор", aggressorOk: "Зрозуміло", userInputPlaceholder: "Введіть текст або мікрофон...", micStatusText: "Натисніть мікрофон для запису..." },
             Spanish: { nicknameTitle: "Introduce tu apodo", nicknameDesc: "Esto es necesario para la identificación del probador.", nicknamePlaceholder: "Tu apodo...", saveBtn: "Guardar", settingsTitle: "⚙️ Configuración", nicknameLabel: "Cambiar tu apodo:", updateBtn: "Actualizar apodo", uiLangLabel: "Idioma de la interfaz:", closeBtn: "Cerrar", aggressorTitle: "Atención", aggressorText: "Agresor", aggressorOk: "Entendido", userInputPlaceholder: "Introduce texto o micrófono...", micStatusText: "Haz clic en el micrófono para grabar..." },
             English: { nicknameTitle: "Enter your nickname", nicknameDesc: "This is required for tester identification.", nicknamePlaceholder: "Your nickname...", saveBtn: "Save", settingsTitle: "⚙️ Settings", nicknameLabel: "Change your nickname:", updateBtn: "Update nickname", uiLangLabel: "App Interface Language:", closeBtn: "Close", aggressorTitle: "Warning", aggressorText: "Aggressor", aggressorOk: "Understood", userInputPlaceholder: "Enter text or microphone...", micStatusText: "Click microphone to record..." },
-            German: { nicknameTitle: "Geben Sie Ihren Spitznamen ein", nicknameDesc: "Dies ist für die Testeridentifizierung erforderlich.", nicknamePlaceholder: "Ihr Spitzname...", saveBtn: "Speichern", settingsTitle: "⚙️ Einstellungen", nicknameLabel: "Spitznamen ändern:", updateBtn: "Spitznamen aktualisieren", uiLangLabel: "App-Oberflächensprache:", closeBtn: "Schließen", aggressorTitle: "Achtung", aggressorText: "Aggressor", aggressorOk: "Verstanden", userInputPlaceholder: "Text oder Mikrofon eingeben...", micStatusText: "Klicken Sie auf das Mikrofon..." },
-            French: { nicknameTitle: "Entrez votre pseudonyme", nicknameDesc: "Ceci est requis pour l'identification du testeur.", nicknamePlaceholder: "Votre pseudo...", saveBtn: "Enregistrer", settingsTitle: "⚙️ Paramètres", nicknameLabel: "Changer votre pseudo:", updateBtn: "Mettre à jour", uiLangLabel: "Langue de l'interface:", closeBtn: "Fermer", aggressorTitle: "Attention", aggressorText: "Agresseur", aggressorOk: "Compris", userInputPlaceholder: "Entrez du texte ou micro...", micStatusText: "Cliquez sur le micro pour enregistrer..." },
-            Italian: { nicknameTitle: "Inserisci il tuo nickname", nicknameDesc: "Questo è necessario per l'identificazione del tester.", nicknamePlaceholder: "Il tuo nickname...", saveBtn: "Salva", settingsTitle: "⚙️ Impostazioni", nicknameLabel: "Modifica nickname:", updateBtn: "Aggiorna nickname", uiLangLabel: "Lingua dell'interfaccia:", closeBtn: "Chiudi", aggressorTitle: "Attenzione", aggressorText: "Aggressore", aggressorOk: "Capito", userInputPlaceholder: "Inserisci testo o microfono...", micStatusText: "Clicca sul microfono per registrare..." },
-            Georgian: { nicknameTitle: "შეyванet tqveni metsaxeli", nicknameDesc: "es aucilebelia testirebistvis.", nicknamePlaceholder: "tqveni metsaxeli...", saveBtn: "shenaxva", settingsTitle: "⚙️ paraleluri", nicknameLabel: "metsaxelis shecvla:", updateBtn: "ganaxleba", uiLangLabel: "interfeisis ena:", closeBtn: "daxurva", aggressorTitle: "yuradgeba", aggressorText: "agresi", aggressorOk: "gasagebia", userInputPlaceholder: "sheiyvane teqsti...", micStatusText: "daakipet mikrofonts..." },
-            Japanese: { nicknameTitle: "ニックネームを入力してください", nicknameDesc: "テスターの識別のために必要です。", nicknamePlaceholder: "ニックネーム...", saveBtn: "保存", settingsTitle: "⚙️ 設定", nicknameLabel: "ニックネームを変更:", updateBtn: "更新", uiLangLabel: "アプリの言語:", closeBtn: "閉じる", aggressorTitle: "警告", aggressorText: "アグレッサー", aggressorOk: "了解", userInputPlaceholder: "テキストを入力...", micStatusText: "マイクをクリック..." },
-            Russian: { nicknameTitle: "Введите ваш никнейм", nicknameDesc: "Это необходимо для идентификации тестувальника.", nicknamePlaceholder: "Ваш никнейм...", saveBtn: "Сохранить", settingsTitle: "⚙️ Настройки", nicknameLabel: "Изменить ваш никнейм:", updateBtn: "Обновить никнейм", uiLangLabel: "Язык интерфейса приложения:", closeBtn: "Закрыть", aggressorTitle: "Внимание", aggressorText: "Агрессор", aggressorOk: "Понятно", userInputPlaceholder: "Введите текст или микрофон...", micStatusText: "Нажмите микрофон для записи..." }
-        };
-
-        function changeUiLang(lang) {
-            localStorage.setItem('habla_ui_lang', lang);
-            const t = uiTexts[lang] || uiTexts.Ukrainian;
-            document.getElementById('modalNickTitle').innerText = t.nicknameTitle;
-            document.getElementById('modalNickDesc').innerText = t.nicknameDesc;
-            document.getElementById('nicknameInput').placeholder = t.nicknamePlaceholder;
-            document.getElementById('modalSaveBtn').innerText = t.saveBtn;
-            document.getElementById('settingsTitle').innerText = t.settingsTitle;
-            document.getElementById('settingsNickLabel').innerText = t.nicknameLabel;
-            document.getElementById('settingsUpdateBtn').innerText = t.updateBtn;
-            document.getElementById('settingsUiLangLabel').innerText = t.uiLangLabel;
-            document.getElementById('settingsCloseBtn').innerText = t.closeBtn;
-            document.getElementById('aggressorTitle').innerText = t.aggressorTitle;
-            document.getElementById('aggressorText').innerText = t.aggressorText;
-            document.getElementById('aggressorOkBtn').innerText = t.aggressorOk;
-            inputField.placeholder = t.userInputPlaceholder;
-            micStatus.innerText = t.micStatusText;
-        }
-
-        function handleUiLangChange(selectElement) {
-            const val = selectElement.value;
-            if (val === 'Russian') {
-                selectElement.value = lastValidUiLang;
-                document.getElementById('aggressorModal').style.display = 'flex';
-            } else {
-                lastValidUiLang = val;
-                changeUiLang(val);
-            }
-        }
-
-        window.addEventListener('DOMContentLoaded', () => {
-            const savedNickname = localStorage.getItem('habla_nickname');
-            const savedUiLang = localStorage.getItem('habla_ui_lang') || 'Ukrainian';
-            lastValidUiLang = savedUiLang;
-            document.getElementById('uiLangSelect').value = savedUiLang;
-            changeUiLang(savedUiLang);
-
-            if (!savedNickname) {
-                document.getElementById('nicknameModal').style.display = 'flex';
-            } else {
-                headerUser.innerText = savedNickname;
-            }
-            renderContacts();
-        });
-
-        function saveNickname() {
-            const nickname = document.getElementById('nicknameInput').value.trim();
-            if (nickname.length < 2) { alert('Введіть мінімум 2 символи'); return; }
-            localStorage.setItem('habla_nickname', nickname);
-            document.getElementById('nicknameModal').style.display = 'none';
-            headerUser.innerText = nickname;
-        }
-
-        function openSettings() {
-            document.getElementById('settingsNicknameInput').value = localStorage.getItem('habla_nickname') || '';
-            document.getElementById('settingsModal').style.display = 'flex';
-        }
-
-        function closeSettings() { document.getElementById('settingsModal').style.display = 'none'; }
-
-        function updateNickname() {
-            const nickname = document.getElementById('settingsNicknameInput').value.trim();
-            if (nickname.length < 2) { alert('Введіть мінімум 2 символи'); return; }
-            localStorage.setItem('habla_nickname', nickname);
-            headerUser.innerText = nickname;
-            closeSettings();
-        }
-
-        targetLang.addEventListener('change', (e) => {
-            if (e.target.value === 'Russian') {
-                e.target.value = lastValidLang;
-                document.getElementById('aggressorModal').style.display = 'flex';
-            } else {
-                lastValidLang = e.target.value;
-            }
-        });
-
-        function closeAggressorModal() { document.getElementById('aggressorModal').style.display = 'none'; }
-
-        async function sendMessage() {
-            if (!activeContact) {
-                alert("Будь ласка, натисніть кнопку меню (☰) зліва вгорі та виберіть абонента!");
-                return;
-            }
-            const text = inputField.value.trim();
-            const lang = targetLang.value;
-            if (!text) return;
-            
-            appendMessage(text, 'outgoing');
-            inputField.value = '';
-
-            const loadingId = appendMessage("Переклад...", 'incoming');
-
-            try {
-                const response = await fetch(BACKEND_URL, { 
-                    method: 'POST', 
-                    headers: { 'Content-Type': 'application/json' }, 
-                    body: JSON.stringify({ text: text, targetLanguage: lang }) 
-                });
-                loadingId.remove();
-                if (response.ok) {
-                    const data = await response.json();
-                    appendMessage(data.translatedText, 'incoming');
-                    const found = contacts.find(c => c.name === activeContact);
-                    if (found) {
-                        found.lastMessage = data.translatedText;
-                        saveContacts();
-                        renderContacts();
-                    }
-                } else { 
-                    appendMessage("Помилка сервера при перекладі.", 'incoming'); 
-                }
-            } catch (err) {
-                loadingId.remove();
-                appendMessage("Помилка з'єднання з сервером.", 'incoming');
-            }
-        }
-
-        function appendMessage(text, type) {
-            const msgDiv = document.createElement('div'); 
-            msgDiv.className = `message ${type}`; 
-            msgDiv.innerText = text;
-            chatMessages.appendChild(msgDiv); 
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-            return msgDiv;
-        }
-
-        sendBtn.addEventListener('click', (e) => { e.preventDefault(); sendMessage(); });
-        inputField.addEventListener('keypress', e => { if (e.key === 'Enter') sendMessage(); });
-
-        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            recognition = new SpeechRecognition(); 
-            recognition.continuous = true; 
-            recognition.interimResults = true;
-            recognition.onresult = e => {
-                let t = ''; 
-                for (let i = e.resultIndex; i < e.results.length; i++) {
-                    t += e.results[i][0].transcript;
-                }
-                inputField.value = t;
-            };
-            recognition.onerror = () => stopRec(); 
-            recognition.onend = () => stopRec();
-        }
-
-        micBtn.addEventListener('click', () => {
-            if (!recognition) { alert("Використовуйте Google Chrome."); return; }
-            if (!isRecording) {
-                navigator.mediaDevices.getUserMedia({ audio: true })
-                    .then(stream => {
-                        stream.getTracks().forEach(track => track.stop());
-                        recognition.lang = 'uk-UA';
-                        recognition.start(); 
-                        isRecording = true; 
-                        micBtn.classList.add('recording');
-                        micStatus.innerText = "Йде запис... Говоріть.";
-                    })
-                    .catch(() => alert("Доступ до мікрофона заблоковано системою."));
-            } else { 
-                recognition.stop(); 
-                stopRec(); 
-            }
-        });
-
-        function stopRec() {
-            isRecording = false; 
-            micBtn.classList.remove('recording');
-            micStatus.innerText = "Натисніть мікрофон для запису...";
-        }
-    </script>
-</body>
-</html>
+            German: { nicknameTitle: "Geben Sie Ihren Spitznamen ein", nicknameDesc: "Dies
