@@ -9,11 +9,10 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         body, html { width: 100%; height: 100%; background-color: #0b0f12; color: #ffffff; overflow: hidden; }
         
-        /* Головний контейнер на весь екран */
-        .app-container { width: 100vw; height: 100vh; height: 100dvh; background-color: #121619; display: flex; overflow: hidden; }
+        .app-container { width: 100vw; height: 100vh; height: 100dvh; background-color: #121619; display: flex; overflow: hidden; position: relative; }
         
         /* ЛІВА КОЛОНКА (Список контактів) */
-        .sidebar { width: 320px; background-color: #121619; border-right: 1px solid #1a2228; display: flex; flex-direction: column; flex-shrink: 0; z-index: 10; }
+        .sidebar { width: 300px; background-color: #121619; border-right: 1px solid #1a2228; display: flex; flex-direction: column; flex-shrink: 0; z-index: 100; transition: transform 0.3s ease; }
         .sidebar-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 15px; background-color: #161b20; border-bottom: 1px solid #1a2228; }
         .sidebar-title { font-size: 16px; font-weight: bold; color: #00e5ff; }
         .add-contact-btn { background: #00e5ff; color: #121619; border: none; padding: 6px 12px; border-radius: 8px; font-weight: bold; font-size: 13px; cursor: pointer; }
@@ -30,11 +29,14 @@
 
         .empty-contacts { text-align: center; color: #8c9ba5; font-size: 13px; margin-top: 40px; padding: 0 20px; line-height: 1.5; }
 
+        /* Затінення екрана під час відкриття меню на телефоні */
+        .sidebar-overlay { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 90; }
+
         /* ПРАВА ЧАСТИНА (Область чату) */
         .chat-area { flex: 1; display: flex; flex-direction: column; background-color: #0b0f12; overflow: hidden; position: relative; }
         
         .header { display: flex; align-items: center; justify-content: space-between; padding: 10px 15px; background-color: #121619; border-bottom: 1px solid #1a2228; flex-shrink: 0; gap: 10px; }
-        .back-btn { background: transparent; border: none; color: #00e5ff; font-size: 22px; cursor: pointer; display: none; padding: 0 5px; }
+        .menu-btn { background: transparent; border: none; color: #00e5ff; font-size: 22px; cursor: pointer; display: none; padding: 0 5px; }
         .header-info { text-align: left; flex: 1; }
         .header-info h3 { font-size: 14px; font-weight: 600; }
         .header-info p { font-size: 11px; color: #8c9ba5; }
@@ -59,12 +61,12 @@
         .mic-btn.recording .mic-icon { color: #121619; }
         .mic-icon { font-size: 20px; color: #00e5ff; }
 
-        /* Мобільна адаптивність на екранах смартфонів */
+        /* Мобільні стилі: робимо сайдбар виїзним меню */
         @media (max-width: 768px) {
-            .sidebar { width: 100%; position: absolute; height: 100%; z-index: 20; transition: transform 0.3s ease; }
-            .sidebar.hidden { transform: translateX(-100%); }
-            .chat-area { width: 100%; position: absolute; height: 100%; z-index: 10; }
-            .back-btn { display: block; }
+            .sidebar { position: absolute; height: 100%; left: 0; top: 0; transform: translateX(-100%); width: 280px; }
+            .sidebar.open { transform: translateX(0); }
+            .sidebar-overlay.active { display: block; }
+            .menu-btn { display: block; }
         }
     </style>
 </head>
@@ -122,23 +124,26 @@
         </div>
     </div>
 
-    <!-- ОСНОВНИЙ ІНТЕРФЕЙС (Двопанельний месенджер) -->
+    <!-- ОСНОВНИЙ ІНТЕРФЕЙС -->
     <div class="app-container">
-        <!-- ЛІВА КОЛОНКА: Список абонентів -->
+        <!-- Затемнення фону при відкритті меню на телефоні -->
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar(false)"></div>
+
+        <!-- ЛІВА КОЛОНКА (на ПК видно завжди, на Android виїжджає по кнопці ☰) -->
         <div class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <span class="sidebar-title">Habla Chats</span>
                 <button class="add-contact-btn" onclick="openAddContact()">+ Додати</button>
             </div>
             <div class="contacts-list" id="contactsList">
-                <!-- Сюди динамічно додаються контакти -->
+                <!-- Контакти -->
             </div>
         </div>
 
-        <!-- ПРАВА ЧАСТИНА: Вікно активного чату -->
+        <!-- ПРАВА ЧАСТИНА (Область чату) -->
         <div class="chat-area" id="chatArea">
             <div class="header">
-                <button class="back-btn" onclick="toggleSidebar(true)">←</button>
+                <button class="menu-btn" onclick="toggleSidebar(true)">☰</button>
                 <div class="header-info">
                     <h3 id="activeChatTitle">Виберіть чат</h3>
                     <p id="headerUser">STASAN</p>
@@ -158,7 +163,7 @@
             </div>
 
             <div class="chat-messages" id="chatMessages">
-                <div class="message incoming">¡Hola! Selecciona un chat de la lista de la izquierda.</div>
+                <div class="message incoming">¡Hola! Selecciona un chat del menú (☰).</div>
             </div>
 
             <div class="footer">
@@ -188,11 +193,11 @@
         const micBtn = document.getElementById('micBtn');
         const micStatus = document.getElementById('micStatus');
         const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
         const contactsList = document.getElementById('contactsList');
         const activeChatTitle = document.getElementById('activeChatTitle');
         const headerUser = document.getElementById('headerUser');
 
-        // Список контактів (зберігається в localStorage)
         let contacts = JSON.parse(localStorage.getItem('habla_contacts')) || [];
 
         function saveContacts() {
@@ -202,7 +207,7 @@
         function renderContacts() {
             contactsList.innerHTML = '';
             if (contacts.length === 0) {
-                contactsList.innerHTML = `<div class="empty-contacts">Список абонентів порожній.<br>Натисніть <b>«+ Додати»</b> вгорі, щоб додати співрозмовника (наприклад: Максим).</div>`;
+                contactsList.innerHTML = `<div class="empty-contacts">Список абонентів порожній.<br>Натисніть <b>«+ Додати»</b>, щоб додати співрозмовника.</div>`;
                 return;
             }
             contacts.forEach((contact, index) => {
@@ -227,17 +232,19 @@
             activeContact = name;
             activeChatTitle.innerText = name;
             renderContacts();
-            // На мобільних пристроях ховаємо сайдбар і показуємо чат
+            // На мобільних пристроях ховаємо бокове меню при виборі чату
             if (window.innerWidth <= 768) {
-                sidebar.classList.add('hidden');
+                toggleSidebar(false);
             }
         }
 
         function toggleSidebar(show) {
             if (show) {
-                sidebar.classList.remove('hidden');
+                sidebar.classList.add('open');
+                sidebarOverlay.classList.add('active');
             } else {
-                sidebar.classList.add('hidden');
+                sidebar.classList.remove('open');
+                sidebarOverlay.classList.remove('active');
             }
         }
 
@@ -368,7 +375,7 @@
 
         async function sendMessage() {
             if (!activeContact) {
-                alert("Будь ласка, виберіть спочатку абонента з лівої колонки!");
+                alert("Будь ласка, натисніть кнопку меню (☰) зліва вгорі та виберіть абонента!");
                 return;
             }
             const text = inputField.value.trim();
@@ -390,7 +397,6 @@
                 if (response.ok) {
                     const data = await response.json();
                     appendMessage(data.translatedText, 'incoming');
-                    // Оновлюємо останнє повідомлення в контакті
                     const found = contacts.find(c => c.name === activeContact);
                     if (found) {
                         found.lastMessage = data.translatedText;
