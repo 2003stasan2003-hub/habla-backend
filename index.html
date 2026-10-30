@@ -39,30 +39,39 @@
     <!-- Модальне вікно для первинного введення нікнейму -->
     <div id="nicknameModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; align-items:center; justify-content:center;">
         <div style="background:#121619; padding:25px; border-radius:12px; width:90%; max-width:320px; text-align:center; border: 1px solid #00e5ff;">
-            <h3 style="color:#fff; margin-bottom:15px; font-family:sans-serif;">Введіть ваш нікнейм</h3>
-            <p style="color:#8c9ba5; font-size:13px; margin-bottom:20px; font-family:sans-serif;">Це необхідно для ідентифікації тестувальника.</p>
+            <h3 id="modalNickTitle" style="color:#fff; margin-bottom:15px; font-family:sans-serif;">Введіть ваш нікнейм</h3>
+            <p id="modalNickDesc" style="color:#8c9ba5; font-size:13px; margin-bottom:20px; font-family:sans-serif;">Це необхідно для ідентифікації тестувальника.</p>
             <input type="text" id="nicknameInput" placeholder="Ваш нікнейм..." style="width:100%; padding:10px; border-radius:6px; border:1px solid #00e5ff55; background:#182026; color:#fff; font-size:16px; box-sizing:border-box; margin-bottom:15px; outline:none;">
-            <button onclick="saveNickname()" style="width:100%; padding:10px; background:#00e5ff; color:#121619; border:none; border-radius:6px; font-weight:bold; font-size:16px; cursor:pointer;">Зберегти</button>
+            <button id="modalSaveBtn" onclick="saveNickname()" style="width:100%; padding:10px; background:#00e5ff; color:#121619; border:none; border-radius:6px; font-weight:bold; font-size:16px; cursor:pointer;">Зберегти</button>
         </div>
     </div>
 
-    <!-- Модальне вікно Налаштування (⚙️) -->
+    <!-- Модальне вікно Налаштування (⚙️) з вибором мови інтерфейсу -->
     <div id="settingsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; align-items:center; justify-content:center;">
         <div style="background:#121619; padding:25px; border-radius:12px; width:90%; max-width:320px; text-align:center; border: 1px solid #00e5ff;">
-            <h3 style="color:#fff; margin-bottom:15px; font-family:sans-serif;">⚙️ Налаштування</h3>
-            <p style="color:#8c9ba5; font-size:13px; margin-bottom:10px; font-family:sans-serif; text-align:left;">Змінити ваш нікнейм:</p>
-            <input type="text" id="settingsNicknameInput" placeholder="Новий нікнейм..." style="width:100%; padding:10px; border-radius:6px; border:1px solid #00e5ff55; background:#182026; color:#fff; font-size:16px; box-sizing:border-box; margin-bottom:15px; outline:none;">
-            <button onclick="updateNickname()" style="width:100%; padding:10px; background:#00e5ff; color:#121619; border:none; border-radius:6px; font-weight:bold; font-size:15px; cursor:pointer; margin-bottom:10px;">Оновити нікнейм</button>
-            <button onclick="closeSettings()" style="width:100%; padding:8px; background:transparent; color:#8c9ba5; border:1px solid #333; border-radius:6px; font-size:14px; cursor:pointer;">Закрити</button>
+            <h3 id="settingsTitle" style="color:#fff; margin-bottom:15px; font-family:sans-serif;">⚙️ Налаштування</h3>
+            
+            <p id="settingsNickLabel" style="color:#8c9ba5; font-size:13px; margin-bottom:6px; font-family:sans-serif; text-align:left;">Змінити ваш нікнейм:</p>
+            <input type="text" id="settingsNicknameInput" placeholder="Новий нікнейм..." style="width:100%; padding:10px; border-radius:6px; border:1px solid #00e5ff55; background:#182026; color:#fff; font-size:16px; box-sizing:border-box; margin-bottom:10px; outline:none;">
+            <button id="settingsUpdateBtn" onclick="updateNickname()" style="width:100%; padding:9px; background:#00e5ff; color:#121619; border:none; border-radius:6px; font-weight:bold; font-size:14px; cursor:pointer; margin-bottom:15px;">Оновити нікнейм</button>
+
+            <p id="settingsUiLangLabel" style="color:#8c9ba5; font-size:13px; margin-bottom:6px; font-family:sans-serif; text-align:left;">Мова інтерфейсу програми:</p>
+            <select id="uiLangSelect" style="width:100%; padding:10px; border-radius:6px; border:1px solid #00e5ff55; background:#182026; color:#00e5ff; font-size:15px; box-sizing:border-box; margin-bottom:20px; outline:none;" onchange="changeUiLang(this.value)">
+                <option value="Ukrainian">Українська</option>
+                <option value="English">English</option>
+                <option value="Spanish">Spanish</option>
+            </select>
+
+            <button id="settingsCloseBtn" onclick="closeSettings()" style="width:100%; padding:8px; background:transparent; color:#8c9ba5; border:1px solid #333; border-radius:6px; font-size:14px; cursor:pointer;">Закрити</button>
         </div>
     </div>
 
-    <!-- Модальне вікно "Агресор" (виправлено: спочатку повністю приховане) -->
+    <!-- Модальне вікно "Агресор" -->
     <div id="aggressorModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; align-items:center; justify-content:center;">
         <div style="background:#121619; padding:25px; border-radius:12px; width:90%; max-width:320px; text-align:center; border: 1px solid #ff4d4d;">
-            <h3 style="color:#ff4d4d; margin-bottom:15px; font-family:sans-serif;">Увага</h3>
-            <p style="color:#fff; font-size:16px; font-weight:bold; margin-bottom:20px; font-family:sans-serif;">Агресор</p>
-            <button onclick="closeAggressorModal()" style="width:100%; padding:10px; background:#ff4d4d; color:#fff; border:none; border-radius:6px; font-weight:bold; font-size:16px; cursor:pointer;">Зрозуміло</button>
+            <h3 id="aggressorTitle" style="color:#ff4d4d; margin-bottom:15px; font-family:sans-serif;">Увага</h3>
+            <p id="aggressorText" style="color:#fff; font-size:16px; font-weight:bold; margin-bottom:20px; font-family:sans-serif;">Агресор</p>
+            <button id="aggressorOkBtn" onclick="closeAggressorModal()" style="width:100%; padding:10px; background:#ff4d4d; color:#fff; border:none; border-radius:6px; font-weight:bold; font-size:16px; cursor:pointer;">Зрозуміло</button>
         </div>
     </div>
 
@@ -113,9 +122,89 @@
         const micBtn = document.getElementById('micBtn');
         const micStatus = document.getElementById('micStatus');
 
-        // Перевірка та збереження нікнейму при завантаженні
+        // Словник для мов інтерфейсу програми (UI)
+        const uiTexts = {
+            Ukrainian: {
+                nicknameTitle: "Введіть ваш нікнейм",
+                nicknameDesc: "Це необхідно для ідентифікації тестувальника.",
+                nicknamePlaceholder: "Ваш нікнейм...",
+                saveBtn: "Зберегти",
+                settingsTitle: "⚙️ Налаштування",
+                nicknameLabel: "Змінити ваш нікнейм:",
+                updateBtn: "Оновити нікнейм",
+                uiLangLabel: "Мова інтерфейсу програми:",
+                closeBtn: "Закрити",
+                aggressorTitle: "Увага",
+                aggressorText: "Агресор",
+                aggressorOk: "Зрозуміло",
+                userInputPlaceholder: "Введіть текст або мікрофон...",
+                micStatusText: "Натисніть мікрофон для запису..."
+            },
+            English: {
+                nicknameTitle: "Enter your nickname",
+                nicknameDesc: "This is required for tester identification.",
+                nicknamePlaceholder: "Your nickname...",
+                saveBtn: "Save",
+                settingsTitle: "⚙️ Settings",
+                nicknameLabel: "Change your nickname:",
+                updateBtn: "Update nickname",
+                uiLangLabel: "App Interface Language:",
+                closeBtn: "Close",
+                aggressorTitle: "Warning",
+                aggressorText: "Aggressor",
+                aggressorOk: "Understood",
+                userInputPlaceholder: "Enter text or microphone...",
+                micStatusText: "Click microphone to record..."
+            },
+            Spanish: {
+                nicknameTitle: "Introduce tu apodo",
+                nicknameDesc: "Esto es necesario para la identificación del probador.",
+                nicknamePlaceholder: "Tu apodo...",
+                saveBtn: "Guardar",
+                settingsTitle: "⚙️ Configuración",
+                nicknameLabel: "Cambiar tu apodo:",
+                updateBtn: "Actualizar apodo",
+                uiLangLabel: "Idioma de la interfaz:",
+                closeBtn: "Cerrar",
+                aggressorTitle: "Atención",
+                aggressorText: "Agresor",
+                aggressorOk: "Entendido",
+                userInputPlaceholder: "Introduce texto o micrófono...",
+                micStatusText: "Haz clic en el micrófono para grabar..."
+            }
+        };
+
+        function changeUiLang(lang) {
+            localStorage.setItem('habla_ui_lang', lang);
+            const t = uiTexts[lang] || uiTexts.Ukrainian;
+            
+            document.getElementById('modalNickTitle').innerText = t.nicknameTitle;
+            document.getElementById('modalNickDesc').innerText = t.nicknameDesc;
+            document.getElementById('nicknameInput').placeholder = t.nicknamePlaceholder;
+            document.getElementById('modalSaveBtn').innerText = t.saveBtn;
+            
+            document.getElementById('settingsTitle').innerText = t.settingsTitle;
+            document.getElementById('settingsNickLabel').innerText = t.nicknameLabel;
+            document.getElementById('settingsUpdateBtn').innerText = t.updateBtn;
+            document.getElementById('settingsUiLangLabel').innerText = t.uiLangLabel;
+            document.getElementById('settingsCloseBtn').innerText = t.closeBtn;
+            
+            document.getElementById('aggressorTitle').innerText = t.aggressorTitle;
+            document.getElementById('aggressorText').innerText = t.aggressorText;
+            document.getElementById('aggressorOkBtn').innerText = t.aggressorOk;
+            
+            document.getElementById('userInput').placeholder = t.userInputPlaceholder;
+            document.getElementById('micStatus').innerText = t.micStatusText;
+        }
+
+        // Перевірка та збереження нікнейму та мови інтерфейсу при завантаженні
         window.addEventListener('DOMContentLoaded', () => {
             const savedNickname = localStorage.getItem('habla_nickname');
+            const savedUiLang = localStorage.getItem('habla_ui_lang') || 'Ukrainian';
+            
+            document.getElementById('uiLangSelect').value = savedUiLang;
+            changeUiLang(savedUiLang);
+
             const modal = document.getElementById('nicknameModal');
             const headerUser = document.getElementById('headerUser');
             
@@ -147,6 +236,10 @@
         function openSettings() {
             const currentNickname = localStorage.getItem('habla_nickname') || '';
             document.getElementById('settingsNicknameInput').value = currentNickname;
+            
+            const savedUiLang = localStorage.getItem('habla_ui_lang') || 'Ukrainian';
+            document.getElementById('uiLangSelect').value = savedUiLang;
+
             document.getElementById('settingsModal').style.display = 'flex';
         }
 
