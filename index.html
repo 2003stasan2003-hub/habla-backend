@@ -46,7 +46,7 @@
         </div>
     </div>
 
-    <!-- Модальне вікно Налаштування (⚙️) з вибором мови інтерфейсу -->
+    <!-- Модальне вікно Налаштування (⚙️) -->
     <div id="settingsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; align-items:center; justify-content:center;">
         <div style="background:#121619; padding:25px; border-radius:12px; width:90%; max-width:320px; text-align:center; border: 1px solid #00e5ff;">
             <h3 id="settingsTitle" style="color:#fff; margin-bottom:15px; font-family:sans-serif;">⚙️ Налаштування</h3>
@@ -56,10 +56,16 @@
             <button id="settingsUpdateBtn" onclick="updateNickname()" style="width:100%; padding:9px; background:#00e5ff; color:#121619; border:none; border-radius:6px; font-weight:bold; font-size:14px; cursor:pointer; margin-bottom:15px;">Оновити нікнейм</button>
 
             <p id="settingsUiLangLabel" style="color:#8c9ba5; font-size:13px; margin-bottom:6px; font-family:sans-serif; text-align:left;">Мова інтерфейсу програми:</p>
-            <select id="uiLangSelect" style="width:100%; padding:10px; border-radius:6px; border:1px solid #00e5ff55; background:#182026; color:#00e5ff; font-size:15px; box-sizing:border-box; margin-bottom:20px; outline:none;" onchange="changeUiLang(this.value)">
+            <select id="uiLangSelect" style="width:100%; padding:10px; border-radius:6px; border:1px solid #00e5ff55; background:#182026; color:#00e5ff; font-size:15px; box-sizing:border-box; margin-bottom:20px; outline:none;" onchange="handleUiLangChange(this)">
                 <option value="Ukrainian">Українська</option>
-                <option value="English">English</option>
                 <option value="Spanish">Spanish</option>
+                <option value="English">English</option>
+                <option value="German">German</option>
+                <option value="French">French</option>
+                <option value="Italian">Italian</option>
+                <option value="Georgian">Georgian</option>
+                <option value="Japanese">Japanese</option>
+                <option value="Russian">Russian</option>
             </select>
 
             <button id="settingsCloseBtn" onclick="closeSettings()" style="width:100%; padding:8px; background:transparent; color:#8c9ba5; border:1px solid #333; border-radius:6px; font-size:14px; cursor:pointer;">Закрити</button>
@@ -114,6 +120,7 @@
         const BACKEND_URL = "https://habla-backend-ipqk.onrender.com/api/translate";
         let isRecording = false, recognition = null;
         let lastValidLang = "Spanish"; 
+        let lastValidUiLang = "Ukrainian";
         
         const inputField = document.getElementById('userInput');
         const sendBtn = document.getElementById('sendBtn');
@@ -122,7 +129,7 @@
         const micBtn = document.getElementById('micBtn');
         const micStatus = document.getElementById('micStatus');
 
-        // Словник для мов інтерфейсу програми (UI)
+        // Повні переклади інтерфейсу на всі 9 мов
         const uiTexts = {
             Ukrainian: {
                 nicknameTitle: "Введіть ваш нікнейм",
@@ -140,6 +147,22 @@
                 userInputPlaceholder: "Введіть текст або мікрофон...",
                 micStatusText: "Натисніть мікрофон для запису..."
             },
+            Spanish: {
+                nicknameTitle: "Introduce tu apodo",
+                nicknameDesc: "Esto es necesario para la identificación del probador.",
+                nicknamePlaceholder: "Tu apodo...",
+                saveBtn: "Guardar",
+                settingsTitle: "⚙️ Configuración",
+                nicknameLabel: "Cambiar tu apodo:",
+                updateBtn: "Actualizar apodo",
+                uiLangLabel: "Idioma de la interfaz:",
+                closeBtn: "Cerrar",
+                aggressorTitle: "Atención",
+                aggressorText: "Agresor",
+                aggressorOk: "Entendido",
+                userInputPlaceholder: "Introduce texto o micrófono...",
+                micStatusText: "Haz clic en el micrófono para grabar..."
+            },
             English: {
                 nicknameTitle: "Enter your nickname",
                 nicknameDesc: "This is required for tester identification.",
@@ -156,21 +179,101 @@
                 userInputPlaceholder: "Enter text or microphone...",
                 micStatusText: "Click microphone to record..."
             },
-            Spanish: {
-                nicknameTitle: "Introduce tu apodo",
-                nicknameDesc: "Esto es necesario para la identificación del probador.",
-                nicknamePlaceholder: "Tu apodo...",
-                saveBtn: "Guardar",
-                settingsTitle: "⚙️ Configuración",
-                nicknameLabel: "Cambiar tu apodo:",
-                updateBtn: "Actualizar apodo",
-                uiLangLabel: "Idioma de la interfaz:",
-                closeBtn: "Cerrar",
-                aggressorTitle: "Atención",
-                aggressorText: "Agresor",
-                aggressorOk: "Entendido",
-                userInputPlaceholder: "Introduce texto o micrófono...",
-                micStatusText: "Haz clic en el micrófono para grabar..."
+            German: {
+                nicknameTitle: "Geben Sie Ihren Spitznamen ein",
+                nicknameDesc: "Dies ist für die Testeridentifizierung erforderlich.",
+                nicknamePlaceholder: "Ihr Spitzname...",
+                saveBtn: "Speichern",
+                settingsTitle: "⚙️ Einstellungen",
+                nicknameLabel: "Spitznamen ändern:",
+                updateBtn: "Spitznamen aktualisieren",
+                uiLangLabel: "App-Oberflächensprache:",
+                closeBtn: "Schließen",
+                aggressorTitle: "Achtung",
+                aggressorText: "Aggressor",
+                aggressorOk: "Verstanden",
+                userInputPlaceholder: "Text oder Mikrofon eingeben...",
+                micStatusText: "Klicken Sie auf das Mikrofon..."
+            },
+            French: {
+                nicknameTitle: "Entrez votre pseudonyme",
+                nicknameDesc: "Ceci est requis pour l'identification du testeur.",
+                nicknamePlaceholder: "Votre pseudo...",
+                saveBtn: "Enregistrer",
+                settingsTitle: "⚙️ Paramètres",
+                nicknameLabel: "Changer votre pseudo:",
+                updateBtn: "Mettre à jour",
+                uiLangLabel: "Langue de l'interface:",
+                closeBtn: "Fermer",
+                aggressorTitle: "Attention",
+                aggressorText: "Agresseur",
+                aggressorOk: "Compris",
+                userInputPlaceholder: "Entrez du texte ou micro...",
+                micStatusText: "Cliquez sur le micro pour enregistrer..."
+            },
+            Italian: {
+                nicknameTitle: "Inserisci il tuo nickname",
+                nicknameDesc: "Questo è necessario per l'identificazione del tester.",
+                nicknamePlaceholder: "Il tuo nickname...",
+                saveBtn: "Salva",
+                settingsTitle: "⚙️ Impostazioni",
+                nicknameLabel: "Modifica nickname:",
+                updateBtn: "Aggiorna nickname",
+                uiLangLabel: "Lingua dell'interfaccia:",
+                closeBtn: "Chiudi",
+                aggressorTitle: "Attenzione",
+                aggressorText: "Aggressore",
+                aggressorOk: "Capito",
+                userInputPlaceholder: "Inserisci testo o microfono...",
+                micStatusText: "Clicca sul microfono per registrare..."
+            },
+            Georgian: {
+                nicknameTitle: "შეyванet tqveni metsaxeli",
+                nicknameDesc: "es aucilebelia testirebistvis.",
+                nicknamePlaceholder: "tqveni metsaxeli...",
+                saveBtn: "shenaxva",
+                settingsTitle: "⚙️ paraleluri",
+                nicknameLabel: "metsaxelis shecvla:",
+                updateBtn: "ganaxleba",
+                uiLangLabel: "interfeisis ena:",
+                closeBtn: "daxurva",
+                aggressorTitle: "yuradgeba",
+                aggressorText: "agresi",
+                aggressorOk: "gasagebia",
+                userInputPlaceholder: "sheiyvane teqsti...",
+                micStatusText: "daakipet mikrofonts..."
+            },
+            Japanese: {
+                nicknameTitle: "ニックネームを入力してください",
+                nicknameDesc: "テスターの識別のために必要です。",
+                nicknamePlaceholder: "ニックネーム...",
+                saveBtn: "保存",
+                settingsTitle: "⚙️ 設定",
+                nicknameLabel: "ニックネームを変更:",
+                updateBtn: "更新",
+                uiLangLabel: "アプリの言語:",
+                closeBtn: "閉じる",
+                aggressorTitle: "警告",
+                aggressorText: "アグレッサー",
+                aggressorOk: "了解",
+                userInputPlaceholder: "テキストを入力...",
+                micStatusText: "マイクをクリック..."
+            },
+            Russian: {
+                nicknameTitle: "Введите ваш никнейм",
+                nicknameDesc: "Это необходимо для идентификации тестувальника.",
+                nicknamePlaceholder: "Ваш никнейм...",
+                saveBtn: "Сохранить",
+                settingsTitle: "⚙️ Настройки",
+                nicknameLabel: "Изменить ваш никнейм:",
+                updateBtn: "Обновить никнейм",
+                uiLangLabel: "Язык интерфейса приложения:",
+                closeBtn: "Закрыть",
+                aggressorTitle: "Внимание",
+                aggressorText: "Агрессор",
+                aggressorOk: "Понятно",
+                userInputPlaceholder: "Введите текст или микрофон...",
+                micStatusText: "Нажмите микрофон для записи..."
             }
         };
 
@@ -197,11 +300,23 @@
             document.getElementById('micStatus').innerText = t.micStatusText;
         }
 
+        function handleUiLangChange(selectElement) {
+            const val = selectElement.value;
+            if (val === 'Russian') {
+                selectElement.value = lastValidUiLang;
+                document.getElementById('aggressorModal').style.display = 'flex';
+            } else {
+                lastValidUiLang = val;
+                changeUiLang(val);
+            }
+        }
+
         // Перевірка та збереження нікнейму та мови інтерфейсу при завантаженні
         window.addEventListener('DOMContentLoaded', () => {
             const savedNickname = localStorage.getItem('habla_nickname');
             const savedUiLang = localStorage.getItem('habla_ui_lang') || 'Ukrainian';
             
+            lastValidUiLang = savedUiLang;
             document.getElementById('uiLangSelect').value = savedUiLang;
             changeUiLang(savedUiLang);
 
