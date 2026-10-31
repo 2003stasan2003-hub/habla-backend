@@ -47,20 +47,27 @@
             letter-spacing: 0.5px;
         }
 
+        /* Мінімалістичний селектор мов */
         .language-select {
             background-color: #2c2c2c;
             color: #ffffff;
             border: 1px solid #444;
-            padding: 6px 10px;
-            border-radius: 6px;
+            padding: 8px 12px;
+            border-radius: 8px;
             font-size: 14px;
             outline: none;
             cursor: pointer;
         }
 
+        .language-select option {
+            background-color: #1e1e1e;
+            color: #ffffff;
+            padding: 8px;
+        }
+
         .language-select option:disabled {
-            color: #666;
-            background-color: #1a1a1a;
+            color: #555;
+            background-color: #151515;
         }
 
         /* Основна зона чату / перекладу */
@@ -240,23 +247,23 @@
         </div>
 
         <select class="language-select" id="langSelect">
-            <option value="uk-UA">🇺🇦 Україна (Українська)</option>
-            <option value="en-US">🇺🇸 Сполучені Штати (English)</option>
-            <option value="en-GB">🇬🇧 Велика Британія (English)</option>
-            <option value="de-DE">🇩🇪 Німеччина (Deutsch)</option>
-            <option value="pl-PL">🇵🇱 Польща (Polski)</option>
-            <option value="et-EE">🇪🇪 Естонія (Eesti)</option>
-            <option value="lv-LV">🇱🇻 Латвія (Latviešu)</option>
-            <option value="lt-LT">🇱🇹 Литва (Lietuvių)</option>
-            <option value="cs-CZ">🇨🇿 Чехія (Čeština)</option>
-            <option value="nl-NL">🇳🇱 Нідерланди (Nederlands)</option>
-            <option value="da-DK">🇩🇰 Данія (Dansk)</option>
-            <option value="en-CA">🇨🇦 Канада (English/Français)</option>
-            <option value="nb-NO">🇳🇴 Норвегія (Norsk)</option>
-            <option value="fr-FR">🇫🇷 Франція (Français)</option>
-            <option value="sv-SE">🇸🇪 Швеція (Svenska)</option>
-            <option value="fi-FI">🇫🇮 Фінляндія (Suomi)</option>
-            <option value="ru-RU" disabled>🇷🇺 Росія (Русский) — Неактивно</option>
+            <option value="uk-UA">Українська</option>
+            <option value="en-US">English</option>
+            <option value="en-GB">English</option>
+            <option value="de-DE">Deutsch</option>
+            <option value="pl-PL">Polski</option>
+            <option value="et-EE">Eesti</option>
+            <option value="lv-LV">Latviešu</option>
+            <option value="lt-LT">Lietuvių</option>
+            <option value="cs-CZ">Čeština</option>
+            <option value="nl-NL">Nederlands</option>
+            <option value="da-DK">Dansk</option>
+            <option value="en-CA">English / Français</option>
+            <option value="nb-NO">Norsk</option>
+            <option value="fr-FR">Français</option>
+            <option value="sv-SE">Svenska</option>
+            <option value="fi-FI">Suomi</option>
+            <option value="ru-RU" disabled>Русский (Неактивно)</option>
         </select>
     </header>
 
@@ -369,7 +376,6 @@
             if (isRecording) {
                 stopRecognition();
             } else {
-                // Встановлюємо мову розпізнавання з обраної у списку
                 recognition.lang = langSelect.value; 
                 try {
                     recognition.start();
@@ -386,7 +392,6 @@
                 const placeholder = chatContainer.querySelector('.placeholder-message');
                 if (placeholder) placeholder.remove();
 
-                // 1. Показуємо оригінальне повідомлення в чаті
                 const userMsgDiv = document.createElement('div');
                 userMsgDiv.style.cssText = "background: #222; padding: 10px 14px; border-radius: 8px; align-self: flex-end; max-width: 80%; word-break: break-word; border: 1px solid #333;";
                 userMsgDiv.textContent = "Ви: " + text;
@@ -395,9 +400,8 @@
                 textInput.value = '';
                 chatContainer.scrollTop = chatContainer.scrollHeight;
 
-                const selectedLang = langSelect.value; // Наприклад, 'pl-PL' або 'uk-UA'
+                const selectedLang = langSelect.value;
 
-                // 2. Відправляємо на ваш бекенд (Render) для перекладу
                 try {
                     const response = await fetch('/api/translate', {
                         method: 'POST',
@@ -408,7 +412,6 @@
                     if (response.ok) {
                         const data = await response.json();
                         
-                        // 3. Виводимо перекладений результат від сервера
                         const translatedMsgDiv = document.createElement('div');
                         translatedMsgDiv.style.cssText = "background: #1a2e3b; padding: 10px 14px; border-radius: 8px; align-self: flex-start; max-width: 80%; word-break: break-word; border: 1px solid #005ec4;";
                         translatedMsgDiv.textContent = "Habla: " + (data.translatedText || data.result || "Переклад відсутній");
@@ -422,7 +425,7 @@
                     
                     const errDiv = document.createElement('div');
                     errDiv.style.cssText = "background: #3b1a1a; padding: 10px 14px; border-radius: 8px; align-self: flex-start; max-width: 80%; color: #ff8888; border: 1px solid #ff3b30;";
-                    errDiv.textContent = `[Система]: Немає зв'язку з бекендом для перекладу на мову ${selectedLang}. Перевірте server.js`;
+                    errDiv.textContent = `[Система]: Немає зв'язку з бекендом для перекладу. Перевірте server.js`;
                     chatContainer.appendChild(errDiv);
                 }
             }
