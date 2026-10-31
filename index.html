@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="uk">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -169,7 +169,7 @@
             border-color: #007aff;
         }
 
-        /* Текстова кнопка Надіслати замість стрілочки */
+        /* Текстова кнопка Надіслати */
         .send-text-btn {
             background-color: #007aff;
             color: white;
@@ -285,9 +285,8 @@
 
         <!-- Центральний блок: "Перекласти на:" + вибір мови -->
         <div class="header-center">
-            <span class="translate-label">Перекласти на:</span>
+            <span class="translate-label" id="translateLabelText">Перекласти на:</span>
             <select class="language-select" id="targetLangSelect">
-                <option value="es-ES">Español (Іспанська)</option>
                 <option value="uk-UA">Українська</option>
                 <option value="en-US">English</option>
                 <option value="de-DE">Deutsch</option>
@@ -310,7 +309,7 @@
 
     <!-- Область повідомлень / чату -->
     <div class="chat-container" id="chatContainer">
-        <div class="placeholder-message">Почніть розмову або введіть текст нижче...</div>
+        <div class="placeholder-message" id="placeholderText">Почніть розмову або введіть текст нижче...</div>
     </div>
 
     <!-- Нижня панель: Мікрофон + Стрічка введення + Кнопка Надіслати -->
@@ -326,17 +325,17 @@
     <!-- Виїзне бокове меню -->
     <nav class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <span>Menu</span>
+            <span id="menuTitleText">Menu</span>
             <button class="close-btn" id="closeMenu">&times;</button>
         </div>
         
         <button class="add-user-btn" id="addUserBtn">
-            <span>+</span> Додати користувача
+            <span>+</span> <span id="addUserText">Додати користувача</span>
         </button>
 
         <!-- Меню вибору мови додатка / вхідної мови -->
         <div class="sidebar-section">
-            <label style="font-size: 13px; color: #aaa;">Мова інтерфейсу / Вхідна мова</label>
+            <label style="font-size: 13px; color: #aaa;" id="interfaceLangLabelText">Мова інтерфейсу / Вхідна мова</label>
             <select class="sidebar-select" id="sourceLangSelect">
                 <option value="es-ES" selected>Español (Іспанська)</option>
                 <option value="uk-UA">Українська</option>
@@ -359,6 +358,71 @@
     </nav>
 
     <script>
+        // Словник перекладу інтерфейсу додатку
+        const uiStrings = {
+            'es-ES': {
+                menu: 'Menú',
+                addUser: 'Añadir usuario',
+                interfaceLang: 'Idioma de interfaz / Entrada',
+                translateTo: 'Traducir a:',
+                send: 'Enviar',
+                placeholder: 'Empieza a hablar o escribe abajo...'
+            },
+            'uk-UA': {
+                menu: 'Меню',
+                addUser: 'Додати користувача',
+                interfaceLang: 'Мова інтерфейсу / Вхідна мова',
+                translateTo: 'Перекласти на:',
+                send: 'Надіслати',
+                placeholder: 'Почніть розмову або введіть текст нижче...'
+            },
+            'en-US': {
+                menu: 'Menu',
+                addUser: 'Add user',
+                interfaceLang: 'Interface / Input Language',
+                translateTo: 'Translate to:',
+                send: 'Send',
+                placeholder: 'Start typing or speaking...'
+            },
+            'de-DE': {
+                menu: 'Menü',
+                addUser: 'Benutzer hinzufügen',
+                interfaceLang: 'Oberflächen- / Eingabesprache',
+                translateTo: 'Übersetzen in:',
+                send: 'Senden',
+                placeholder: 'Tippen oder sprechen...'
+            },
+            'pl-PL': {
+                menu: 'Menu',
+                addUser: 'Dodaj użytkownika',
+                interfaceLang: 'Język interfejsu / wejścia',
+                translateTo: 'Przetłumacz na:',
+                send: 'Wyślij',
+                placeholder: 'Rozpocznij pisanie lub mówienie...'
+            }
+            // Для інших мов можна розширювати за потребою
+        };
+
+        function updateInterfaceTexts() {
+            const selectedInterfaceLang = sourceLangSelect.value;
+            // За замовчуванням беремо українську або іспанську, якщо немає в словнику
+            const strings = uiStrings[selectedInterfaceLang] || uiStrings['uk-UA'];
+
+            document.getElementById('menuTitleText').textContent = strings.menu;
+            document.getElementById('addUserText').textContent = strings.addUser;
+            document.getElementById('interfaceLangLabelText').textContent = strings.interfaceLang;
+            document.getElementById('translateLabelText').textContent = strings.translateTo;
+            document.getElementById('sendBtn').textContent = strings.send;
+            
+            const textInput = document.getElementById('textInput');
+            textInput.placeholder = strings.placeholder;
+
+            const placeholderMsg = document.getElementById('placeholderText');
+            if (placeholderMsg) {
+                placeholderMsg.textContent = strings.placeholder;
+            }
+        }
+
         const menuToggle = document.getElementById('menuToggle');
         const sidebar = document.getElementById('sidebar');
         const closeMenu = document.getElementById('closeMenu');
@@ -375,7 +439,7 @@
         overlay.addEventListener('click', toggleSidebar);
 
         addUserBtn.addEventListener('click', () => {
-            alert('Відкриття модального вікна для додавання нового користувача!');
+            alert(sourceLangSelect.value.startsWith('es') ? 'Ventana para añadir usuario' : 'Відкриття модального вікна для додавання нового користувача!');
         });
 
         // --- РОЗПІЗНАВАННЯ МОВИ (ГОЛОСУ) ---
@@ -385,6 +449,14 @@
         const chatContainer = document.getElementById('chatContainer');
         const targetLangSelect = document.getElementById('targetLangSelect');
         const sourceLangSelect = document.getElementById('sourceLangSelect');
+
+        // Оновлюємо мову інтерфейсу одразу при завантаженні (оскільки за замовчуванням стоїть Español)
+        updateInterfaceTexts();
+
+        // Слідкуємо за зміною мови в меню
+        sourceLangSelect.addEventListener('change', () => {
+            updateInterfaceTexts();
+        });
 
         let recognition = null;
         let isRecording = false;
@@ -490,7 +562,7 @@
                     
                     const errDiv = document.createElement('div');
                     errDiv.style.cssText = "background: #3b1a1a; padding: 10px 14px; border-radius: 8px; align-self: flex-start; max-width: 80%; color: #ff8888; border: 1px solid #ff3b30;";
-                    errDiv.textContent = `[Система]: Немає зв'язку з бекендом для перекладу. Перевірте server.js`;
+                    errDiv.textContent = `[Система]: Немає зв'язку з бекендом для перекладу.`;
                     chatContainer.appendChild(errDiv);
                 }
             }
