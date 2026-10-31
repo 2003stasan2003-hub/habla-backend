@@ -25,7 +25,7 @@
         .text-input-wrapper input::placeholder { color: #6b7280; }
         .send-btn { background: transparent; border: none; color: #00bcd4; font-size: 18px; cursor: pointer; padding-left: 8px; }
         .mic-instruction { font-size: 12px; color: #9ca3af; }
-        .mic-btn-container { width: 60px; height: 60px; border-radius: 50%; border: 2px solid #00bcd4; display: flex; align-items: center; justify-content: center; background-color: #111827; cursor: pointer; box-shadow: 0 0 12px rgba(0, 188, 212, 0.3); }
+        .mic-btn-container { width: 60px; height: 60px; border-radius: 50%; border: 2px solid #00bcd4; display: flex; align-items: center; justify-content: center; background-color: #111827; cursor: pointer; box-shadow: 0 0 12px rgba(0, 188, 212, 0.3); transition: background-color 0.3s; }
         .mic-btn-container svg { width: 24px; height: 24px; fill: #00bcd4; }
     </style>
 </head>
@@ -68,6 +68,7 @@
         const langSelect = document.getElementById('langSelect');
         const micBtn = document.getElementById('micBtn');
 
+        // Відправка повідомлення на сервер
         async function sendMessage() {
             const text = messageInput.value.trim();
             if (!text) return;
@@ -103,7 +104,52 @@
 
         sendBtn.addEventListener('click', sendMessage);
         messageInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
-        micBtn.addEventListener('click', () => { alert('Мікрофон активовано.'); });
+
+        // --- ПОВНОЦІННИЙ РОБОЧИЙ БЛОК РОЗПІЗНАВАННЯ ГОЛОСУ ---
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+        if (SpeechRecognition) {
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'uk-UA'; // Мова, якою ви говорите в мікрофон
+            recognition.interimResults = false;
+            
+            micBtn.addEventListener('click', () => {
+                try {
+                    recognition.start();
+                    // Кнопка мікрофона змінює колір під час запису
+                    micBtn.style.backgroundColor = '#1f293d'; 
+                    messageInput.placeholder = "Слухаю...";
+                } catch(e) {
+                    console.log("Мікрофон вже працює.");
+                }
+            });
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                // Вставляємо сказаний текст прямо в поле вводу
+                messageInput.value = transcript; 
+                
+                // Повертаємо дизайн у звичайний стан
+                micBtn.style.backgroundColor = '#111827';
+                messageInput.placeholder = "Enter text or microphone...";
+            };
+
+            recognition.onspeechend = () => {
+                recognition.stop();
+                micBtn.style.backgroundColor = '#111827';
+                messageInput.placeholder = "Enter text or microphone...";
+            };
+
+            recognition.onerror = (event) => {
+                console.error('Помилка мікрофона:', event.error);
+                micBtn.style.backgroundColor = '#111827';
+                messageInput.placeholder = "Enter text or microphone...";
+            };
+        } else {
+            micBtn.addEventListener('click', () => {
+                messageInput.value = "Ваш браузер не підтримує голосове введення.";
+            });
+        }
     </script>
 </body>
 </html>
