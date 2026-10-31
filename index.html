@@ -32,6 +32,16 @@
             gap: 12px;
         }
 
+        .header-center {
+            display: flex;
+            justify-content: center;
+            flex: 1;
+        }
+
+        .header-right {
+            width: 40px; /* для симетрії */
+        }
+
         .menu-btn {
             background: none;
             border: none;
@@ -227,6 +237,13 @@
             background-color: #005ec4;
         }
 
+        .sidebar-section {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 10px;
+        }
+
         .overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -246,25 +263,27 @@
             <span class="app-title">Habla Mobile</span>
         </div>
 
-        <select class="language-select" id="langSelect">
-            <option value="uk-UA">Українська</option>
-            <option value="en-US">English</option>
-            <option value="en-GB">English</option>
-            <option value="de-DE">Deutsch</option>
-            <option value="pl-PL">Polski</option>
-            <option value="et-EE">Eesti</option>
-            <option value="lv-LV">Latviešu</option>
-            <option value="lt-LT">Lietuvių</option>
-            <option value="cs-CZ">Čeština</option>
-            <option value="nl-NL">Nederlands</option>
-            <option value="da-DK">Dansk</option>
-            <option value="en-CA">English / Français</option>
-            <option value="nb-NO">Norsk</option>
-            <option value="fr-FR">Français</option>
-            <option value="sv-SE">Svenska</option>
-            <option value="fi-FI">Suomi</option>
-            <option value="ru-RU" disabled>Русский (Неактивно)</option>
-        </select>
+        <!-- Селектор мови перекладу по центру зверху -->
+        <div class="header-center">
+            <select class="language-select" id="targetLangSelect">
+                <option value="uk-UA">Українська</option>
+                <option value="en-US">English</option>
+                <option value="de-DE">Deutsch</option>
+                <option value="pl-PL">Polski</option>
+                <option value="et-EE">Eesti</option>
+                <option value="lv-LV">Latviešu</option>
+                <option value="lt-LT">Lietuvių</option>
+                <option value="cs-CZ">Čeština</option>
+                <option value="nl-NL">Nederlands</option>
+                <option value="da-DK">Dansk</option>
+                <option value="nb-NO">Norsk</option>
+                <option value="fr-FR">Français</option>
+                <option value="sv-SE">Svenska</option>
+                <option value="fi-FI">Suomi</option>
+            </select>
+        </div>
+
+        <div class="header-right"></div>
     </header>
 
     <!-- Область повідомлень / чату -->
@@ -292,6 +311,29 @@
         <button class="add-user-btn" id="addUserBtn">
             <span>+</span> Додати користувача
         </button>
+
+        <!-- Блок вибору мов у меню з іспанською за замовчуванням -->
+        <div class="sidebar-section">
+            <label style="font-size: 13px; color: #aaa;">Вибір мов (Вхідна)</label>
+            <select class="language-select" id="sourceLangSelect">
+                <option value="es-ES" selected>Español (Іспанська)</option>
+                <option value="uk-UA">Українська</option>
+                <option value="en-US">English</option>
+                <option value="de-DE">Deutsch</option>
+                <option value="pl-PL">Polski</option>
+                <option value="et-EE">Eesti</option>
+                <option value="lv-LV">Latviešu</option>
+                <option value="lt-LT">Lietuvių</option>
+                <option value="cs-CZ">Čeština</option>
+                <option value="nl-NL">Nederlands</option>
+                <option value="da-DK">Dansk</option>
+                <option value="nb-NO">Norsk</option>
+                <option value="fr-FR">Français</option>
+                <option value="sv-SE">Svenska</option>
+                <option value="fi-FI">Suomi</option>
+                <option value="ru-RU" disabled>Русский (Неактивно)</option>
+            </select>
+        </div>
     </nav>
 
     <script>
@@ -320,7 +362,8 @@
         const textInput = document.getElementById('textInput');
         const sendBtn = document.getElementById('sendBtn');
         const chatContainer = document.getElementById('chatContainer');
-        const langSelect = document.getElementById('langSelect');
+        const targetLangSelect = document.getElementById('targetLangSelect');
+        const sourceLangSelect = document.getElementById('sourceLangSelect');
 
         let recognition = null;
         let isRecording = false;
@@ -376,7 +419,8 @@
             if (isRecording) {
                 stopRecognition();
             } else {
-                recognition.lang = langSelect.value; 
+                // Використовуємо мову, вибрану в меню (за замовчуванням іспанська)
+                recognition.lang = sourceLangSelect.value; 
                 try {
                     recognition.start();
                 } catch (e) {
@@ -400,13 +444,14 @@
                 textInput.value = '';
                 chatContainer.scrollTop = chatContainer.scrollHeight;
 
-                const selectedLang = langSelect.value;
+                const targetLang = targetLangSelect.value;
+                const sourceLang = sourceLangSelect.value;
 
                 try {
                     const response = await fetch('/api/translate', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ text: text, targetLang: selectedLang })
+                        body: JSON.stringify({ text: text, sourceLang: sourceLang, targetLang: targetLang })
                     });
 
                     if (response.ok) {
