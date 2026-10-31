@@ -240,6 +240,7 @@
         </div>
 
         <select class="language-select" id="langSelect">
+            <option value="uk-UA">🇺🇦 Україна (Українська)</option>
             <option value="en-US">🇺🇸 Сполучені Штати (English)</option>
             <option value="en-GB">🇬🇧 Велика Британія (English)</option>
             <option value="de-DE">🇩🇪 Німеччина (Deutsch)</option>
@@ -338,7 +339,7 @@
                 textInput.value = transcript;
             };
 
-                recognition.onerror = (event) => {
+            recognition.onerror = (event) => {
                 console.error('Помилка розпізнавання:', event.error);
                 stopRecognition();
             };
@@ -368,7 +369,8 @@
             if (isRecording) {
                 stopRecognition();
             } else {
-                recognition.lang = langSelect.value.startsWith('en') ? 'en-US' : 'uk-UA'; 
+                // Встановлюємо мову розпізнавання з обраної у списку
+                recognition.lang = langSelect.value; 
                 try {
                     recognition.start();
                 } catch (e) {
@@ -377,20 +379,52 @@
             }
         });
 
-        // --- ОБРОБКА НАДІСЛАННЯ ТЕКСТУ ---
-        function handleSend() {
+        // --- ОБРОБКА НАДІСЛАННЯ ТЕКСТУ ТА ПЕРЕКЛАДУ ---
+        async function handleSend() {
             const text = textInput.value.trim();
             if (text) {
                 const placeholder = chatContainer.querySelector('.placeholder-message');
                 if (placeholder) placeholder.remove();
 
-                const msgDiv = document.createElement('div');
-                msgDiv.style.cssText = "background: #222; padding: 10px 14px; border-radius: 8px; align-self: flex-end; max-width: 80%; word-break: break-word; border: 1px solid #333;";
-                msgDiv.textContent = text;
-                chatContainer.appendChild(msgDiv);
+                // 1. Показуємо оригінальне повідомлення в чаті
+                const userMsgDiv = document.createElement('div');
+                userMsgDiv.style.cssText = "background: #222; padding: 10px 14px; border-radius: 8px; align-self: flex-end; max-width: 80%; word-break: break-word; border: 1px solid #333;";
+                userMsgDiv.textContent = "Ви: " + text;
+                chatContainer.appendChild(userMsgDiv);
 
                 textInput.value = '';
                 chatContainer.scrollTop = chatContainer.scrollHeight;
+
+                const selectedLang = langSelect.value; // Наприклад, 'pl-PL' або 'uk-UA'
+
+                // 2. Відправляємо на ваш бекенд (Render) для перекладу
+                try {
+                    const response = await fetch('/api/translate', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ text: text, targetLang: selectedLang })
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        
+                        // 3. Виводимо перекладений результат від сервера
+                        const translatedMsgDiv = document.createElement('div');
+                        translatedMsgDiv.style.cssText = "background: #1a2e3b; padding: 10px 14px; border-radius: 8px; align-self: flex-start; max-width: 80%; word-break: break-word; border: 1px solid #005ec4;";
+                        translatedMsgDiv.textContent = "Habla: " + (data.translatedText || data.result || "Переклад відсутній");
+                        chatContainer.appendChild(translatedMsgDiv);
+                        chatContainer.scrollTop = chatContainer.scrollHeight;
+                    } else {
+                        console.error('Помилка сервера при перекладі');
+                    }
+                } catch (error) {
+                    console.error('Помилка мережі:', error);
+                    
+                    const errDiv = document.createElement('div');
+                    errDiv.style.cssText = "background: #3b1a1a; padding: 10px 14px; border-radius: 8px; align-self: flex-start; max-width: 80%; color: #ff8888; border: 1px solid #ff3b30;";
+                    errDiv.textContent = `[Система]: Немає зв'язку з бекендом для перекладу на мову ${selectedLang}. Перевірте server.js`;
+                    chatContainer.appendChild(errDiv);
+                }
             }
         }
 
