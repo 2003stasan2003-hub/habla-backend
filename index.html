@@ -307,32 +307,85 @@
             alert('Відкриття модального вікна для додавання нового користувача!');
         });
 
-        // Імітація взаємодії з мікрофоном
+        // --- РОЗПІЗНАВАННЯ МОВИ (ГОЛОСУ) ---
         const micBtn = document.getElementById('micBtn');
-        micBtn.addEventListener('click', () => {
-            micBtn.classList.toggle('recording');
-            if (micBtn.classList.contains('recording')) {
+        const textInput = document.getElementById('textInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const chatContainer = document.getElementById('chatContainer');
+        const langSelect = document.getElementById('langSelect');
+
+        let recognition = null;
+        let isRecording = false;
+
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = true;
+
+            recognition.onstart = () => {
+                isRecording = true;
+                micBtn.classList.add('recording');
                 micBtn.title = "Слухаю...";
+            };
+
+            recognition.onresult = (event) => {
+                let transcript = '';
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    transcript += event.results[i][0].transcript;
+                }
+                textInput.value = transcript;
+            };
+
+                recognition.onerror = (event) => {
+                console.error('Помилка розпізнавання:', event.error);
+                stopRecognition();
+            };
+
+            recognition.onend = () => {
+                stopRecognition();
+            };
+        } else {
+            console.warn('Web Speech API не підтримується цим браузером.');
+        }
+
+        function stopRecognition() {
+            isRecording = false;
+            micBtn.classList.remove('recording');
+            micBtn.title = "Говорити";
+            if (recognition) {
+                try { recognition.stop(); } catch(e) {}
+            }
+        }
+
+        micBtn.addEventListener('click', () => {
+            if (!recognition) {
+                alert('Ваш браузер не підтримує голосове введення.');
+                return;
+            }
+
+            if (isRecording) {
+                stopRecognition();
             } else {
-                micBtn.title = "Говорити";
+                recognition.lang = langSelect.value.startsWith('en') ? 'en-US' : 'uk-UA'; 
+                try {
+                    recognition.start();
+                } catch (e) {
+                    console.log(e);
+                }
             }
         });
 
-        // Обробка надсилання тексту
-        const sendBtn = document.getElementById('sendBtn');
-        const textInput = document.getElementById('textInput');
-        const chatContainer = document.getElementById('chatContainer');
-
+        // --- ОБРОБКА НАДІСЛАННЯ ТЕКСТУ ---
         function handleSend() {
             const text = textInput.value.trim();
             if (text) {
-                // Прибираємо заглушку при першому повідомленні
                 const placeholder = chatContainer.querySelector('.placeholder-message');
                 if (placeholder) placeholder.remove();
 
-                // Додаємо повідомлення у чат
                 const msgDiv = document.createElement('div');
-                msgDiv.style.cssText = "background: #222; padding: 10px 14px; border-radius: 8px; align-self: flex-end; max-width: 80%; word-break: break-word;";
+                msgDiv.style.cssText = "background: #222; padding: 10px 14px; border-radius: 8px; align-self: flex-end; max-width: 80%; word-break: break-word; border: 1px solid #333;";
                 msgDiv.textContent = text;
                 chatContainer.appendChild(msgDiv);
 
