@@ -5,17 +5,14 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Дозвіл для Android та роздача файлів
 app.use('/.well-known', express.static('.well-known'));
 app.use(express.static(__dirname));
 
-// Маршрут для перекладу через Groq API
 app.post('/api/translate', async (req, res) => {
     try {
         const { text, targetLanguage } = req.body;
         if (!text) return res.status(400).json({ error: 'Текст відсутній' });
 
-        // Шукаємо ваш ключ GROQ, який збережено на Render
         const apiKey = process.env.GROQ_API_KEY;
         if (!apiKey) {
             return res.status(500).json({ error: 'API ключ Groq не знайдено на сервері' });
@@ -28,7 +25,7 @@ app.post('/api/translate', async (req, res) => {
                 'Authorization': `Bearer ${apiKey}`
             },
             body: JSON.stringify({
-                model: "llama-3.3-70b-versatile", // Потужна модель від Groq
+                model: "llama3-8b-8192", // Суперстабільна та доступна модель Groq
                 messages: [
                     {
                         role: "system",
