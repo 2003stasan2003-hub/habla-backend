@@ -5,35 +5,32 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Дозвіл для Android приховати адресний рядок
-app.use('/.well-known', express.static('.well-known'));
-// Роздача інтерфейсу програми
+// Роздача статичних файлів інтерфейсу
 app.use(express.static(__dirname));
 
-// Маршрут для миттєвого перекладу
+// Маршрут для перекладу через OpenRouter із моделлю Qwen
 app.post('/api/translate', async (req, res) => {
     try {
         const { text, targetLanguage } = req.body;
         if (!text) return res.status(400).json({ error: 'Текст відсутній' });
 
-        // 🔑 Якщо ваш ключ зберігається на Render у змінних середовища, він підтягнеться автоматично.
-        // Якщо ні, вставте ваш GROQ API KEY замість слова 'ВАШ_GROQ_API_KEY'
-        const apiKey = process.env.GROQ_API_KEY || 'ВАШ_GROQ_API_KEY';
+        // Ключ для OpenRouter (або з налаштувань Render, або ваш ключ)
+        const apiKey = process.env.OPENROUTER_API_KEY || 'ВАШ_OPENROUTER_API_KEY';
 
-        // Запит до Groq API (куди підключені Llama та Qwen)
-        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
+                'Authorization': `Bearer ${apiKey}`,
+                'HTTP-Referer': 'https://render.com', // Обов'язковий заголовк для OpenRouter
+                'X-Title': 'Habla 3.0'                // Назва вашого додатку
             },
             body: JSON.stringify({
-                // Тут вказана надшвидка модель. Якщо ви використовуєте конкретну версію Qwen, впишіть її сюди:
-                model: "llama-3.1-8b-instant", 
+                model: "qwen/qwen-2.5-72b-instruct", // Та сама перша модель Qwen зі списку!
                 messages: [
                     {
                         role: "system",
-                        content: `You are a professional translator. Translate the given text accurately into ${targetLanguage}. Return ONLY the translation.`
+                        content: `You are a professional translator. Translate the given text accurately and naturally into ${targetLanguage}. Return ONLY the translated text without any extra notes or formatting.`
                     },
                     { role: "user", content: text }
                 ]
@@ -43,11 +40,14 @@ app.post('/api/translate', async (req, res) => {
         const data = await response.json();
         
         if (!response.ok) {
-            console.error('Помилка API:', data);
-            return res.status(500).json({ error: 'Помилка мовної моделі' });
+            console.error('Помилка OpenRouter API:', data);
+            return res.status(500).json({ error: 'Помилка мовної моделі Qwen' });
         }
 
-        const translatedText = data.choices[0].message.content.trim();
+        const translatedText = data.choices && data.choices[0] && data.choices[0].message 
+            ? data.choices[0].message.content.trim() 
+            : text;
+
         res.json({ translatedText });
 
     } catch (error) {
