@@ -5,30 +5,32 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Дозвіл для Android та роздача файлів
+// Дозвіл для Android та роздача файлів інтерфейсу
 app.use('/.well-known', express.static('.well-known'));
 app.use(express.static(__dirname));
 
-// Маршрут для перекладу через Groq API
+// Маршрут для перекладу через OpenRouter із моделлю Qwen
 app.post('/api/translate', async (req, res) => {
     try {
         const { text, targetLanguage } = req.body;
         if (!text) return res.status(400).json({ error: 'Текст відсутній' });
 
-        // Беремо ваш справжній ключ Groq з налаштувань Render
-        const apiKey = process.env.GROQ_API_KEY;
+        // Беремо ключ OpenRouter з налаштувань Render
+        const apiKey = process.env.OPENROUTER_API_KEY;
         if (!apiKey) {
-            return res.status(500).json({ error: 'API ключ Groq не знайдено на сервері' });
+            return res.status(500).json({ error: 'API ключ OpenRouter не знайдено на сервері' });
         }
 
-        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
+                'Authorization': `Bearer ${apiKey}`,
+                'HTTP-Referer': 'https://render.com', // Обов'язкові заголовки для OpenRouter
+                'X-Title': 'Habla 3.0'
             },
             body: JSON.stringify({
-                model: "llama-3.3-70b-versatile", // Стабільна та потужна модель Groq
+                model: "qwen/qwen-2.5-72b-instruct", // Обрана модель Qwen
                 messages: [
                     {
                         role: "system",
@@ -42,8 +44,8 @@ app.post('/api/translate', async (req, res) => {
         const data = await response.json();
         
         if (!response.ok) {
-            console.error('Помилка Groq API:', data);
-            return res.status(500).json({ error: 'Помилка мовної моделі Groq' });
+            console.error('Помилка OpenRouter API:', data);
+            return res.status(500).json({ error: 'Помилка мовної моделі Qwen' });
         }
 
         const translatedText = data.choices && data.choices[0] && data.choices[0].message 
