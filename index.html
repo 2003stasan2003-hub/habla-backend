@@ -287,20 +287,11 @@
         <div class="header-center">
             <span class="translate-label" id="translateLabelText">Перекласти на:</span>
             <select class="language-select" id="targetLangSelect">
+                <option value="es-ES" selected>Español</option>
                 <option value="uk-UA">Українська</option>
                 <option value="en-US">English</option>
                 <option value="de-DE">Deutsch</option>
                 <option value="pl-PL">Polski</option>
-                <option value="et-EE">Eesti</option>
-                <option value="lv-LV">Latviešu</option>
-                <option value="lt-LT">Lietuvių</option>
-                <option value="cs-CZ">Čeština</option>
-                <option value="nl-NL">Nederlands</option>
-                <option value="da-DK">Dansk</option>
-                <option value="nb-NO">Norsk</option>
-                <option value="fr-FR">Français</option>
-                <option value="sv-SE">Svenska</option>
-                <option value="fi-FI">Suomi</option>
             </select>
         </div>
 
@@ -342,23 +333,13 @@
                 <option value="en-US">English</option>
                 <option value="de-DE">Deutsch</option>
                 <option value="pl-PL">Polski</option>
-                <option value="et-EE">Eesti</option>
-                <option value="lv-LV">Latviešu</option>
-                <option value="lt-LT">Lietuvių</option>
-                <option value="cs-CZ">Čeština</option>
-                <option value="nl-NL">Nederlands</option>
-                <option value="da-DK">Dansk</option>
-                <option value="nb-NO">Norsk</option>
-                <option value="fr-FR">Français</option>
-                <option value="sv-SE">Svenska</option>
-                <option value="fi-FI">Suomi</option>
                 <option value="ru-RU" disabled>Русский (Неактивно)</option>
             </select>
         </div>
     </nav>
 
     <script>
-        // Словник перекладу інтерфейсу додатку
+        // Словник перекладу інтерфейсу для 5 підтримуваних мов
         const uiStrings = {
             'es-ES': {
                 menu: 'Menú',
@@ -400,13 +381,11 @@
                 send: 'Wyślij',
                 placeholder: 'Rozpocznij pisanie lub mówienie...'
             }
-            // Для інших мов можна розширювати за потребою
         };
 
         function updateInterfaceTexts() {
             const selectedInterfaceLang = sourceLangSelect.value;
-            // За замовчуванням беремо українську або іспанську, якщо немає в словнику
-            const strings = uiStrings[selectedInterfaceLang] || uiStrings['uk-UA'];
+            const strings = uiStrings[selectedInterfaceLang] || uiStrings['es-ES'];
 
             document.getElementById('menuTitleText').textContent = strings.menu;
             document.getElementById('addUserText').textContent = strings.addUser;
@@ -449,14 +428,6 @@
         const chatContainer = document.getElementById('chatContainer');
         const targetLangSelect = document.getElementById('targetLangSelect');
         const sourceLangSelect = document.getElementById('sourceLangSelect');
-
-        // Оновлюємо мову інтерфейсу одразу при завантаженні (оскільки за замовчуванням стоїть Español)
-        updateInterfaceTexts();
-
-        // Слідкуємо за зміною мови в меню
-        sourceLangSelect.addEventListener('change', () => {
-            updateInterfaceTexts();
-        });
 
         let recognition = null;
         let isRecording = false;
@@ -521,6 +492,14 @@
             }
         });
 
+        // Оновлюємо мову інтерфейсу при старті
+        updateInterfaceTexts();
+
+        // Слідкуємо за зміною мови в меню
+        sourceLangSelect.addEventListener('change', () => {
+            updateInterfaceTexts();
+        });
+
         // --- ОБРОБКА НАДІСЛАННЯ ТЕКСТУ ТА ПЕРЕКЛАДУ ---
         async function handleSend() {
             const text = textInput.value.trim();
@@ -530,7 +509,7 @@
 
                 const userMsgDiv = document.createElement('div');
                 userMsgDiv.style.cssText = "background: #222; padding: 10px 14px; border-radius: 8px; align-self: flex-end; max-width: 80%; word-break: break-word; border: 1px solid #333;";
-                userMsgDiv.textContent = "Ви: " + text;
+                userMsgDiv.textContent = text;
                 chatContainer.appendChild(userMsgDiv);
 
                 textInput.value = '';
@@ -551,7 +530,7 @@
                         
                         const translatedMsgDiv = document.createElement('div');
                         translatedMsgDiv.style.cssText = "background: #1a2e3b; padding: 10px 14px; border-radius: 8px; align-self: flex-start; max-width: 80%; word-break: break-word; border: 1px solid #005ec4;";
-                        translatedMsgDiv.textContent = "Habla: " + (data.translatedText || data.result || "Переклад відсутній");
+                        translatedMsgDiv.textContent = data.translatedText || data.result || "Переклад відсутній";
                         chatContainer.appendChild(translatedMsgDiv);
                         chatContainer.scrollTop = chatContainer.scrollHeight;
                     } else {
