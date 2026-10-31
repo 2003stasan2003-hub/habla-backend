@@ -3,293 +3,197 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Хабла - Перекладач</title>
+    <title>Hubble Mobile</title>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        }
-        body {
-            background-color: #0b0f19;
-            color: #ffffff;
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+        body { background-color: #121212; color: #ffffff; }
+
+        /* Верхня панель (Header) */
+        .header {
             display: flex;
-            flex-direction: column;
-            height: 100vh;
-            overflow: hidden;
-        }
-        /* Шапка */
-        header {
-            display: flex;
-            align-items: center;
             justify-content: space-between;
+            align-items: center;
             padding: 12px 16px;
-            background-color: #111827;
-            border-bottom: 1px solid #1f2937;
+            background-color: #1e1e1e;
+            border-bottom: 1px solid #333;
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
+
         .header-left {
             display: flex;
             align-items: center;
             gap: 12px;
         }
-        .menu-btn, .settings-btn {
+
+        /* Кнопка гамбургер (три рисочки) */
+        .menu-btn {
             background: none;
             border: none;
             color: #ffffff;
-            font-size: 20px;
+            font-size: 24px;
             cursor: pointer;
+            padding: 4px;
         }
-        .title-block h1 {
-            font-size: 16px;
-            font-weight: 600;
-        }
-        .title-block span {
-            font-size: 11px;
-            color: #9ca3af;
+
+        .app-title {
+            font-size: 18px;
+            font-weight: bold;
             letter-spacing: 0.5px;
         }
-        .lang-select-wrapper {
-            position: relative;
-        }
-        .lang-select {
-            background: transparent;
-            border: 1px solid #06b6d4;
-            color: #06b6d4;
-            padding: 6px 28px 6px 12px;
-            border-radius: 8px;
+
+        /* Селектор мов */
+        .language-select {
+            background-color: #2c2c2c;
+            color: #ffffff;
+            border: 1px solid #444;
+            padding: 6px 10px;
+            border-radius: 6px;
             font-size: 14px;
-            font-weight: 500;
-            appearance: none;
+            outline: none;
             cursor: pointer;
         }
-        .lang-select-wrapper::after {
-            content: '⌄';
-            position: absolute;
-            right: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #06b6d4;
-            pointer-events: none;
-        }
 
-        /* Область повідомлень */
-        .chat-container {
-            flex: 1;
-            overflow-y: auto;
-            padding: 16px;
+        /* Бокове меню (Sidebar) */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -280px;
+            width: 280px;
+            height: 100%;
+            background-color: #181818;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.5);
+            transition: left 0.3s ease;
+            z-index: 1000;
+            padding: 20px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
-        }
-        .message {
-            max-width: 80%;
-            padding: 12px 16px;
-            border-radius: 16px;
-            font-size: 15px;
-            line-height: 1.4;
-            word-break: break-word;
-        }
-        .message.user {
-            align-self: flex-end;
-            background-color: #0891b2;
-            color: #ffffff;
-            border: 1px solid #22d3ee;
-            border-bottom-right-radius: 4px;
-        }
-        .message.translated {
-            align-self: flex-start;
-            background-color: #1f2937;
-            color: #e5e7eb;
-            border: 1px solid #374151;
-            border-bottom-left-radius: 4px;
+            gap: 15px;
         }
 
-        /* Нижня панель керування */
-        .footer-panel {
-            padding: 12px 16px;
-            background-color: #111827;
-            border-top: 1px solid #1f2937;
+        .sidebar.open {
+            left: 0;
+        }
+
+        .sidebar-header {
             display: flex;
-            flex-direction: column;
+            justify-content: space-between;
             align-items: center;
-            gap: 10px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+            font-size: 16px;
+            font-weight: bold;
         }
-        .input-box-wrapper {
-            display: flex;
-            align-items: center;
-            width: 100%;
-            border: 1px solid #06b6d4;
-            border-radius: 16px;
-            padding: 8px 12px;
-            background-color: #0b0f19;
-        }
-        .input-box-wrapper input {
-            flex: 1;
-            background: transparent;
-            border: none;
-            color: #ffffff;
-            font-size: 15px;
-            outline: none;
-        }
-        .input-box-wrapper input::placeholder {
-            color: #6b7280;
-        }
-        .send-btn {
+
+        .close-btn {
             background: none;
             border: none;
-            color: #06b6d4;
+            color: #aaa;
             font-size: 20px;
             cursor: pointer;
-            padding-left: 8px;
         }
-        .mic-status {
-            font-size: 12px;
-            color: #9ca3af;
-        }
-        .mic-btn {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background-color: #0891b2;
-            border: 2px solid #22d3ee;
+
+        /* Кнопка Додати */
+        .add-user-btn {
+            background-color: #007aff;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 0 15px rgba(6, 182, 212, 0.4);
-            transition: transform 0.1s;
+            gap: 8px;
+            transition: background 0.2s;
         }
-        .mic-btn:active {
-            transform: scale(0.95);
+
+        .add-user-btn:hover {
+            background-color: #005ec4;
         }
-        .mic-icon {
-            width: 24px;
-            height: 24px;
-            fill: #ffffff;
+
+        /* Затемнення фону при відкритому меню */
+        .overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            display: none;
+            z-index: 999;
         }
+        .overlay.active { display: block; }
     </style>
 </head>
 <body>
 
-    <!-- Шапка -->
-    <header>
+    <!-- Шапка додатку -->
+    <header class="header">
         <div class="header-left">
-            <button class="menu-btn">&#9776;</button>
-            <div class="title-block">
-                <h1>Тест</h1>
-                <span>STASAN</span>
-            </div>
+            <button class="menu-btn" id="menuToggle">&#9776;</button>
+            <span class="app-title">Hubble Mobile</span>
         </div>
-        <div class="lang-select-wrapper">
-            <select id="targetLang" class="lang-select">
-                <option value="Spanish">Spanish</option>
-                <option value="English">English</option>
-                <option value="German">German</option>
-            </select>
-        </div>
-        <button class="settings-btn">&#9881;</button>
+
+        <!-- Випадаючий список мов із вашим переліком -->
+        <select class="language-select" id="langSelect">
+            <option value="en-US">🇺🇸 Сполучені Штати (English)</option>
+            <option value="en-GB">🇬🇧 Велика Британія (English)</option>
+            <option value="de-DE">🇩🇪 Німеччина (Deutsch)</option>
+            <option value="pl-PL">🇵🇱 Польща (Polski)</option>
+            <option value="et-EE">🇪🇪 Естонія (Eesti)</option>
+            <option value="lv-LV">🇱🇻 Латвія (Latviešu)</option>
+            <option value="lt-LT">🇱🇹 Литва (Lietuvių)</option>
+            <option value="cs-CZ">🇨🇿 Чехія (Čeština)</option>
+            <option value="nl-NL">🇳🇱 Нідерланди (Nederlands)</option>
+            <option value="da-DK">🇩🇰 Данія (Dansk)</option>
+            <option value="en-CA">🇨🇦 Канада (English/Français)</option>
+            <option value="nb-NO">🇳🇴 Норвегія (Norsk)</option>
+            <option value="fr-FR">🇫🇷 Франція (Français)</option>
+            <option value="sv-SE">🇸🇪 Швеція (Svenska)</option>
+            <option value="fi-FI">🇫🇮 Фінляндія (Suomi)</option>
+            <option value="ru-RU">🇷🇺 Росія (Русский)</option>
+        </select>
     </header>
 
-    <!-- Чат -->
-    <div id="chatContainer" class="chat-container">
-        <!-- Приклад повідомлень -->
-        <div class="message user">Привіт Привіт</div>
-        <div class="message translated">[Spanish] Привіт Привіт</div>
-    </div>
+    <!-- Затемнення -->
+    <div class="overlay" id="overlay"></div>
 
-    <!-- Низ -->
-    <div class="footer-panel">
-        <div class="input-box-wrapper">
-            <input type="text" id="textInput" placeholder="Enter text or microphone...">
-            <button id="sendBtn" class="send-btn">&#10148;</button>
+    <!-- Виїзне бокове меню -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <span>Menu</span>
+            <button class="close-btn" id="closeMenu">&times;</button>
         </div>
-        <div class="mic-status">Натисніть мікрофон для запису...</div>
-        <button id="micBtn" class="mic-btn">
-            <svg class="mic-icon" viewBox="0 0 24 24">
-                <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.91-3c-.49 0-.9.39-.9.89 0 2.12-1.83 3.89-3.98 3.89-2.15 0-3.98-1.77-3.98-3.89 0-.5-.41-.89-.9-.89s-.9.39-.9.89c0 2.62 1.98 4.81 4.48 5.14V20h2v-2.97c2.5-.33 4.48-2.52 4.48-5.14 0-.5-.41-.89-.9-.89z"/>
-            </svg>
+        
+        <!-- Кнопка Додати користувача -->
+        <button class="add-user-btn" id="addUserBtn">
+            <span>+</span> Додати користувача
         </button>
-    </div>
+        
+        <!-- Тут будуть списки чатів/контактів -->
+    </nav>
 
     <script>
-        const chatContainer = document.getElementById('chatContainer');
-        const textInput = document.getElementById('textInput');
-        const sendBtn = document.getElementById('sendBtn');
-        const micBtn = document.getElementById('micBtn');
-        const targetLangSelect = document.getElementById('targetLang');
+        const menuToggle = document.getElementById('menuToggle');
+        const sidebar = document.getElementById('sidebar');
+        const closeMenu = document.getElementById('closeMenu');
+        const overlay = document.getElementById('overlay');
+        const addUserBtn = document.getElementById('addUserBtn');
 
-        // Бекенд API URL (Render)
-        const BACKEND_URL = 'https://habla-backend-ipqk.onrender.com';
-
-        async function sendAndTranslate(text) {
-            if (!text.trim()) return;
-
-            // Додаємо оригінальне повідомлення користувача
-            appendMessage(text, 'user');
-            textInput.value = '';
-
-            const targetLang = targetLangSelect.value;
-
-            try {
-                const response = await fetch(`${BACKEND_URL}/api/translate`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text: text, target_language: targetLang })
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    const translatedText = data.translated_text || data.translation || `[${targetLang}] ${text}`;
-                    appendMessage(`[${targetLang}] ${translatedText}`, 'translated');
-                } else {
-                    appendMessage(`[${targetLang}] ${text}`, 'translated');
-                }
-            } catch (err) {
-                console.error('Помилка перекладу:', err);
-                // Фолбек у разі офлайну/помилки мережі
-                appendMessage(`[${targetLang}] ${text}`, 'translated');
-            }
+        function toggleSidebar() {
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('active');
         }
 
-        function appendMessage(text, className) {
-            const div = document.createElement('div');
-            div.className = `message ${className}`;
-            div.textContent = text;
-            chatContainer.appendChild(div);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-        }
+        menuToggle.addEventListener('click', toggleSidebar);
+        closeMenu.addEventListener('click', toggleSidebar);
+        overlay.addEventListener('click', toggleSidebar);
 
-        sendBtn.addEventListener('click', () => {
-            sendAndTranslate(textInput.value);
+        addUserBtn.addEventListener('click', () => {
+            alert('Відкриття модального вікна для додавання нового користувача для спілкування!');
+            // Тут можна додати логіку відкриття форми введення нікнейму чи ID
         });
-
-        textInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                sendAndTranslate(textInput.value);
-            }
-        });
-
-        // Інтеграція Web Speech API для мікрофона
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (SpeechRecognition) {
-            const recognition = new SpeechRecognition();
-            recognition.lang = 'uk-UA';
-            recognition.interimResults = false;
-
-            micBtn.addEventListener('click', () => {
-                try {
-                    recognition.start();
-                } catch (e) {
-                    console.log(e);
-                }
-            });
-
-            recognition.onresult = (event) => {
-                const speechToText = event.results[0][0].transcript;
-                sendAndTranslate(speechToText);
-            };
-        }
     </script>
 </body>
 </html>
