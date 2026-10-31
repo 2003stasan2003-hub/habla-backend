@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hubble Mobile</title>
+    <title>Habla Mobile</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
         body { background-color: #121212; color: #ffffff; }
@@ -53,6 +53,11 @@
             font-size: 14px;
             outline: none;
             cursor: pointer;
+        }
+
+        .language-select option:disabled {
+            color: #666;
+            background-color: #1a1a1a;
         }
 
         /* Бокове меню (Sidebar) */
@@ -132,10 +137,10 @@
     <header class="header">
         <div class="header-left">
             <button class="menu-btn" id="menuToggle">&#9776;</button>
-            <span class="app-title">Hubble Mobile</span>
+            <span class="app-title">Habla Mobile</span>
         </div>
 
-        <!-- Випадаючий список мов із вашим переліком -->
+        <!-- Випадаючий список мов (російська заблокована) -->
         <select class="language-select" id="langSelect">
             <option value="en-US">🇺🇸 Сполучені Штати (English)</option>
             <option value="en-GB">🇬🇧 Велика Британія (English)</option>
@@ -152,7 +157,7 @@
             <option value="fr-FR">🇫🇷 Франція (Français)</option>
             <option value="sv-SE">🇸🇪 Швеція (Svenska)</option>
             <option value="fi-FI">🇫🇮 Фінляндія (Suomi)</option>
-            <option value="ru-RU">🇷🇺 Росія (Русский)</option>
+            <option value="ru-RU" disabled>🇷🇺 Росія (Русский) — Неактивно</option>
         </select>
     </header>
 
@@ -191,8 +196,7 @@
         overlay.addEventListener('click', toggleSidebar);
 
         addUserBtn.addEventListener('click', () => {
-            alert('Відкриття модального вікна для додавання нового користувача для спілкування!');
-            // Тут можна додати логіку відкриття форми введення нікнейму чи ID
+            alert('Відкриття модального вікна для додавання нового користувача!');
         });
     </script>
 </body>
