@@ -1,62 +1,69 @@
-const express = require('express');
-const cors = require('cors');
+import express from 'express';
+import cors from 'cors';
+import Groq from 'groq-sdk';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const app = express();
-
-app.use(cors());
 app.use(express.json());
+app.use(cors());
 
-// Дозвіл для Android та роздача файлів інтерфейсу
-app.use('/.well-known', express.static('.well-known'));
+// Роздаємо статичні файли (наприклад, ваш index.html з кореня або папки public)
 app.use(express.static(__dirname));
 
-// Маршрут для перекладу через Groq API з актуальною моделлю
+// Ініціалізація Groq SDK (ключ береться з безпечних змінних середовища Render)
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+
+// Ендпоінт для перекладу
 app.post('/api/translate', async (req, res) => {
     try {
-        const { text, targetLanguage } = req.body;
-        if (!text) return res.status(400).json({ error: 'Текст відсутній' });
+        const { text, sourceLang, targetLang } = req.body;
 
-        const apiKey = process.env.GROQ_API_KEY;
-        if (!apiKey) {
-            return res.status(500).json({ error: 'API ключ Groq не знайдено на сервері' });
+        if (!text) {
+            return res.status(400).json({ error: "Text is required" });
         }
 
-        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
-            },
-            body: JSON.stringify({
-                model: "qwen/qwen3.8-27b", // Актуальна робоча модель з техпаспорта
-                messages: [
-                    {
-                        role: "system",
-                        content: `You are a professional translator. Translate the given text accurately and naturally into ${targetLanguage}. Return ONLY the translated text without any extra notes or formatting.`
-                    },
-                    { role: "user", content: text }
-                ],
-                max_tokens: 250 // Захист від перевищення лімітів вихідних токенів
-            })
+        // Перетворюємо код мови на зрозумілу для моделі назву
+        let targetLanguageName = "Spanish"; // за замовчуванням
+        if (targetLang === 'es-ES') targetLanguageName = "Spanish";
+        else if (targetLang === 'uk-UA') targetLanguageName = "Ukrainian";
+        else if (targetLang === 'en-US' || targetLang === 'en-GB') targetLanguageName = "English";
+        else if (targetLang === 'de-DE') targetLanguageName = "German";
+        else if (targetLang === 'pl-PL') targetLanguageName = "Polish";
+
+        // Робимо запит до Groq API з використанням легкої моделі qwen/qwen3.8-27b
+        const completion = await groq.chat.completions.create({
+            model: "qwen/qwen3.8-27b",
+            messages: [
+                {
+                    role: "system",
+                    content: `You are a professional translator. Translate the given text accurately and naturally into ${targetLanguageName}. Return ONLY the translated text without any extra comments, explanations, or quotation marks.`
+                },
+                {
+                    role: "user",
+                    content: text
+                }
+            ],
+            temperature: 0.3,
+            max_tokens: 300
         });
 
-        const data = await response.json();
+        const translatedText = completion.choices[0]?.message?.content?.trim() || "Помилка перекладу";
         
-        if (!response.ok) {
-            console.error('Помилка Groq API:', data);
-            return res.status(500).json({ error: 'Помилка мовної моделі Groq' });
-        }
-
-        const translatedText = data.choices && data.choices[0] && data.choices[0].message 
-            ? data.choices[0].message.content.trim() 
-            : text;
-
+        // Повертаємо результат на мобільний додаток
         res.json({ translatedText });
 
     } catch (error) {
-        console.error('Помилка сервера:', error);
-        res.status(500).json({ error: 'Помилка сервера при перекладі.' });
+        console.error("Помилка сервера при перекладі:", error);
+        res.status(500).json({ error: "Server translation error" });
     }
 });
 
+// Запуск сервера
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
+app.listen(PORT, () => {
+    console.log(`Сервер Habla Mobile запущено на порту ${PORT}`);
+});
