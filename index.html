@@ -2,70 +2,74 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Habla Mobile</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         body { 
             background-color: #121212; 
             color: #ffffff; 
             display: flex;
             flex-direction: column;
             height: 100vh;
+            height: 100dvh; /* Коректна висота для мобільних браузерів */
             overflow: hidden;
         }
 
-        /* Верхня панель (Header) */
+        /* Верхня панель (Header) адаптована під мобільні */
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px 16px;
+            padding: 10px 12px;
             background-color: #1e1e1e;
             border-bottom: 1px solid #333;
             z-index: 100;
+            gap: 8px;
         }
 
         .header-left {
             display: flex;
             align-items: center;
-            gap: 12px;
-        }
-
-        /* Центр шапки: Напис "Перекласти на:" + селектор */
-        .header-center {
-            display: flex;
-            align-items: center;
             gap: 8px;
-            background-color: #252525;
-            padding: 6px 12px;
-            border-radius: 10px;
-            border: 1px solid #383838;
-        }
-
-        .translate-label {
-            font-size: 13px;
-            color: #aaa;
-            font-weight: 500;
-        }
-
-        .header-right {
-            width: 40px; /* для симетрії */
+            min-width: 0;
         }
 
         .menu-btn {
             background: none;
             border: none;
             color: #ffffff;
-            font-size: 24px;
+            font-size: 22px;
             cursor: pointer;
             padding: 4px;
+            flex-shrink: 0;
         }
 
         .app-title {
-            font-size: 18px;
+            font-size: 15px;
             font-weight: bold;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+            line-height: 1.2;
+        }
+
+        /* Компактний блок вибору мови перекладу в шапці */
+        .header-center {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background-color: #252525;
+            padding: 4px 8px;
+            border-radius: 8px;
+            border: 1px solid #383838;
+            max-width: 55%;
+            flex-shrink: 1;
+        }
+
+        .translate-label {
+            font-size: 11px;
+            color: #aaa;
+            white-space: nowrap;
         }
 
         /* Селектор мов */
@@ -73,9 +77,10 @@
             background-color: transparent;
             color: #ffffff;
             border: none;
-            font-size: 14px;
+            font-size: 12px;
             outline: none;
             cursor: pointer;
+            text-overflow: ellipsis;
         }
 
         .language-select option {
@@ -84,36 +89,33 @@
             padding: 8px;
         }
 
-        .language-select option:disabled {
-            color: #555;
-            background-color: #151515;
-        }
-
         /* Основна зона чату / перекладу */
         .chat-container {
             flex: 1;
-            padding: 16px;
+            padding: 12px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 10px;
         }
 
         .placeholder-message {
             text-align: center;
             color: #777;
-            margin-top: 40px;
-            font-size: 14px;
+            margin-top: 30px;
+            font-size: 13px;
+            padding: 0 20px;
         }
 
-        /* Нижня панель введення (Мікрофон, стрічка, кнопка Надіслати) */
+        /* Нижня панель введення (Мікрофон + Стрічка + Надіслати) */
         .footer-input-panel {
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 12px 16px;
+            gap: 8px;
+            padding: 10px 12px;
             background-color: #1e1e1e;
             border-top: 1px solid #333;
+            flex-shrink: 0;
         }
 
         /* Кнопка мікрофона */
@@ -121,20 +123,16 @@
             background-color: #2c2c2c;
             border: 1px solid #444;
             color: #ffffff;
-            width: 44px;
-            height: 44px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 20px;
+            font-size: 18px;
             cursor: pointer;
             transition: background 0.2s, transform 0.1s;
             flex-shrink: 0;
-        }
-
-        .mic-btn:hover {
-            background-color: #383838;
         }
 
         .mic-btn.recording {
@@ -149,15 +147,16 @@
             100% { transform: scale(1); }
         }
 
-        /* Стрічка, де писати (поле введення) */
+        /* Стрічка введення (має min-width: 0, щоб не виштовхувати кнопку надсилання) */
         .text-input {
             flex: 1;
+            min-width: 0; 
             background-color: #2c2c2c;
             color: #ffffff;
             border: 1px solid #444;
-            padding: 10px 14px;
-            border-radius: 22px;
-            font-size: 15px;
+            padding: 9px 12px;
+            border-radius: 20px;
+            font-size: 14px;
             outline: none;
         }
 
@@ -169,18 +168,19 @@
             border-color: #007aff;
         }
 
-        /* Текстова кнопка Надіслати */
+        /* Кнопка Надіслати */
         .send-text-btn {
             background-color: #007aff;
             color: white;
             border: none;
-            padding: 10px 18px;
-            border-radius: 20px;
-            font-size: 15px;
+            padding: 9px 14px;
+            border-radius: 18px;
+            font-size: 13px;
             font-weight: 500;
             cursor: pointer;
             transition: background 0.2s;
             flex-shrink: 0;
+            white-space: nowrap;
         }
 
         .send-text-btn:hover {
@@ -192,16 +192,16 @@
             position: fixed;
             top: 0;
             left: -280px;
-            width: 280px;
+            width: 270px;
             height: 100%;
             background-color: #181818;
             box-shadow: 2px 0 10px rgba(0,0,0,0.5);
             transition: left 0.3s ease;
             z-index: 1000;
-            padding: 20px;
+            padding: 16px;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 14px;
         }
 
         .sidebar.open {
@@ -214,7 +214,7 @@
             align-items: center;
             border-bottom: 1px solid #333;
             padding-bottom: 10px;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: bold;
         }
 
@@ -222,7 +222,7 @@
             background: none;
             border: none;
             color: #aaa;
-            font-size: 20px;
+            font-size: 22px;
             cursor: pointer;
         }
 
@@ -230,34 +230,29 @@
             background-color: #007aff;
             color: white;
             border: none;
-            padding: 10px 16px;
+            padding: 10px 14px;
             border-radius: 8px;
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 500;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
-            transition: background 0.2s;
-        }
-
-        .add-user-btn:hover {
-            background-color: #005ec4;
         }
 
         .sidebar-section {
             display: flex;
             flex-direction: column;
             gap: 6px;
-            margin-top: 10px;
+            margin-top: 6px;
         }
 
         .sidebar-select {
             background-color: #2c2c2c;
             color: #ffffff;
             border: 1px solid #444;
-            padding: 8px 12px;
+            padding: 8px 10px;
             border-radius: 8px;
             font-size: 14px;
             outline: none;
@@ -280,12 +275,12 @@
     <header class="header">
         <div class="header-left">
             <button class="menu-btn" id="menuToggle">&#9776;</button>
-            <span class="app-title">Habla Mobile</span>
+            <span class="app-title">Habla<br>Mobile</span>
         </div>
 
         <!-- Центральний блок: "Перекласти на:" + вибір мови -->
         <div class="header-center">
-            <span class="translate-label" id="translateLabelText">Перекласти на:</span>
+            <span class="translate-label" id="translateLabelText">На:</span>
             <select class="language-select" id="targetLangSelect">
                 <option value="es-ES" selected>Español</option>
                 <option value="uk-UA">Українська</option>
@@ -294,8 +289,6 @@
                 <option value="pl-PL">Polski</option>
             </select>
         </div>
-
-        <div class="header-right"></div>
     </header>
 
     <!-- Область повідомлень / чату -->
@@ -326,7 +319,7 @@
 
         <!-- Меню вибору мови додатка / вхідної мови -->
         <div class="sidebar-section">
-            <label style="font-size: 13px; color: #aaa;" id="interfaceLangLabelText">Мова інтерфейсу / Вхідна мова</label>
+            <label style="font-size: 12px; color: #aaa;" id="interfaceLangLabelText">Мова інтерфейсу / Вхідна мова</label>
             <select class="sidebar-select" id="sourceLangSelect">
                 <option value="es-ES" selected>Español (Іспанська)</option>
                 <option value="uk-UA">Українська</option>
@@ -345,41 +338,41 @@
                 menu: 'Menú',
                 addUser: 'Añadir usuario',
                 interfaceLang: 'Idioma de interfaz / Entrada',
-                translateTo: 'Traducir a:',
+                translateTo: 'A:',
                 send: 'Enviar',
-                placeholder: 'Empieza a hablar o escribe abajo...'
+                placeholder: 'Escribe o habla aquí...'
             },
             'uk-UA': {
                 menu: 'Меню',
                 addUser: 'Додати користувача',
                 interfaceLang: 'Мова інтерфейсу / Вхідна мова',
-                translateTo: 'Перекласти на:',
+                translateTo: 'На:',
                 send: 'Надіслати',
-                placeholder: 'Почніть розмову або введіть текст нижче...'
+                placeholder: 'Почніть розмову або введіть текст...'
             },
             'en-US': {
                 menu: 'Menu',
                 addUser: 'Add user',
                 interfaceLang: 'Interface / Input Language',
-                translateTo: 'Translate to:',
+                translateTo: 'To:',
                 send: 'Send',
-                placeholder: 'Start typing or speaking...'
+                placeholder: 'Type or speak here...'
             },
             'de-DE': {
                 menu: 'Menü',
                 addUser: 'Benutzer hinzufügen',
                 interfaceLang: 'Oberflächen- / Eingabesprache',
-                translateTo: 'Übersetzen in:',
+                translateTo: 'Nach:',
                 send: 'Senden',
-                placeholder: 'Tippen oder sprechen...'
+                placeholder: 'Hier tippen oder sprechen...'
             },
             'pl-PL': {
                 menu: 'Menu',
                 addUser: 'Dodaj użytkownika',
                 interfaceLang: 'Język interfejsu / wejścia',
-                translateTo: 'Przetłumacz na:',
+                translateTo: 'Na:',
                 send: 'Wyślij',
-                placeholder: 'Rozpocznij pisanie lub mówienie...'
+                placeholder: 'Wpisz lub mów tutaj...'
             }
         };
 
@@ -492,15 +485,12 @@
             }
         });
 
-        // Оновлюємо мову інтерфейсу при старті
         updateInterfaceTexts();
 
-        // Слідкуємо за зміною мови в меню
         sourceLangSelect.addEventListener('change', () => {
             updateInterfaceTexts();
         });
 
-        // --- ОБРОБКА НАДІСЛАННЯ ТЕКСТУ ТА ПЕРЕКЛАДУ ---
         async function handleSend() {
             const text = textInput.value.trim();
             if (text) {
@@ -508,7 +498,7 @@
                 if (placeholder) placeholder.remove();
 
                 const userMsgDiv = document.createElement('div');
-                userMsgDiv.style.cssText = "background: #222; padding: 10px 14px; border-radius: 8px; align-self: flex-end; max-width: 80%; word-break: break-word; border: 1px solid #333;";
+                userMsgDiv.style.cssText = "background: #222; padding: 10px 14px; border-radius: 8px; align-self: flex-end; max-width: 85%; word-break: break-word; border: 1px solid #333; font-size: 14px;";
                 userMsgDiv.textContent = text;
                 chatContainer.appendChild(userMsgDiv);
 
@@ -529,7 +519,7 @@
                         const data = await response.json();
                         
                         const translatedMsgDiv = document.createElement('div');
-                        translatedMsgDiv.style.cssText = "background: #1a2e3b; padding: 10px 14px; border-radius: 8px; align-self: flex-start; max-width: 80%; word-break: break-word; border: 1px solid #005ec4;";
+                        translatedMsgDiv.style.cssText = "background: #1a2e3b; padding: 10px 14px; border-radius: 8px; align-self: flex-start; max-width: 85%; word-break: break-word; border: 1px solid #005ec4; font-size: 14px;";
                         translatedMsgDiv.textContent = data.translatedText || data.result || "Переклад відсутній";
                         chatContainer.appendChild(translatedMsgDiv);
                         chatContainer.scrollTop = chatContainer.scrollHeight;
@@ -540,7 +530,7 @@
                     console.error('Помилка мережі:', error);
                     
                     const errDiv = document.createElement('div');
-                    errDiv.style.cssText = "background: #3b1a1a; padding: 10px 14px; border-radius: 8px; align-self: flex-start; max-width: 80%; color: #ff8888; border: 1px solid #ff3b30;";
+                    errDiv.style.cssText = "background: #3b1a1a; padding: 10px 14px; border-radius: 8px; align-self: flex-start; max-width: 85%; color: #ff8888; border: 1px solid #ff3b30; font-size: 14px;";
                     errDiv.textContent = `[Система]: Немає зв'язку з бекендом для перекладу.`;
                     chatContainer.appendChild(errDiv);
                 }
