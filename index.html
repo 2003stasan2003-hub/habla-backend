@@ -179,7 +179,7 @@
             background-color: #005ec4;
         }
 
-        /* Стилі для бокового меню та нових кнопок поширення */
+        /* Стилі для бокового меню та профілю */
         .sidebar {
             position: fixed;
             top: 0;
@@ -219,6 +219,52 @@
             cursor: pointer;
         }
 
+        /* Блок профілю користувача з аватаркою */
+        .user-profile-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background-color: #222;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid #333;
+        }
+
+        .avatar-circle {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background-color: #007aff;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: bold;
+            flex-shrink: 0;
+            text-transform: uppercase;
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        .user-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .user-id {
+            font-size: 11px;
+            color: #888;
+        }
+
         .action-btn {
             background-color: #007aff;
             color: white;
@@ -245,7 +291,7 @@
             background-color: #218838;
         }
 
-        /* Блок QR-коду в меню */
+        /* Блок QR-коду */
         .qr-container {
             background-color: #222;
             padding: 12px;
@@ -336,17 +382,26 @@
             <span id="menuTitleText">Menu</span>
             <button class="close-btn" id="closeMenu">&times;</button>
         </div>
+
+        <!-- Блок профілю користувача з аватаркою (ініціал) -->
+        <div class="user-profile-box">
+            <div class="avatar-circle" id="userAvatar">U</div>
+            <div class="user-info">
+                <span class="user-name" id="displayUserName">User</span>
+                <span class="user-id" id="displayUserId">ID: ...</span>
+            </div>
+        </div>
         
         <button class="action-btn" id="addUserBtn">
             <span>+</span> <span id="addUserText">Додати користувача</span>
         </button>
 
-        <!-- Кнопка швидкого поширення через месенджери (Telegram, WhatsApp тощо) -->
+        <!-- Кнопка швидкого поширення через месенджери -->
         <button class="action-btn share-btn" id="shareAppBtn">
             📤 <span id="shareText">Поділитися додатком</span>
         </button>
 
-        <!-- Блок із QR-кодом для прямого завантаження APK -->
+        <!-- Блок із QR-кодом для прямого завантаження APK (з унікальним ID у посиланні) -->
         <div class="qr-container">
             <p id="qrLabel">Скануй для завантаження APK:</p>
             <img id="apkQrCode" src="" alt="QR-код для APK">
@@ -366,6 +421,24 @@
     </nav>
 
     <script>
+        // --- Гібридна система профілю та ID ---
+        let userId = localStorage.getItem('hb_user_id');
+        if (!userId) {
+            userId = 'HB-' + Math.floor(1000 + Math.random() * 9000);
+            localStorage.setItem('hb_user_id', userId);
+        }
+
+        let userName = localStorage.getItem('hb_user_name');
+        if (!userName) {
+            userName = prompt("Введіть ваше ім'я або нікнейм для Habla Mobile:", "Tester") || "User";
+            localStorage.setItem('hb_user_name', userName);
+        }
+
+        // Відображення даних у боковому меню
+        document.getElementById('displayUserName').textContent = userName;
+        document.getElementById('displayUserId').textContent = `ID: ${userId}`;
+        document.getElementById('userAvatar').textContent = userName.charAt(0).toUpperCase();
+
         const uiStrings = {
             'es-ES': {
                 menu: 'Menú',
@@ -454,21 +527,21 @@
             }
         }
 
-        // Автоматичне генерування QR-коду, що веде прямо на /downloads/habla.apk
-        const apkUrl = window.location.origin + '/downloads/habla.apk';
-        document.getElementById('apkQrCode').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(apkUrl)}`;
+        // Генерація QR-коду (тепер посилання містить і завантаження APK, і ваш ID на майбутнє)
+        const shareUrl = `${window.location.origin}/downloads/habla.apk?ref=${userId}`;
+        document.getElementById('apkQrCode').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(shareUrl)}`;
 
-        // Логіка кнопка "Поділитися додатком" (відкриває системне меню Telegram, WhatsApp тощо)
+        // Кнопка поширення через системні месенджери
         document.getElementById('shareAppBtn').addEventListener('click', async () => {
             if (navigator.share) {
                 try {
                     await navigator.share({
                         title: 'Habla Mobile',
-                        text: 'Завантажуй додаток Habla Mobile для перекладу в реальному часі!',
+                        text: `Завантажуй Habla Mobile! Мій нік: ${userName} (${userId})`,
                         url: window.location.origin,
                     });
                 } catch (err) {
-                    console.log('Поширення скасовано або помилка:', err);
+                    console.log('Поширення скасовано:', err);
                 }
             } else {
                 prompt('Скопіюйте посилання для поширення:', window.location.origin);
@@ -491,7 +564,7 @@
         overlay.addEventListener('click', toggleSidebar);
 
         addUserBtn.addEventListener('click', () => {
-            alert(currentSourceLang.startsWith('es') ? 'Ventana para añadir usuario' : 'Відкриття модального вікна для додавання нового користувача!');
+            alert(`Ваш ID: ${userId}. Введіть ID тестувальника для зв'язку.`);
         });
 
         const micBtn = document.getElementById('micBtn');
@@ -531,8 +604,6 @@
             recognition.onend = () => {
                 stopRecognition();
             };
-        } else {
-            console.warn('Web Speech API не підтримується цим браузером.');
         }
 
         function stopRecognition() {
