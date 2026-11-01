@@ -219,7 +219,6 @@
             cursor: pointer;
         }
 
-        /* Блок профілю користувача з аватаркою */
         .user-profile-box {
             display: flex;
             align-items: center;
@@ -291,7 +290,6 @@
             background-color: #218838;
         }
 
-        /* Блок QR-коду */
         .qr-container {
             background-color: #222;
             padding: 12px;
@@ -342,9 +340,90 @@
             z-index: 999;
         }
         .overlay.active { display: block; }
+
+        /* Стилі для кастомного модального вікна введення імені (як на вашому фото) */
+        .custom-modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(4px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+        .custom-modal-overlay.active {
+            display: flex;
+        }
+        .custom-modal {
+            background: #1e1e1e;
+            border: 1px solid #383838;
+            border-radius: 16px;
+            width: 85%;
+            max-width: 310px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.6);
+            color: #fff;
+        }
+        .custom-modal h3 {
+            font-size: 17px;
+            font-weight: 600;
+            text-align: center;
+        }
+        .custom-modal p {
+            font-size: 13px;
+            color: #aaa;
+        }
+        .custom-modal input {
+            background: #2c2c2c;
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 10px 12px;
+            color: #fff;
+            font-size: 15px;
+            outline: none;
+            width: 100%;
+        }
+        .custom-modal input:focus {
+            border-color: #007aff;
+        }
+        .custom-modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 16px;
+            margin-top: 4px;
+        }
+        .custom-modal-buttons button {
+            background: none;
+            border: none;
+            color: #007aff;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 4px 8px;
+        }
+        .custom-modal-buttons button#modalCancelBtn {
+            color: #aaa;
+        }
     </style>
 </head>
 <body>
+
+    <!-- Кастомне модальне вікно для введення імені -->
+    <div class="custom-modal-overlay" id="nameModalOverlay">
+        <div class="custom-modal">
+            <h3 id="modalTitle">Підключення до Habla</h3>
+            <p id="modalLabel">Ваше ім'я</p>
+            <input type="text" id="modalNameInput" placeholder="Tester" />
+            <div class="custom-modal-buttons">
+                <button id="modalCancelBtn">Скасувати</button>
+                <button id="modalOkBtn">OK</button>
+            </div>
+        </div>
+    </div>
 
     <header class="header">
         <div class="header-left">
@@ -355,7 +434,7 @@
         <div class="header-center">
             <span class="translate-label" id="translateLabelText">На:</span>
             <select class="language-select" id="targetLangSelect">
-                <option value="es-ES" selected>Español</option>
+                <option value="es-ES">Español</option>
                 <option value="uk-UA">Українська</option>
                 <option value="en-US">English</option>
                 <option value="de-DE">Deutsch</option>
@@ -383,7 +462,6 @@
             <button class="close-btn" id="closeMenu">&times;</button>
         </div>
 
-        <!-- Блок профілю користувача з аватаркою (ініціал) -->
         <div class="user-profile-box">
             <div class="avatar-circle" id="userAvatar">U</div>
             <div class="user-info">
@@ -396,12 +474,10 @@
             <span>+</span> <span id="addUserText">Додати користувача</span>
         </button>
 
-        <!-- Кнопка швидкого поширення через месенджери -->
         <button class="action-btn share-btn" id="shareAppBtn">
             📤 <span id="shareText">Поділитися додатком</span>
         </button>
 
-        <!-- Блок із QR-кодом для прямого завантаження APK (з унікальним ID у посиланні) -->
         <div class="qr-container">
             <p id="qrLabel">Скануй для завантаження APK:</p>
             <img id="apkQrCode" src="" alt="QR-код для APK">
@@ -410,7 +486,7 @@
         <div class="sidebar-section">
             <label style="font-size: 12px; color: #aaa;" id="interfaceLangLabelText">Мова інтерфейсу / Вхідна мова</label>
             <select class="sidebar-select" id="sourceLangSelect">
-                <option value="es-ES" selected>Español (Іспанська)</option>
+                <option value="es-ES">Español (Іспанська)</option>
                 <option value="uk-UA">Українська</option>
                 <option value="en-US">English</option>
                 <option value="de-DE">Deutsch</option>
@@ -421,24 +497,23 @@
     </nav>
 
     <script>
-        // --- Гібридна система профілю та ID ---
-        let userId = localStorage.getItem('hb_user_id');
-        if (!userId) {
-            userId = 'HB-' + Math.floor(1000 + Math.random() * 9000);
-            localStorage.setItem('hb_user_id', userId);
+        // --- 1. Автоматичне визначення мови смартфона тестувальника ---
+        const browserLang = navigator.language || navigator.userLanguage || 'es-ES';
+        let detectedLang = 'en-US'; // за замовчуванням англійська
+
+        if (browserLang.startsWith('es')) {
+            detectedLang = 'es-ES';
+        } else if (browserLang.startsWith('uk')) {
+            detectedLang = 'uk-UA';
+        } else if (browserLang.startsWith('pl')) {
+            detectedLang = 'pl-PL';
+        } else if (browserLang.startsWith('de')) {
+            detectedLang = 'de-DE';
+        } else if (browserLang.startsWith('en')) {
+            detectedLang = 'en-US';
         }
 
-        let userName = localStorage.getItem('hb_user_name');
-        if (!userName) {
-            userName = prompt("Введіть ваше ім'я або нікнейм для Habla Mobile:", "Tester") || "User";
-            localStorage.setItem('hb_user_name', userName);
-        }
-
-        // Відображення даних у боковому меню
-        document.getElementById('displayUserName').textContent = userName;
-        document.getElementById('displayUserId').textContent = `ID: ${userId}`;
-        document.getElementById('userAvatar').textContent = userName.charAt(0).toUpperCase();
-
+        // --- 2. Локалізація (тексти для різних мов) ---
         const uiStrings = {
             'es-ES': {
                 menu: 'Menú',
@@ -448,7 +523,10 @@
                 interfaceLang: 'Idioma de interfaz / Entrada',
                 translateTo: 'A:',
                 send: 'Enviar',
-                placeholder: 'Escribe o habla aquí...'
+                placeholder: 'Escribe o habla aquí...',
+                modalTitle: 'Conexión a Habla',
+                modalLabel: 'Tu nombre',
+                cancel: 'Cancelar'
             },
             'uk-UA': {
                 menu: 'Меню',
@@ -458,7 +536,10 @@
                 interfaceLang: 'Мова інтерфейсу / Вхідна мова',
                 translateTo: 'На:',
                 send: 'Надіслати',
-                placeholder: 'Почніть розмову або введіть текст...'
+                placeholder: 'Почніть розмову або введіть текст...',
+                modalTitle: 'Підключення до Habla',
+                modalLabel: "Ваше ім'я",
+                cancel: 'Скасувати'
             },
             'en-US': {
                 menu: 'Menu',
@@ -468,7 +549,10 @@
                 interfaceLang: 'Interface / Input Language',
                 translateTo: 'To:',
                 send: 'Send',
-                placeholder: 'Type or speak here...'
+                placeholder: 'Type or speak here...',
+                modalTitle: 'Connect to Habla',
+                modalLabel: 'Your name',
+                cancel: 'Cancel'
             },
             'de-DE': {
                 menu: 'Menü',
@@ -478,7 +562,10 @@
                 interfaceLang: 'Oberflächen- / Eingabesprache',
                 translateTo: 'Nach:',
                 send: 'Senden',
-                placeholder: 'Hier tippen oder sprechen...'
+                placeholder: 'Hier tippen oder sprechen...',
+                modalTitle: 'Verbindung zu Habla',
+                modalLabel: 'Dein Name',
+                cancel: 'Abbrechen'
             },
             'pl-PL': {
                 menu: 'Menu',
@@ -488,12 +575,19 @@
                 interfaceLang: 'Język interfejsu / wejścia',
                 translateTo: 'Na:',
                 send: 'Wyślij',
-                placeholder: 'Wpisz lub mów tutaj...'
+                placeholder: 'Wpisz lub mów tutaj...',
+                modalTitle: 'Połączenie z Habla',
+                modalLabel: 'Twoje imie',
+                cancel: 'Anuluj'
             }
         };
 
         const targetLangSelect = document.getElementById('targetLangSelect');
         const sourceLangSelect = document.getElementById('sourceLangSelect');
+
+        // Встановлюємо автоматично знайдену мову в селекти
+        sourceLangSelect.value = detectedLang;
+        targetLangSelect.value = (detectedLang === 'es-ES') ? 'uk-UA' : 'es-ES';
 
         let currentTargetLang = targetLangSelect.value;
         let currentSourceLang = sourceLangSelect.value;
@@ -518,6 +612,11 @@
             document.getElementById('translateLabelText').textContent = strings.translateTo;
             document.getElementById('sendBtn').textContent = strings.send;
             
+            // Оновлення модального вікна
+            document.getElementById('modalTitle').textContent = strings.modalTitle;
+            document.getElementById('modalLabel').textContent = strings.modalLabel;
+            document.getElementById('modalCancelBtn').textContent = strings.cancel;
+
             const textInput = document.getElementById('textInput');
             textInput.placeholder = strings.placeholder;
 
@@ -527,11 +626,55 @@
             }
         }
 
-        // Генерація QR-коду (тепер посилання містить і завантаження APK, і ваш ID на майбутнє)
+        // --- 3. Гібридний ID та кастомне модальне вікно імені ---
+        let userId = localStorage.getItem('hb_user_id');
+        if (!userId) {
+            userId = 'HB-' + Math.floor(1000 + Math.random() * 9000);
+            localStorage.setItem('hb_user_id', userId);
+        }
+
+        let userName = localStorage.getItem('hb_user_name');
+        
+        const modalOverlay = document.getElementById('nameModalOverlay');
+        const modalNameInput = document.getElementById('modalNameInput');
+        const modalOkBtn = document.getElementById('modalOkBtn');
+        const modalCancelBtn = document.getElementById('modalCancelBtn');
+
+        if (!userName) {
+            // Якщо імені ще немає — показуємо красиве модальне вікно
+            updateInterfaceTexts();
+            modalOverlay.classList.add('active');
+        } else {
+            initUserInterface(userName);
+        }
+
+        modalOkBtn.addEventListener('click', () => {
+            const enteredName = modalNameInput.value.trim();
+            userName = enteredName ? enteredName : "Tester";
+            localStorage.setItem('hb_user_name', userName);
+            modalOverlay.classList.remove('active');
+            initUserInterface(userName);
+        });
+
+        modalCancelBtn.addEventListener('click', () => {
+            userName = "Tester";
+            localStorage.setItem('hb_user_name', userName);
+            modalOverlay.classList.remove('active');
+            initUserInterface(userName);
+        });
+
+        function initUserInterface(name) {
+            document.getElementById('displayUserName').textContent = name;
+            document.getElementById('displayUserId').textContent = `ID: ${userId}`;
+            document.getElementById('userAvatar').textContent = name.charAt(0).toUpperCase();
+            updateInterfaceTexts();
+        }
+
+        // Генерація QR-коду
         const shareUrl = `${window.location.origin}/downloads/habla.apk?ref=${userId}`;
         document.getElementById('apkQrCode').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(shareUrl)}`;
 
-        // Кнопка поширення через системні месенджери
+        // Кнопка поширення через месенджери
         document.getElementById('shareAppBtn').addEventListener('click', async () => {
             if (navigator.share) {
                 try {
@@ -653,6 +796,7 @@
                 const sourceLang = currentSourceLang;
 
                 try {
+                    5
                     const response = await fetch('/api/translate', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
