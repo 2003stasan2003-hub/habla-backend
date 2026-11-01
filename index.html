@@ -179,11 +179,12 @@
             background-color: #005ec4;
         }
 
+        /* Стилі для бокового меню та нових кнопок поширення */
         .sidebar {
             position: fixed;
             top: 0;
             left: -280px;
-            width: 270px;
+            width: 280px;
             height: 100%;
             background-color: #181818;
             box-shadow: 2px 0 10px rgba(0,0,0,0.5);
@@ -193,6 +194,7 @@
             display: flex;
             flex-direction: column;
             gap: 14px;
+            overflow-y: auto;
         }
 
         .sidebar.open {
@@ -217,7 +219,7 @@
             cursor: pointer;
         }
 
-        .add-user-btn {
+        .action-btn {
             background-color: #007aff;
             color: white;
             border: none;
@@ -230,13 +232,49 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
+            width: 100%;
+            text-decoration: none;
+            text-align: center;
+        }
+
+        .share-btn {
+            background-color: #28a745;
+        }
+
+        .share-btn:hover {
+            background-color: #218838;
+        }
+
+        /* Блок QR-коду в меню */
+        .qr-container {
+            background-color: #222;
+            padding: 12px;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .qr-container img {
+            width: 130px;
+            height: 130px;
+            border-radius: 6px;
+            background: #fff;
+            padding: 4px;
+        }
+
+        .qr-container p {
+            font-size: 12px;
+            color: #aaa;
         }
 
         .sidebar-section {
             display: flex;
             flex-direction: column;
             gap: 6px;
-            margin-top: 6px;
         }
 
         .sidebar-select {
@@ -292,15 +330,27 @@
 
     <div class="overlay" id="overlay"></div>
 
+    <!-- Виїзне бокове меню -->
     <nav class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <span id="menuTitleText">Menu</span>
             <button class="close-btn" id="closeMenu">&times;</button>
         </div>
         
-        <button class="add-user-btn" id="addUserBtn">
+        <button class="action-btn" id="addUserBtn">
             <span>+</span> <span id="addUserText">Додати користувача</span>
         </button>
+
+        <!-- Кнопка швидкого поширення через месенджери (Telegram, WhatsApp тощо) -->
+        <button class="action-btn share-btn" id="shareAppBtn">
+            📤 <span id="shareText">Поділитися додатком</span>
+        </button>
+
+        <!-- Блок із QR-кодом для прямого завантаження APK -->
+        <div class="qr-container">
+            <p id="qrLabel">Скануй для завантаження APK:</p>
+            <img id="apkQrCode" src="" alt="QR-код для APK">
+        </div>
 
         <div class="sidebar-section">
             <label style="font-size: 12px; color: #aaa;" id="interfaceLangLabelText">Мова інтерфейсу / Вхідна мова</label>
@@ -320,6 +370,8 @@
             'es-ES': {
                 menu: 'Menú',
                 addUser: 'Añadir usuario',
+                share: 'Compartir aplicación',
+                qrText: 'Escanea para descargar APK:',
                 interfaceLang: 'Idioma de interfaz / Entrada',
                 translateTo: 'A:',
                 send: 'Enviar',
@@ -328,6 +380,8 @@
             'uk-UA': {
                 menu: 'Меню',
                 addUser: 'Додати користувача',
+                share: 'Поділитися додатком',
+                qrText: 'Скануй для завантаження APK:',
                 interfaceLang: 'Мова інтерфейсу / Вхідна мова',
                 translateTo: 'На:',
                 send: 'Надіслати',
@@ -336,6 +390,8 @@
             'en-US': {
                 menu: 'Menu',
                 addUser: 'Add user',
+                share: 'Share app',
+                qrText: 'Scan to download APK:',
                 interfaceLang: 'Interface / Input Language',
                 translateTo: 'To:',
                 send: 'Send',
@@ -344,6 +400,8 @@
             'de-DE': {
                 menu: 'Menü',
                 addUser: 'Benutzer hinzufügen',
+                share: 'App teilen',
+                qrText: 'Scannen zum APK-Download:',
                 interfaceLang: 'Oberflächen- / Eingabesprache',
                 translateTo: 'Nach:',
                 send: 'Senden',
@@ -352,6 +410,8 @@
             'pl-PL': {
                 menu: 'Menu',
                 addUser: 'Dodaj użytkownika',
+                share: 'Udostępnij aplikację',
+                qrText: 'Zeskanuj, aby pobrać APK:',
                 interfaceLang: 'Język interfejsu / wejścia',
                 translateTo: 'Na:',
                 send: 'Wyślij',
@@ -362,7 +422,6 @@
         const targetLangSelect = document.getElementById('targetLangSelect');
         const sourceLangSelect = document.getElementById('sourceLangSelect');
 
-        // Фіксуємо вибрані мови у змінних через слухачі подій change
         let currentTargetLang = targetLangSelect.value;
         let currentSourceLang = sourceLangSelect.value;
 
@@ -380,6 +439,8 @@
 
             document.getElementById('menuTitleText').textContent = strings.menu;
             document.getElementById('addUserText').textContent = strings.addUser;
+            document.getElementById('shareText').textContent = strings.share;
+            document.getElementById('qrLabel').textContent = strings.qrText;
             document.getElementById('interfaceLangLabelText').textContent = strings.interfaceLang;
             document.getElementById('translateLabelText').textContent = strings.translateTo;
             document.getElementById('sendBtn').textContent = strings.send;
@@ -392,6 +453,27 @@
                 placeholderMsg.textContent = strings.placeholder;
             }
         }
+
+        // Автоматичне генерування QR-коду, що веде прямо на /downloads/habla.apk
+        const apkUrl = window.location.origin + '/downloads/habla.apk';
+        document.getElementById('apkQrCode').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(apkUrl)}`;
+
+        // Логіка кнопка "Поділитися додатком" (відкриває системне меню Telegram, WhatsApp тощо)
+        document.getElementById('shareAppBtn').addEventListener('click', async () => {
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: 'Habla Mobile',
+                        text: 'Завантажуй додаток Habla Mobile для перекладу в реальному часі!',
+                        url: window.location.origin,
+                    });
+                } catch (err) {
+                    console.log('Поширення скасовано або помилка:', err);
+                }
+            } else {
+                prompt('Скопіюйте посилання для поширення:', window.location.origin);
+            }
+        });
 
         const menuToggle = document.getElementById('menuToggle');
         const sidebar = document.getElementById('sidebar');
@@ -496,7 +578,6 @@
                 textInput.value = '';
                 chatContainer.scrollTop = chatContainer.scrollHeight;
 
-                // Використовуємо зафіксовані змінні замість прямого звернення до select.value
                 const targetLang = currentTargetLang;
                 const sourceLang = currentSourceLang;
 
