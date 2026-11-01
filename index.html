@@ -12,11 +12,10 @@
             display: flex;
             flex-direction: column;
             height: 100vh;
-            height: 100dvh; /* Коректна висота для мобільних браузерів */
+            height: 100dvh;
             overflow: hidden;
         }
 
-        /* Верхня панель (Header) адаптована під мобільні */
         .header {
             display: flex;
             justify-content: space-between;
@@ -53,7 +52,6 @@
             line-height: 1.2;
         }
 
-        /* Компактний блок вибору мови перекладу в шапці */
         .header-center {
             display: flex;
             align-items: center;
@@ -72,7 +70,6 @@
             white-space: nowrap;
         }
 
-        /* Селектор мов */
         .language-select {
             background-color: transparent;
             color: #ffffff;
@@ -89,7 +86,6 @@
             padding: 8px;
         }
 
-        /* Основна зона чату / перекладу */
         .chat-container {
             flex: 1;
             padding: 12px;
@@ -107,7 +103,6 @@
             padding: 0 20px;
         }
 
-        /* Нижня панель введення (Мікрофон + Стрічка + Надіслати) */
         .footer-input-panel {
             display: flex;
             align-items: center;
@@ -118,7 +113,6 @@
             flex-shrink: 0;
         }
 
-        /* Кнопка мікрофона */
         .mic-btn {
             background-color: #2c2c2c;
             border: 1px solid #444;
@@ -147,7 +141,6 @@
             100% { transform: scale(1); }
         }
 
-        /* Стрічка введення (має min-width: 0, щоб не виштовхувати кнопку надсилання) */
         .text-input {
             flex: 1;
             min-width: 0; 
@@ -168,7 +161,6 @@
             border-color: #007aff;
         }
 
-        /* Кнопка Надіслати */
         .send-text-btn {
             background-color: #007aff;
             color: white;
@@ -187,7 +179,6 @@
             background-color: #005ec4;
         }
 
-        /* Бокове меню (Sidebar) */
         .sidebar {
             position: fixed;
             top: 0;
@@ -271,14 +262,12 @@
 </head>
 <body>
 
-    <!-- Шапка додатку -->
     <header class="header">
         <div class="header-left">
             <button class="menu-btn" id="menuToggle">&#9776;</button>
             <span class="app-title">Habla<br>Mobile</span>
         </div>
 
-        <!-- Центральний блок: "Перекласти на:" + вибір мови -->
         <div class="header-center">
             <span class="translate-label" id="translateLabelText">На:</span>
             <select class="language-select" id="targetLangSelect">
@@ -291,22 +280,18 @@
         </div>
     </header>
 
-    <!-- Область повідомлень / чату -->
     <div class="chat-container" id="chatContainer">
         <div class="placeholder-message" id="placeholderText">Почніть розмову або введіть текст нижче...</div>
     </div>
 
-    <!-- Нижня панель: Мікрофон + Стрічка введення + Кнопка Надіслати -->
     <div class="footer-input-panel">
         <button class="mic-btn" id="micBtn" title="Говорити">🎙️</button>
         <input type="text" class="text-input" id="textInput" placeholder="Введіть текст...">
         <button class="send-text-btn" id="sendBtn">Надіслати</button>
     </div>
 
-    <!-- Затемнення для меню -->
     <div class="overlay" id="overlay"></div>
 
-    <!-- Виїзне бокове меню -->
     <nav class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <span id="menuTitleText">Menu</span>
@@ -317,7 +302,6 @@
             <span>+</span> <span id="addUserText">Додати користувача</span>
         </button>
 
-        <!-- Меню вибору мови додатка / вхідної мови -->
         <div class="sidebar-section">
             <label style="font-size: 12px; color: #aaa;" id="interfaceLangLabelText">Мова інтерфейсу / Вхідна мова</label>
             <select class="sidebar-select" id="sourceLangSelect">
@@ -332,7 +316,6 @@
     </nav>
 
     <script>
-        // Словник перекладу інтерфейсу для 5 підтримуваних мов
         const uiStrings = {
             'es-ES': {
                 menu: 'Menú',
@@ -376,9 +359,24 @@
             }
         };
 
+        const targetLangSelect = document.getElementById('targetLangSelect');
+        const sourceLangSelect = document.getElementById('sourceLangSelect');
+
+        // Фіксуємо вибрані мови у змінних через слухачі подій change
+        let currentTargetLang = targetLangSelect.value;
+        let currentSourceLang = sourceLangSelect.value;
+
+        targetLangSelect.addEventListener('change', (e) => {
+            currentTargetLang = e.target.value;
+        });
+
+        sourceLangSelect.addEventListener('change', (e) => {
+            currentSourceLang = e.target.value;
+            updateInterfaceTexts();
+        });
+
         function updateInterfaceTexts() {
-            const selectedInterfaceLang = sourceLangSelect.value;
-            const strings = uiStrings[selectedInterfaceLang] || uiStrings['es-ES'];
+            const strings = uiStrings[currentSourceLang] || uiStrings['es-ES'];
 
             document.getElementById('menuTitleText').textContent = strings.menu;
             document.getElementById('addUserText').textContent = strings.addUser;
@@ -411,16 +409,13 @@
         overlay.addEventListener('click', toggleSidebar);
 
         addUserBtn.addEventListener('click', () => {
-            alert(sourceLangSelect.value.startsWith('es') ? 'Ventana para añadir usuario' : 'Відкриття модального вікна для додавання нового користувача!');
+            alert(currentSourceLang.startsWith('es') ? 'Ventana para añadir usuario' : 'Відкриття модального вікна для додавання нового користувача!');
         });
 
-        // --- РОЗПІЗНАВАННЯ МОВИ (ГОЛОСУ) ---
         const micBtn = document.getElementById('micBtn');
         const textInput = document.getElementById('textInput');
         const sendBtn = document.getElementById('sendBtn');
         const chatContainer = document.getElementById('chatContainer');
-        const targetLangSelect = document.getElementById('targetLangSelect');
-        const sourceLangSelect = document.getElementById('sourceLangSelect');
 
         let recognition = null;
         let isRecording = false;
@@ -476,7 +471,7 @@
             if (isRecording) {
                 stopRecognition();
             } else {
-                recognition.lang = sourceLangSelect.value; 
+                recognition.lang = currentSourceLang; 
                 try {
                     recognition.start();
                 } catch (e) {
@@ -486,10 +481,6 @@
         });
 
         updateInterfaceTexts();
-
-        sourceLangSelect.addEventListener('change', () => {
-            updateInterfaceTexts();
-        });
 
         async function handleSend() {
             const text = textInput.value.trim();
@@ -505,8 +496,9 @@
                 textInput.value = '';
                 chatContainer.scrollTop = chatContainer.scrollHeight;
 
-                const targetLang = targetLangSelect.value;
-                const sourceLang = sourceLangSelect.value;
+                // Використовуємо зафіксовані змінні замість прямого звернення до select.value
+                const targetLang = currentTargetLang;
+                const sourceLang = currentSourceLang;
 
                 try {
                     const response = await fetch('/api/translate', {
