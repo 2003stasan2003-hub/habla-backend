@@ -1,138 +1,898 @@
 <!DOCTYPE html>
-<html lang="uk">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Habla Mobile</title>
     <style>
-        :root {
-            --bg-color: #121212;
-            --surface-color: #1e1e1e;
-            --primary-color: #bb86fc;
-            --text-color: #e0e0e0;
-            --border-color: #333333;
-        }
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { 
+            background-color: #121212; 
+            color: #ffffff; 
             display: flex;
             flex-direction: column;
+            height: 100vh;
+            height: 100dvh;
+            overflow: hidden;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            background-color: #1e1e1e;
+            border-bottom: 1px solid #333;
+            z-index: 100;
+            gap: 8px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+        }
+
+        .menu-btn {
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 22px;
+            cursor: pointer;
+            padding: 4px;
+            flex-shrink: 0;
+        }
+
+        .app-title {
+            font-size: 15px;
+            font-weight: bold;
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+            line-height: 1.2;
+        }
+
+        .header-center {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background-color: #252525;
+            padding: 4px 8px;
+            border-radius: 8px;
+            border: 1px solid #383838;
+            max-width: 55%;
+            flex-shrink: 1;
+        }
+
+        .translate-label {
+            font-size: 11px;
+            color: #aaa;
+            white-space: nowrap;
+        }
+
+        .language-select {
+            background-color: transparent;
+            color: #ffffff;
+            border: none;
+            font-size: 12px;
+            outline: none;
+            cursor: pointer;
+            text-overflow: ellipsis;
+        }
+
+        .language-select option {
+            background-color: #1e1e1e;
+            color: #ffffff;
+            padding: 8px;
+        }
+
+        .chat-container {
+            flex: 1;
+            padding: 12px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .placeholder-message {
+            text-align: center;
+            color: #777;
+            margin-top: 30px;
+            font-size: 13px;
+            padding: 0 20px;
+        }
+
+        .footer-input-panel {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            background-color: #1e1e1e;
+            border-top: 1px solid #333;
+            flex-shrink: 0;
+        }
+
+        .mic-btn {
+            background-color: #2c2c2c;
+            border: 1px solid #444;
+            color: #ffffff;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
             align-items: center;
             justify-content: center;
-            height: 100vh;
-            margin: 0;
-            padding: 16px;
-            box-sizing: border-box;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            flex-shrink: 0;
         }
-        .container {
-            width: 100%;
-            max-width: 440px;
-            background: var(--surface-color);
-            padding: 20px;
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
+
+        .mic-btn.recording {
+            background-color: #ff3b30;
+            border-color: #ff3b30;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+            100% { transform: scale(1); }
+        }
+
+        .text-input {
+            flex: 1;
+            min-width: 0; 
+            background-color: #2c2c2c;
+            color: #ffffff;
+            border: 1px solid #444;
+            padding: 9px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .text-input::placeholder {
+            color: #888;
+        }
+
+        .text-input:focus {
+            border-color: #007aff;
+        }
+
+        .send-text-btn {
+            background-color: #007aff;
+            color: white;
+            border: none;
+            padding: 9px 14px;
+            border-radius: 18px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+
+        .send-text-btn:hover {
+            background-color: #005ec4;
+        }
+
+        /* Стилі для бокового меню та профілю */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -280px;
+            width: 280px;
+            height: 100%;
+            background-color: #181818;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.5);
+            transition: left 0.3s ease;
+            z-index: 1000;
+            padding: 16px;
             display: flex;
             flex-direction: column;
             gap: 14px;
+            overflow-y: auto;
         }
-        h2 {
-            text-align: center;
-            color: var(--primary-color);
-            margin: 0 0 5px 0;
-            font-size: 1.4rem;
+
+        .sidebar.open {
+            left: 0;
         }
-        textarea, select, button {
-            background: #2a2a2a;
-            color: var(--text-color);
-            border: 1px solid var(--border-color);
+
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+            font-size: 15px;
+            font-weight: bold;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: #aaa;
+            font-size: 22px;
+            cursor: pointer;
+        }
+
+        .user-profile-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background-color: #222;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid #333;
+        }
+
+        .avatar-circle {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background-color: #007aff;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: bold;
+            flex-shrink: 0;
+            text-transform: uppercase;
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        .user-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .user-id {
+            font-size: 11px;
+            color: #888;
+        }
+
+        .action-btn {
+            background-color: #007aff;
+            color: white;
+            border: none;
+            padding: 10px 14px;
             border-radius: 8px;
-            padding: 12px;
-            font-size: 1rem;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            text-decoration: none;
+            text-align: center;
+        }
+
+        .share-btn {
+            background-color: #28a745;
+        }
+
+        .share-btn:hover {
+            background-color: #218838;
+        }
+
+        .sidebar-section {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .sidebar-select {
+            background-color: #2c2c2c;
+            color: #ffffff;
+            border: 1px solid #444;
+            padding: 8px 10px;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            display: none;
+            z-index: 999;
+        }
+        .overlay.active { display: block; }
+
+        /* Кастомне модальне вікно введення імені */
+        .custom-modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(4px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+        .custom-modal-overlay.active {
+            display: flex;
+        }
+        .custom-modal {
+            background: #1e1e1e;
+            border: 1px solid #383838;
+            border-radius: 16px;
+            width: 85%;
+            max-width: 310px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.6);
+            color: #fff;
+        }
+        .custom-modal h3 {
+            font-size: 17px;
+            font-weight: 600;
+            text-align: center;
+        }
+        .custom-modal p {
+            font-size: 13px;
+            color: #aaa;
+        }
+        .custom-modal input {
+            background: #2c2c2c;
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 10px 12px;
+            color: #fff;
+            font-size: 15px;
             outline: none;
             width: 100%;
-            box-sizing: border-box;
         }
-        textarea {
-            resize: vertical;
-            min-height: 90px;
+        .custom-modal input:focus {
+            border-color: #007aff;
         }
-        button {
-            background-color: var(--primary-color);
-            color: #121212;
-            font-weight: bold;
+        .custom-modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 16px;
+            margin-top: 4px;
+        }
+        .custom-modal-buttons button {
+            background: none;
+            border: none;
+            color: #007aff;
+            font-size: 15px;
+            font-weight: 600;
             cursor: pointer;
-            transition: opacity 0.2s;
+            padding: 4px 8px;
         }
-        button:hover {
-            opacity: 0.9;
+        .custom-modal-buttons button#modalCancelBtn {
+            color: #aaa;
         }
-        .result {
-            background: #121212;
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            min-height: 70px;
-            white-space: pre-wrap;
-            font-size: 0.95rem;
+
+        /* Стилі для окремого модального вікна QR-коду та завантаження */
+        .qr-modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(4px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2500;
         }
-        .download-link {
+        .qr-modal-overlay.active {
+            display: flex;
+        }
+        .qr-modal-content {
+            background: #1e1e1e;
+            border: 1px solid #383838;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 320px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.6);
+            position: relative;
+            color: #fff;
             text-align: center;
-            margin-top: 6px;
         }
-        .download-link a {
-            color: var(--primary-color);
-            text-decoration: none;
-            font-size: 0.85rem;
+        .qr-modal-close {
+            position: absolute;
+            top: 12px;
+            right: 14px;
+            background: none;
+            border: none;
+            color: #aaa;
+            font-size: 22px;
+            cursor: pointer;
         }
-        .download-link a:hover {
-            text-decoration: underline;
+        .qr-modal-content img {
+            width: 160px;
+            height: 160px;
+            border-radius: 8px;
+            background: #fff;
+            padding: 6px;
+        }
+        .qr-modal-content p {
+            font-size: 13px;
+            color: #aaa;
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h2>Habla Mobile</h2>
-        
-        <select id="targetLang">
-            <option value="en">English</option>
-            <option value="uk">Українська</option>
-            <option value="es">Español</option>
-            <option value="de">Deutsch</option>
-        </select>
-
-        <textarea id="inputText" placeholder="Введіть текст для перекладу..."></textarea>
-        <button id="translateBtn">Перекласти</button>
-
-        <div class="result" id="resultText">Тут з'явиться переклад...</div>
-
-        <div class="download-link">
-            <a href="/downloads/habla.apk">📥 Завантажити актуальний Habla.apk</a>
+    <!-- Модальне вікно введення імені -->
+    <div class="custom-modal-overlay" id="nameModalOverlay">
+        <div class="custom-modal">
+            <h3 id="modalTitle">Підключення до Habla</h3>
+            <p id="modalLabel">Ваше ім'я</p>
+            <input type="text" id="modalNameInput" placeholder="Tester" />
+            <div class="custom-modal-buttons">
+                <button id="modalCancelBtn">Скасувати</button>
+                <button id="modalOkBtn">OK</button>
+            </div>
         </div>
     </div>
 
+    <!-- Окреме вікно для QR-коду та поширення (можна закрити хрестиком, не чіпаючи меню) -->
+    <div class="qr-modal-overlay" id="qrModalOverlay">
+        <div class="qr-modal-content">
+            <button class="qr-modal-close" id="closeQrModal">&times;</button>
+            <h3 id="qrModalHeaderTitle">QR-код та APK</h3>
+            <p id="qrModalText">Скануй камерою для завантаження APK:</p>
+            <img id="apkQrCodeModal" src="" alt="QR-код для APK">
+            <button class="action-btn share-btn" id="shareAppModalBtn" style="width: 100%; margin-top: 6px;">
+                📤 <span id="shareModalText">Поділитися додатком</span>
+            </button>
+        </div>
+    </div>
+
+    <header class="header">
+        <div class="header-left">
+            <button class="menu-btn" id="menuToggle">&#9776;</button>
+            <span class="app-title">Habla<br>Mobile</span>
+        </div>
+
+        <div class="header-center">
+            <span class="translate-label" id="translateLabelText">На:</span>
+            <select class="language-select" id="targetLangSelect">
+                <option value="es-ES">Español</option>
+                <option value="uk-UA">Українська</option>
+                <option value="en-US">English</option>
+                <option value="de-DE">Deutsch</option>
+                <option value="pl-PL">Polski</option>
+            </select>
+        </div>
+    </header>
+
+    <div class="chat-container" id="chatContainer">
+        <div class="placeholder-message" id="placeholderText">Почніть розмову або введіть текст нижче...</div>
+    </div>
+
+    <div class="footer-input-panel">
+        <button class="mic-btn" id="micBtn" title="Говорити">🎙️</button>
+        <input type="text" class="text-input" id="textInput" placeholder="Введіть текст...">
+        <button class="send-text-btn" id="sendBtn">Надіслати</button>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Чисте бокове меню (тільки профіль, кнопка додавання, виклик QR-коду та мова) -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <span id="menuTitleText">Menu</span>
+            <button class="close-btn" id="closeMenu">&times;</button>
+        </div>
+
+        <div class="user-profile-box">
+            <div class="avatar-circle" id="userAvatar">U</div>
+            <div class="user-info">
+                <span class="user-name" id="displayUserName">User</span>
+                <span class="user-id" id="displayUserId">ID: ...</span>
+            </div>
+        </div>
+        
+        <button class="action-btn" id="addUserBtn">
+            <span>+</span> <span id="addUserText">Додати користувача</span>
+        </button>
+
+        <!-- Кнопка відкриття окремого вікна з QR-кодом -->
+        <button class="action-btn" id="openQrModalBtn" style="background-color: #333; border: 1px solid #444;">
+            📷 <span id="qrBtnText">QR-код та APK</span>
+        </button>
+
+        <div class="sidebar-section" style="margin-top: auto;">
+            <label style="font-size: 12px; color: #aaa;" id="interfaceLangLabelText">Мова інтерфейсу / Вхідна мова</label>
+            <select class="sidebar-select" id="sourceLangSelect">
+                <option value="es-ES">Español (Іспанська)</option>
+                <option value="uk-UA">Українська</option>
+                <option value="en-US">English</option>
+                <option value="de-DE">Deutsch</option>
+                <option value="pl-PL">Polski</option>
+                <option value="ru-RU" disabled>Русский (Неактивно)</option>
+            </select>
+        </div>
+    </nav>
+
     <script>
-        document.getElementById('translateBtn').onclick = async () => {
-            const text = document.getElementById('inputText').value.trim();
-            const targetLang = document.getElementById('targetLang').value;
-            const resultBox = document.getElementById('resultText');
+        // --- 1. Автоматичне визначення мови смартфона тестувальника ---
+        const browserLang = navigator.language || navigator.userLanguage || 'es-ES';
+        let detectedLang = 'en-US';
 
-            if (!text) return;
-            resultBox.innerText = 'Перекладається...';
+        if (browserLang.startsWith('es')) {
+            detectedLang = 'es-ES';
+        } else if (browserLang.startsWith('uk')) {
+            detectedLang = 'uk-UA';
+        } else if (browserLang.startsWith('pl')) {
+            detectedLang = 'pl-PL';
+        } else if (browserLang.startsWith('de')) {
+            detectedLang = 'de-DE';
+        } else if (browserLang.startsWith('en')) {
+            detectedLang = 'en-US';
+        }
 
-            try {
-                const response = await fetch('/api/translate', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text, targetLang })
-                });
-                const data = await response.json();
-                resultBox.innerText = data.translatedText || 'Помилка перекладу';
-            } catch (e) {
-                resultBox.innerText = 'Помилка з\'єднання з сервером';
+        // --- 2. Локалізація ---
+        const uiStrings = {
+            'es-ES': {
+                menu: 'Menú',
+                addUser: 'Añadir usuario',
+                qrBtn: 'Código QR y APK',
+                interfaceLang: 'Idioma de interfaz / Entrada',
+                translateTo: 'A:',
+                send: 'Enviar',
+                placeholder: 'Escribe o habla aquí...',
+                modalTitle: 'Conexión a Habla',
+                modalLabel: 'Tu nombre',
+                cancel: 'Cancelar',
+                qrHeader: 'Código QR y APK',
+                qrText: 'Escanea para descargar el APK:',
+                shareText: 'Compartir aplicación'
+            },
+            'uk-UA': {
+                menu: 'Меню',
+                addUser: 'Додати користувача',
+                qrBtn: 'QR-код та APK',
+                interfaceLang: 'Мова інтерфейсу / Вхідна мова',
+                translateTo: 'На:',
+                send: 'Надіслати',
+                placeholder: 'Почніть розмову або введіть текст...',
+                modalTitle: 'Підключення до Habla',
+                modalLabel: "Ваше ім'я",
+                cancel: 'Скасувати',
+                qrHeader: 'QR-код та APK',
+                qrText: 'Скануй камерою для завантаження APK:',
+                shareText: 'Поділитися додатком'
+            },
+            'en-US': {
+                menu: 'Menu',
+                addUser: 'Add user',
+                qrBtn: 'QR Code & APK',
+                interfaceLang: 'Interface / Input Language',
+                translateTo: 'To:',
+                send: 'Send',
+                placeholder: 'Type or speak here...',
+                modalTitle: 'Connect to Habla',
+                modalLabel: 'Your name',
+                cancel: 'Cancel',
+                qrHeader: 'QR Code & APK',
+                qrText: 'Scan to download APK:',
+                shareText: 'Share app'
+            },
+            'de-DE': {
+                menu: 'Menü',
+                addUser: 'Benutzer hinzufügen',
+                qrBtn: 'QR-Code & APK',
+                interfaceLang: 'Oberflächen- / Eingabesprache',
+                translateTo: 'Nach:',
+                send: 'Senden',
+                placeholder: 'Hier tippen oder sprechen...',
+                modalTitle: 'Verbindung zu Habla',
+                modalLabel: 'Dein Name',
+                cancel: 'Abbrechen',
+                qrHeader: 'QR-Code & APK',
+                qrText: 'Scannen zum APK-Download:',
+                shareText: 'App teilen'
+            },
+            'pl-PL': {
+                menu: 'Menu',
+                addUser: 'Dodaj użytkownika',
+                qrBtn: 'Kod QR i APK',
+                interfaceLang: 'Język interfejsu / wejścia',
+                translateTo: 'Na:',
+                send: 'Wyślij',
+                placeholder: 'Wpisz lub mów tutaj...',
+                modalTitle: 'Połączenie z Habla',
+                modalLabel: 'Twoje imie',
+                cancel: 'Anuluj',
+                qrHeader: 'Kod QR i APK',
+                qrText: 'Zeskanuj, aby pobrać APK:',
+                shareText: 'Udostępnij aplikację'
             }
         };
+
+        const targetLangSelect = document.getElementById('targetLangSelect');
+        const sourceLangSelect = document.getElementById('sourceLangSelect');
+
+        sourceLangSelect.value = detectedLang;
+        targetLangSelect.value = (detectedLang === 'es-ES') ? 'uk-UA' : 'es-ES';
+
+        let currentTargetLang = targetLangSelect.value;
+        let currentSourceLang = sourceLangSelect.value;
+
+        targetLangSelect.addEventListener('change', (e) => {
+            currentTargetLang = e.target.value;
+        });
+
+        sourceLangSelect.addEventListener('change', (e) => {
+            currentSourceLang = e.target.value;
+            updateInterfaceTexts();
+        });
+
+        function updateInterfaceTexts() {
+            const strings = uiStrings[currentSourceLang] || uiStrings['es-ES'];
+
+            document.getElementById('menuTitleText').textContent = strings.menu;
+            document.getElementById('addUserText').textContent = strings.addUser;
+            document.getElementById('qrBtnText').textContent = strings.qrBtn;
+            document.getElementById('interfaceLangLabelText').textContent = strings.interfaceLang;
+            document.getElementById('translateLabelText').textContent = strings.translateTo;
+            document.getElementById('sendBtn').textContent = strings.send;
+            
+            document.getElementById('modalTitle').textContent = strings.modalTitle;
+            document.getElementById('modalLabel').textContent = strings.modalLabel;
+            document.getElementById('modalCancelBtn').textContent = strings.cancel;
+
+            document.getElementById('qrModalHeaderTitle').textContent = strings.qrHeader;
+            document.getElementById('qrModalText').textContent = strings.qrText;
+            document.getElementById('shareModalText').textContent = strings.shareText;
+
+            const textInput = document.getElementById('textInput');
+            textInput.placeholder = strings.placeholder;
+
+            const placeholderMsg = document.getElementById('placeholderText');
+            if (placeholderMsg) {
+                placeholderMsg.textContent = strings.placeholder;
+            }
+        }
+
+        // --- Гібридний ID та модальне вікно імені ---
+        let userId = localStorage.getItem('hb_user_id');
+        if (!userId) {
+            userId = 'HB-' + Math.floor(1000 + Math.random() * 9000);
+            localStorage.setItem('hb_user_id', userId);
+        }
+
+        let userName = localStorage.getItem('hb_user_name');
+        
+        const modalOverlay = document.getElementById('nameModalOverlay');
+        const modalNameInput = document.getElementById('modalNameInput');
+        const modalOkBtn = document.getElementById('modalOkBtn');
+        const modalCancelBtn = document.getElementById('modalCancelBtn');
+
+        if (!userName) {
+            updateInterfaceTexts();
+            modalOverlay.classList.add('active');
+        } else {
+            initUserInterface(userName);
+        }
+
+        modalOkBtn.addEventListener('click', () => {
+            const enteredName = modalNameInput.value.trim();
+            userName = enteredName ? enteredName : "Tester";
+            localStorage.setItem('hb_user_name', userName);
+            modalOverlay.classList.remove('active');
+            initUserInterface(userName);
+        });
+
+        modalCancelBtn.addEventListener('click', () => {
+            userName = "Tester";
+            localStorage.setItem('hb_user_name', userName);
+            modalOverlay.classList.remove('active');
+            initUserInterface(userName);
+        });
+
+        function initUserInterface(name) {
+            document.getElementById('displayUserName').textContent = name;
+            document.getElementById('displayUserId').textContent = `ID: ${userId}`;
+            document.getElementById('userAvatar').textContent = name.charAt(0).toUpperCase();
+            updateInterfaceTexts();
+        }
+
+        // Генерація QR-коду у виринаючому вікні
+        const shareUrl = `${window.location.origin}/downloads/habla.apk?ref=${userId}`;
+        document.getElementById('apkQrCodeModal').src = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(shareUrl)}`;
+
+        // Логіка відкриття/закриття окремого вікна QR-коду
+        const qrModalOverlay = document.getElementById('qrModalOverlay');
+        const openQrModalBtn = document.getElementById('openQrModalBtn');
+        const closeQrModal = document.getElementById('closeQrModal');
+
+        openQrModalBtn.addEventListener('click', () => {
+            qrModalOverlay.classList.add('active');
+        });
+
+        closeQrModal.addEventListener('click', () => {
+            qrModalOverlay.classList.remove('active');
+        });
+
+        qrModalOverlay.addEventListener('click', (e) => {
+            if (e.target === qrModalOverlay) {
+                qrModalOverlay.classList.remove('active');
+            }
+        });
+
+        // Кнопка поширення через месенджери всередині вікна QR-коду
+        document.getElementById('shareAppModalBtn').addEventListener('click', async () => {
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: 'Habla Mobile',
+                        text: `Завантажуй Habla Mobile! Мій нік: ${userName} (${userId})`,
+                        url: window.location.origin,
+                    });
+                } catch (err) {
+                    console.log('Поширення скасовано:', err);
+                }
+            } else {
+                prompt('Скопіюйте посилання для поширення:', window.location.origin);
+            }
+        });
+
+        const menuToggle = document.getElementById('menuToggle');
+        const sidebar = document.getElementById('sidebar');
+        const closeMenu = document.getElementById('closeMenu');
+        const overlay = document.getElementById('overlay');
+        const addUserBtn = document.getElementById('addUserBtn');
+
+        function toggleSidebar() {
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('active');
+        }
+
+        menuToggle.addEventListener('click', toggleSidebar);
+        closeMenu.addEventListener('click', toggleSidebar);
+        overlay.addEventListener('click', toggleSidebar);
+
+        addUserBtn.addEventListener('click', () => {
+            alert(`Ваш ID: ${userId}. Введіть ID тестувальника для зв'язку.`);
+        });
+
+        const micBtn = document.getElementById('micBtn');
+        const textInput = document.getElementById('textInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const chatContainer = document.getElementById('chatContainer');
+
+        let recognition = null;
+        let isRecording = false;
+
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = true;
+
+            recognition.onstart = () => {
+                isRecording = true;
+                micBtn.classList.add('recording');
+                micBtn.title = "Слухаю...";
+            };
+
+            recognition.onresult = (event) => {
+                let transcript = '';
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    transcript += event.results[i][0].transcript;
+                }
+                textInput.value = transcript;
+            };
+
+            recognition.onerror = (event) => {
+                console.error('Помилка розпізнавання:', event.error);
+                stopRecognition();
+            };
+
+            recognition.onend = () => {
+                stopRecognition();
+            };
+        }
+
+        function stopRecognition() {
+            isRecording = false;
+            micBtn.classList.remove('recording');
+            micBtn.title = "Говорити";
+            if (recognition) {
+                try { recognition.stop(); } catch(e) {}
+            }
+        }
+
+        micBtn.addEventListener('click', () => {
+            if (!recognition) {
+                alert('Ваш браузер не підтримує голосове введення.');
+                return;
+            }
+
+            if (isRecording) {
+                stopRecognition();
+            } else {
+                recognition.lang = currentSourceLang; 
+                try {
+                    recognition.start();
+                } catch (e) {
+                    console.log(e);
+                }
+            }
+        });
+
+        updateInterfaceTexts();
+
+        async function handleSend() {
+            const text = textInput.value.trim();
+            if (text) {
+                const placeholder = chatContainer.querySelector('.placeholder-message');
+                if (placeholder) placeholder.remove();
+
+                const userMsgDiv = document.createElement('div');
+                userMsgDiv.style.cssText = "background: #222; padding: 10px 14px; border-radius: 8px; align-self: flex-end; max-width: 85%; word-break: break-word; border: 1px solid #333; font-size: 14px;";
+                userMsgDiv.textContent = text;
+                chatContainer.appendChild(userMsgDiv);
+
+                textInput.value = '';
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+
+                const targetLang = currentTargetLang;
+                const sourceLang = currentSourceLang;
+
+                try {
+                    const response = await fetch('/api/translate', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ text: text, sourceLang: sourceLang, targetLang: targetLang })
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        
+                        const translatedMsgDiv = document.createElement('div');
+                        translatedMsgDiv.style.cssText = "background: #1a2e3b; padding: 10px 14px; border-radius: 8px; align-self: flex-start; max-width: 85%; word-break: break-word; border: 1px solid #005ec4; font-size: 14px;";
+                        translatedMsgDiv.textContent = data.translatedText || data.result || "Переклад відсутній";
+                        chatContainer.appendChild(translatedMsgDiv);
+                        chatContainer.scrollTop = chatContainer.scrollHeight;
+                    } else {
+                        console.error('Помилка сервера при перекладі');
+                    }
+                } catch (error) {
+                    console.error('Помилка мережі:', error);
+                    
+                    const errDiv = document.createElement('div');
+                    errDiv.style.cssText = "background: #3b1a1a; padding: 10px 14px; border-radius: 8px; align-self: flex-start; max-width: 85%; color: #ff8888; border: 1px solid #ff3b30; font-size: 14px;";
+                    errDiv.textContent = `[Система]: Немає зв'язку з бекендом для перекладу.`;
+                    chatContainer.appendChild(errDiv);
+                }
+            }
+        }
+
+        sendBtn.addEventListener('click', handleSend);
+        textInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleSend();
+        });
     </script>
 </body>
 </html>
