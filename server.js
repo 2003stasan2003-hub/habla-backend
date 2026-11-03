@@ -62,7 +62,7 @@ function broadcastContacts() {
     io.emit('update_contacts', contactsList);
 }
 
-// Ендпоінт перекладу через офіційний Groq SDK з моделлю DeepSeek R1
+// Ендпоінт перекладу через офіційний Groq SDK
 app.post('/api/translate', async (req, res) => {
     try {
         const { text, targetLang } = req.body;
@@ -79,11 +79,11 @@ app.post('/api/translate', async (req, res) => {
         else if (targetLang === 'pl' || targetLang === 'pl-PL') targetLanguageName = "Polish";
 
         const completion = await groq.chat.completions.create({
-            model: "deepseek-r1-distill-llama-70b",
+            model: "llama-3.3-70b-versatile",
             messages: [
                 {
                     role: "system",
-                    content: `You are a professional real-time translator. Translate the given text accurately and naturally into ${targetLanguageName}. Return ONLY the translated text without extra explanations, quotes, thinking tags, or formatting.`
+                    content: `You are a professional real-time translator. Translate the given text accurately and naturally into ${targetLanguageName}. Return ONLY the translated text without extra explanations, quotes, or formatting.`
                 },
                 {
                     role: "user",
@@ -94,11 +94,8 @@ app.post('/api/translate', async (req, res) => {
             max_tokens: 300
         });
 
-        let translatedText = completion.choices[0]?.message?.content?.trim() || "Помилка розбору відповіді AI";
+        const translatedText = completion.choices[0]?.message?.content?.trim() || "Помилка розбору відповіді AI";
         
-        // Очищуємо можливі теги міркувань, якщо модель їх виведе
-        translatedText = translatedText.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
-
         res.json({ translatedText });
 
     } catch (error) {
