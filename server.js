@@ -10,7 +10,6 @@ const io = new Server(server);
 app.use(express.json());
 app.use(express.static(path.join(__dirname)));
 
-// Зберігаємо активних користувачів за нікнеймом
 const activeUsers = new Map();
 
 io.on('connection', (socket) => {
@@ -51,7 +50,7 @@ function broadcastContacts() {
     io.emit('update_contacts', contactsList);
 }
 
-// Повноцінний API перекладу через Groq API
+// Оновлений API перекладу з детальним логуванням помилок Groq
 app.post('/api/translate', async (req, res) => {
     const { text, targetLang } = req.body;
     
@@ -62,6 +61,7 @@ app.post('/api/translate', async (req, res) => {
     try {
         const apiKey = process.env.GROQ_API_KEY;
         if (!apiKey) {
+            console.error('Помилка: GROQ_API_KEY не задано у середовищі Render');
             return res.status(500).json({ error: 'API ключ Groq не налаштовано на сервері' });
         }
 
@@ -85,14 +85,22 @@ app.post('/api/translate', async (req, res) => {
         });
 
         const data = await response.json();
+
+        // Якщо Groq повернув помилку, виводимо її в логи Render
+        if (!response.ok) {
+            console.error('Помилка від Groq API:', JSON.stringify(data));
+            const errorMsg = data.error && data.error.message ? data.error.message : 'Помилка від сервера Groq';
+            return res.status(500).json({ error: errorMsg });
+        }
+
         const translatedText = data.choices && data.choices[0] && data.choices[0].message 
             ? data.choices[0].message.content.trim() 
-            : 'Помилка відповіді від AI';
+            : 'Помилка розбору відповіді AI';
 
         res.json({ translatedText });
     } catch (error) {
-        console.error('Помилка перекладу:', error);
-        res.status(500).json({ error: 'Помилка сервера при перекладі' });
+        console.error('Помилка сервера під час запиту до Groq:', error);
+        res.status(500).json({ error: 'Помилка мережі або сервера' });
     }
 });
 
