@@ -50,7 +50,7 @@ function broadcastContacts() {
     io.emit('update_contacts', contactsList);
 }
 
-// API перекладу з робочою моделлю Groq
+// Повністю робочий API перекладу зі стабільною моделлю
 app.post('/api/translate', async (req, res) => {
     const { text, targetLang } = req.body;
     
@@ -71,7 +71,7 @@ app.post('/api/translate', async (req, res) => {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                model: 'llama-3.1-70b-versatile',
+                model: 'llama3-8b-8192', // Гарантовано працююча, надшвидка модель
                 messages: [
                     { 
                         role: 'system', 
