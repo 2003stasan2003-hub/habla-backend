@@ -1,14 +1,26 @@
-const express = require('express');
-const http = require('http');
-const { Server } = require('socket.io');
-const path = require('path');
+import express from 'express';
+import http from 'http';
+import { Server } from 'socket.io';
+import cors from 'cors';
+import Groq from 'groq-sdk';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
 app.use(express.json());
-app.use(express.static(path.join(__dirname)));
+app.use(cors());
+
+// Роздаємо статичні файли фронтенду
+app.use(express.static(__dirname));
+
+// Ініціалізація офіційного SDK Groq
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 const activeUsers = new Map();
 
@@ -50,60 +62,52 @@ function broadcastContacts() {
     io.emit('update_contacts', contactsList);
 }
 
-// API перекладу з моделлю llama-3.2-3b-preview
+// Ендпоінт перекладу через офіційний Groq SDK з моделлю DeepSeek R1
 app.post('/api/translate', async (req, res) => {
-    const { text, targetLang } = req.body;
-    
-    if (!text) {
-        return res.status(400).json({ error: 'Відсутній текст для перекладу' });
-    }
-
     try {
-        const apiKey = process.env.GROQ_API_KEY;
-        if (!apiKey) {
-            console.error('Помилка: GROQ_API_KEY не налаштовано на сервері Render');
-            return res.status(500).json({ error: 'API ключ Groq не налаштовано на сервері' });
+        const { text, targetLang } = req.body;
+
+        if (!text) {
+            return res.status(400).json({ error: "Відсутній текст для перекладу" });
         }
 
-        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${apiKey}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                model: 'llama-3.2-3b-preview', // Легка, актуальна та відкрита для всіх модель
-                messages: [
-                    { 
-                        role: 'system', 
-                        content: `Translate the following text accurately into language code "${targetLang}". Return ONLY the translated text without extra explanations.` 
-                    },
-                    { role: 'user', content: text }
-                ],
-                temperature: 0.3
-            })
+        let targetLanguageName = "Spanish";
+        if (targetLang === 'es' || targetLang === 'es-ES') targetLanguageName = "Spanish";
+        else if (targetLang === 'uk' || targetLang === 'uk-UA') targetLanguageName = "Ukrainian";
+        else if (targetLang === 'en' || targetLang === 'en-US') targetLanguageName = "English";
+        else if (targetLang === 'de' || targetLang === 'de-DE') targetLanguageName = "German";
+        else if (targetLang === 'pl' || targetLang === 'pl-PL') targetLanguageName = "Polish";
+
+        const completion = await groq.chat.completions.create({
+            model: "deepseek-r1-distill-llama-70b",
+            messages: [
+                {
+                    role: "system",
+                    content: `You are a professional real-time translator. Translate the given text accurately and naturally into ${targetLanguageName}. Return ONLY the translated text without extra explanations, quotes, thinking tags, or formatting.`
+                },
+                {
+                    role: "user",
+                    content: text
+                }
+            ],
+            temperature: 0.3,
+            max_tokens: 300
         });
 
-        const data = await response.json();
-
-        if (!response.ok) {
-            console.error('Помилка від Groq API:', JSON.stringify(data));
-            const errorMsg = data.error && data.error.message ? data.error.message : 'Помилка від сервера Groq';
-            return res.status(500).json({ error: errorMsg });
-        }
-
-        const translatedText = data.choices && data.choices[0] && data.choices[0].message 
-            ? data.choices[0].message.content.trim() 
-            : 'Помилка розбору відповіді AI';
+        let translatedText = completion.choices[0]?.message?.content?.trim() || "Помилка розбору відповіді AI";
+        
+        // Очищуємо можливі теги міркувань, якщо модель їх виведе
+        translatedText = translatedText.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
 
         res.json({ translatedText });
+
     } catch (error) {
-        console.error('Помилка сервера під час запиту до Groq:', error);
-        res.status(500).json({ error: 'Помилка мережі або сервера' });
+        console.error("Помилка сервера при перекладі:", error);
+        res.status(500).json({ error: error.message || "Server translation error" });
     }
 });
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-    console.log(`Сервер запущено на порту ${PORT}`);
+    console.log(`Сервер Habla Mobile запущено на порту ${PORT}`);
 });
