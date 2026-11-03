@@ -50,7 +50,7 @@ function broadcastContacts() {
     io.emit('update_contacts', contactsList);
 }
 
-// API перекладу з моделлю gemma2-9b-it
+// API перекладу з моделлю llama-3.2-3b-preview
 app.post('/api/translate', async (req, res) => {
     const { text, targetLang } = req.body;
     
@@ -72,7 +72,7 @@ app.post('/api/translate', async (req, res) => {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                model: 'gemma2-9b-it',
+                model: 'llama-3.2-3b-preview', // Легка, актуальна та відкрита для всіх модель
                 messages: [
                     { 
                         role: 'system', 
