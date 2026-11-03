@@ -50,7 +50,7 @@ function broadcastContacts() {
     io.emit('update_contacts', contactsList);
 }
 
-// Оновлений API перекладу з детальним логуванням помилок Groq
+// API перекладу з робочою моделлю Groq
 app.post('/api/translate', async (req, res) => {
     const { text, targetLang } = req.body;
     
@@ -61,7 +61,6 @@ app.post('/api/translate', async (req, res) => {
     try {
         const apiKey = process.env.GROQ_API_KEY;
         if (!apiKey) {
-            console.error('Помилка: GROQ_API_KEY не задано у середовищі Render');
             return res.status(500).json({ error: 'API ключ Groq не налаштовано на сервері' });
         }
 
@@ -72,7 +71,7 @@ app.post('/api/translate', async (req, res) => {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                model: 'llama-3.3-70b-versatile',
+                model: 'llama-3.1-70b-versatile',
                 messages: [
                     { 
                         role: 'system', 
@@ -86,7 +85,6 @@ app.post('/api/translate', async (req, res) => {
 
         const data = await response.json();
 
-        // Якщо Groq повернув помилку, виводимо її в логи Render
         if (!response.ok) {
             console.error('Помилка від Groq API:', JSON.stringify(data));
             const errorMsg = data.error && data.error.message ? data.error.message : 'Помилка від сервера Groq';
