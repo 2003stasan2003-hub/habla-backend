@@ -14,6 +14,7 @@
             --text-muted: #888888;
             --border-color: #333333;
             --accent-blue: #007bff;
+            --accent-red: #ff4444;
         }
 
         * {
@@ -32,7 +33,6 @@
             overflow: hidden;
         }
 
-        /* Шапка програми (як на еталонному скріншоті) */
         header {
             display: flex;
             justify-content: space-between;
@@ -83,22 +83,24 @@
             cursor: pointer;
         }
 
-        /* Центральна область розмови */
         .chat-container {
             flex: 1;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            text-align: center;
-            color: var(--text-muted);
-            font-size: 1.05rem;
+            padding: 16px;
             overflow-y: auto;
             gap: 12px;
         }
 
-        /* Нижня панель введення */
+        .message-box {
+            background: var(--surface-color);
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            width: 100%;
+            text-align: left;
+        }
+
         .footer-panel {
             display: flex;
             align-items: center;
@@ -121,6 +123,19 @@
             color: var(--text-color);
             font-size: 1.1rem;
             flex-shrink: 0;
+            transition: background 0.2s;
+        }
+
+        .mic-btn.recording {
+            background: var(--accent-red);
+            border-color: var(--accent-red);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
         }
 
         .input-wrapper {
@@ -134,10 +149,6 @@
             outline: none;
         }
 
-        .input-wrapper::placeholder {
-            color: var(--text-muted);
-        }
-
         .send-btn {
             background-color: var(--accent-blue);
             color: #ffffff;
@@ -147,15 +158,9 @@
             font-weight: bold;
             font-size: 0.95rem;
             cursor: pointer;
-            transition: opacity 0.2s;
             flex-shrink: 0;
         }
 
-        .send-btn:hover {
-            opacity: 0.9;
-        }
-
-        /* Бокове меню (Сайдбар) */
         .sidebar-overlay {
             position: fixed;
             top: 0;
@@ -193,7 +198,6 @@
             font-size: 1.1rem;
             font-weight: bold;
             margin-bottom: 20px;
-            color: var(--text-color);
         }
 
         .close-menu {
@@ -259,29 +263,6 @@
             color: var(--text-color);
         }
 
-        .sidebar-footer {
-            margin-top: auto;
-            padding-top: 16px;
-            border-top: 1px solid var(--border-color);
-        }
-
-        .sidebar-footer label {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            display: block;
-            margin-bottom: 6px;
-        }
-
-        .sidebar-footer select {
-            width: 100%;
-            background: var(--bg-color);
-            color: var(--text-color);
-            border: 1px solid var(--border-color);
-            padding: 10px;
-            border-radius: 8px;
-            outline: none;
-        }
-
         /* КАСТОМНЕ МОДАЛЬНЕ ВІКНО */
         .custom-modal-overlay {
             position: fixed;
@@ -306,18 +287,6 @@
             display: flex;
             flex-direction: column;
             gap: 14px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-        }
-
-        .custom-modal h3 {
-            font-size: 1.05rem;
-            color: var(--text-color);
-        }
-
-        .custom-modal p {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            line-height: 1.4;
         }
 
         .custom-modal input {
@@ -335,7 +304,6 @@
             display: flex;
             justify-content: flex-end;
             gap: 10px;
-            margin-top: 4px;
         }
 
         .custom-modal-buttons button {
@@ -343,24 +311,15 @@
             border-radius: 6px;
             font-weight: bold;
             cursor: pointer;
-            font-size: 0.9rem;
             border: none;
         }
 
-        .btn-cancel {
-            background: #333333;
-            color: var(--text-color);
-        }
-
-        .btn-confirm {
-            background: var(--accent-blue);
-            color: #ffffff;
-        }
+        .btn-cancel { background: #333; color: #e0e0e0; }
+        .btn-confirm { background: var(--accent-blue); color: #fff; }
     </style>
 </head>
 <body>
 
-    <!-- Шапка програми -->
     <header>
         <div class="header-left">
             <button class="menu-btn" id="openMenu">☰</button>
@@ -377,19 +336,18 @@
         </div>
     </header>
 
-    <!-- Центральний екран розмови -->
     <div class="chat-container" id="chatArea">
-        Почніть розмову або введіть текст...
+        <div style="color: var(--text-muted); text-align: center; margin-top: auto; margin-bottom: auto;">
+            Почніть розмову або введіть текст...
+        </div>
     </div>
 
-    <!-- Нижня панель введення -->
     <div class="footer-panel">
         <button class="mic-btn" id="micBtn" title="Голосовий ввід">🎤</button>
         <input type="text" class="input-wrapper" id="inputText" placeholder="Почніть розмову або введіть текст...">
         <button class="send-btn" id="sendBtn">Надіслати</button>
     </div>
 
-    <!-- Бокове меню -->
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
@@ -400,31 +358,20 @@
         <div class="user-card">
             <div class="user-avatar" id="userAvatarLetter">U</div>
             <div class="user-details">
-                <div class="name" id="userNameDisplay" title="Натисніть, щоб змінити нік">User</div>
-                <div class="hint">Натисніть на нік, щоб змінити</div>
+                <div class="name" id="userNameDisplay">User</div>
+                <div class="hint">Натисніть, щоб змінити</div>
             </div>
         </div>
 
         <button class="menu-action-btn" id="addContactBtn">+ Додати користувача</button>
-        <button class="menu-action-btn secondary" id="qrCodeBtn">QR-код та APK</button>
-
-        <div class="sidebar-footer">
-            <label>Мова інтерфейсу / Вхідна мова</label>
-            <select id="sourceLangMenu">
-                <option value="uk" selected>Українська</option>
-                <option value="en">English</option>
-                <option value="es">Español</option>
-                <option value="de">Deutsch</option>
-            </select>
-        </div>
+        <button class="menu-action-btn secondary" id="qrCodeBtn">Завантажити APK</button>
     </div>
 
-    <!-- Кастомне модальне вікно -->
     <div class="custom-modal-overlay" id="customModalOverlay">
         <div class="custom-modal">
-            <h3 id="modalTitle">Додати співрозмовника</h3>
-            <p id="modalPromptDesc">Введіть нікнейм тестувальника.</p>
-            <input type="text" id="modalInput" placeholder="Напр. Stasan або Phone">
+            <h3 id="modalTitle" style="font-size: 1.05rem;">Вікно</h3>
+            <p id="modalPromptDesc" style="font-size: 0.85rem; color: var(--text-muted);"></p>
+            <input type="text" id="modalInput" placeholder="...">
             <div class="custom-modal-buttons">
                 <button class="btn-cancel" id="modalCancelBtn">Скасувати</button>
                 <button class="btn-confirm" id="modalConfirmBtn">OK</button>
@@ -433,7 +380,6 @@
     </div>
 
     <script>
-        // Ініціалізація нікнейму користувача
         let myNickname = localStorage.getItem('habla_nickname');
         if (!myNickname) {
             myNickname = 'User-' + Math.floor(100 + Math.random() * 900);
@@ -446,14 +392,11 @@
         }
         updateUIUser();
 
-        // Підключення до Socket.io
         const socket = io();
-
         socket.on('connect', () => {
             socket.emit('register_user', { nickname: myNickname });
         });
 
-        // Меню
         const sidebar = document.getElementById('sidebar');
         const sidebarOverlay = document.getElementById('sidebarOverlay');
 
@@ -470,20 +413,19 @@
         document.getElementById('closeMenu').onclick = closeSidebar;
         sidebarOverlay.onclick = closeSidebar;
 
-        // Зміна нікнейму при натисканні на нього в меню
+        // Зміна нікнейму
         document.getElementById('userNameDisplay').onclick = () => {
-            showModal("Зміна нікнейму", "Введіть новий нікнейм для цього пристрою:", myNickname, (newNick) => {
+            showModal("Зміна нікнейму", "Введіть новий нікнейм:", myNickname, (newNick) => {
                 if (newNick) {
                     myNickname = newNick.trim();
                     localStorage.setItem('habla_nickname', myNickname);
                     updateUIUser();
                     socket.emit('register_user', { nickname: myNickname });
-                    alert(`Нік змінено на: ${myNickname}`);
                 }
             });
         };
 
-        // Модальне вікно (універсальне)
+        // Модальне вікно
         const modalOverlay = document.getElementById('customModalOverlay');
         const modalInput = document.getElementById('modalInput');
         const modalTitle = document.getElementById('modalTitle');
@@ -507,46 +449,76 @@
         document.getElementById('modalConfirmBtn').onclick = () => {
             const val = modalInput.value.trim();
             modalOverlay.style.display = 'none';
-            if (modalCallback && val) {
-                modalCallback(val);
-            }
+            if (modalCallback && val) modalCallback(val);
             modalCallback = null;
         };
 
         modalInput.onkeydown = (e) => {
-            if (e.key === 'Enter') {
-                document.getElementById('modalConfirmBtn').click();
-            }
+            if (e.key === 'Enter') document.getElementById('modalConfirmBtn').click();
         };
 
-        // Кнопка "+ Додати користувача"
         document.getElementById('addContactBtn').onclick = () => {
             closeSidebar();
-            showModal("Додати співрозмовника", "Введіть нікнейм тестувальника, з яким хочете зв'язатися:", "", (targetNick) => {
+            showModal("Додати співрозмовника", "Введіть нікнейм тестувальника:", "", (targetNick) => {
                 socket.emit('find_user', targetNick, (res) => {
-                    if (res.success) {
-                        alert(`Успішно! Знайдено тестувальника: ${res.nickname}`);
-                    } else {
-                        alert(res.message);
-                    }
+                    alert(res.success ? `Знайдено тестувальника: ${res.nickname}` : res.message);
                 });
             });
         };
 
-        // Кнопка завантаження APK
         document.getElementById('qrCodeBtn').onclick = () => {
             window.location.href = '/downloads/habla.apk';
         };
 
-        // Переклад
+        // Голосовий ввід (Мікрофон) через Web Speech API
+        const micBtn = document.getElementById('micBtn');
+        const inputText = document.getElementById('inputText');
+
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'uk-UA';
+
+            micBtn.onclick = () => {
+                try {
+                    recognition.start();
+                    micBtn.classList.add('recording');
+                } catch(e) {
+                    recognition.stop();
+                    micBtn.classList.remove('recording');
+                }
+            };
+
+            recognition.onresult = (event) => {
+                const speechResult = event.results[0][0].transcript;
+                inputText.value = speechResult;
+                micBtn.classList.remove('recording');
+            };
+
+            recognition.onerror = () => {
+                micBtn.classList.remove('recording');
+            };
+
+            recognition.onend = () => {
+                micBtn.classList.remove('recording');
+            };
+        } else {
+            micBtn.onclick = () => {
+                alert('Голосовий ввід не підтримується цим браузером');
+            };
+        }
+
+        // Переклад тексту через Groq API
         document.getElementById('sendBtn').onclick = async () => {
-            const text = document.getElementById('inputText').value.trim();
+            const text = inputText.value.trim();
             const targetLang = document.getElementById('targetLangHeader').value;
             const chatArea = document.getElementById('chatArea');
 
             if (!text) return;
 
-            chatArea.innerHTML = `Перекладається...`;
+            chatArea.innerHTML = `<div class="message-box" style="color: var(--text-muted);">Перекладається...</div>`;
 
             try {
                 const response = await fetch('/api/translate', {
@@ -555,15 +527,16 @@
                     body: JSON.stringify({ text, targetLang })
                 });
                 const data = await response.json();
+                
                 chatArea.innerHTML = `
-                    <div style="background: #1e1e1e; padding: 12px; border-radius: 8px; border: 1px solid #333; width: 100%; text-align: left;">
-                        <div style="color: #888; font-size: 0.85rem; margin-bottom: 4px;">Ви (${myNickname}): ${text}</div>
-                        <div style="color: #e0e0e0; font-size: 1rem;"><b>Переклад:</b> ${data.translatedText || 'Помилка'}</div>
+                    <div class="message-box">
+                        <div style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 4px;">Ви (${myNickname}): ${text}</div>
+                        <div style="color: var(--text-color); font-size: 1rem;"><b>Переклад:</b> ${data.translatedText || data.error || 'Помилка'}</div>
                     </div>
                 `;
-                document.getElementById('inputText').value = '';
+                inputText.value = '';
             } catch (e) {
-                chatArea.innerHTML = `Помилка з'єднання з сервером`;
+                chatArea.innerHTML = `<div class="message-box" style="color: var(--accent-red);">Помилка з'єднання з сервером</div>`;
             }
         };
     </script>
