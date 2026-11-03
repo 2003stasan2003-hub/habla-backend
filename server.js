@@ -7,66 +7,65 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-// Дозволяємо серверам читати JSON-запити
 app.use(express.json());
-
-// Роздача статичних файлів з кореня проєкту (включаючи папку downloads з habla.apk та інші файли)
 app.use(express.static(path.join(__dirname)));
 
-// Зберігаємо список активних підключених користувачів
-// Ключ - socket.id, значення - об'єкт користувача { userId, userName, ref }
-const activeUsers = new Map();
+// Зберігаємо активних користувачів за їхнім нікнеймом
+const activeUsers = new Map(); // socket.id -> { socketId, nickname }
 
 io.on('connection', (socket) => {
     console.log(`Користувач підключився: ${socket.id}`);
 
-    // Реєстрація користувача та його нікнейму/ID
-    socket.on('register_user', (userData) => {
-        if (!userData || !userData.userId) return;
-
-        activeUsers.set(socket.id, {
-            socketId: socket.id,
-            userId: userData.userId,
-            userName: userData.userName || `User-${userData.userId.slice(-4)}`,
-            ref: userData.ref || null
-        });
-
+    // Реєстрація або оновлення нікнейму
+    socket.on('register_user', (data) => {
+        const nickname = data && data.nickname ? data.nickname.trim() : `User-${socket.id.slice(-4)}`;
+        activeUsers.set(socket.id, { socketId: socket.id, nickname });
         broadcastContacts();
     });
 
-    // Відключення користувача
+    // Пошук іншого користувача за нікнеймом
+    socket.on('find_user', (targetNickname, callback) => {
+        let found = false;
+        const cleanTarget = targetNickname.trim().toLowerCase();
+
+        for (let [sId, user] of activeUsers.entries()) {
+            if (user.nickname.toLowerCase() === cleanTarget && sId !== socket.id) {
+                found = true;
+                break;
+            }
+        }
+
+        if (found) {
+            callback({ success: true, nickname: targetNickname });
+        } else {
+            callback({ success: false, message: 'Користувача з таким ніком немає в мережі.' });
+        }
+    });
+
     socket.on('disconnect', () => {
-        console.log(`Користувач відключився: ${socket.id}`);
         activeUsers.delete(socket.id);
         broadcastContacts();
     });
 });
 
-// Функція розсилки оновленого списку активних контактів усім клієнтам
 function broadcastContacts() {
     const contactsList = Array.from(activeUsers.values());
     io.emit('update_contacts', contactsList);
 }
 
-// API для перекладу (зберігаємо ваш робочий функціонал)
+// API для перекладу
 app.post('/api/translate', async (req, res) => {
     const { text, targetLang } = req.body;
-    
-    if (!text) {
-        return res.status(400).json({ error: 'Відсутній текст для перекладу' });
-    }
+    if (!text) return res.status(400).json({ error: 'Відсутній текст' });
 
     try {
-        // Тут виконується ваш запит до Groq API (або іншого сервісу перекладу)
-        // Повертаємо поки що тестовий/структурний результат, який ви налаштовували раніше
         res.json({ translatedText: `[Переклад на ${targetLang}]: ${text}` });
     } catch (error) {
-        console.error('Помилка перекладу:', error);
-        res.status(500).json({ error: 'Помилка сервера при перекладі' });
+        res.status(500).json({ error: 'Помилка сервера' });
     }
 });
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-    console.log(`Сервер успішно запущено на порту ${PORT}`);
+    console.log(`Сервер запущено на порту ${PORT}`);
 });
