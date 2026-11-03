@@ -3,151 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Habla Mobile - Перекладач та зв'язок</title>
-    <!-- Підключення Socket.io клієнта -->
-    <script src="/socket.io/socket.io.js"></script>
+    <title>Habla Mobile</title>
     <style>
         :root {
             --bg-color: #121212;
             --surface-color: #1e1e1e;
             --primary-color: #bb86fc;
             --text-color: #e0e0e0;
-            --text-muted: #888888;
             --border-color: #333333;
-            --accent-green: #03dac6;
         }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        }
-
         body {
             background-color: var(--bg-color);
             color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
             height: 100vh;
-            overflow: hidden;
-        }
-
-        /* Сайдбар контактів */
-        sidebar {
-            width: 280px;
-            background-color: var(--surface-color);
-            border-right: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
+            margin: 0;
             padding: 16px;
+            box-sizing: border-box;
         }
-
-        .sidebar-header {
-            font-size: 1.1rem;
-            font-weight: bold;
-            margin-bottom: 12px;
-            color: var(--primary-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .contacts-list {
-            flex: 1;
-            overflow-y: auto;
-            list-style: none;
-            margin-bottom: 12px;
-        }
-
-        .contact-item {
-            padding: 10px 12px;
-            margin-bottom: 6px;
-            background: #2a2a2a;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background 0.2s;
-            font-size: 0.95rem;
-        }
-
-        .contact-item:hover {
-            background: #333333;
-        }
-
-        .my-info {
-            padding-top: 10px;
-            border-top: 1px solid var(--border-color);
-            font-size: 0.85rem;
-            color: var(--text-muted);
-        }
-
-        /* Основний робочий блок */
-        main {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            padding: 20px;
-            overflow-y: auto;
-        }
-
-        .header-panel {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .status-indicator {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.9rem;
-        }
-
-        .status-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background-color: #cf6679;
-        }
-
-        .status-dot.online {
-            background-color: var(--accent-green);
-        }
-
-        /* Панель перекладу */
-        .translator-container {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            max-width: 600px;
-            margin: 0 auto;
+        .container {
             width: 100%;
-        }
-
-        .lang-selects {
-            display: flex;
-            gap: 10px;
-        }
-
-        select, button, textarea {
+            max-width: 440px;
             background: var(--surface-color);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        h2 {
+            text-align: center;
+            color: var(--primary-color);
+            margin: 0 0 5px 0;
+            font-size: 1.4rem;
+        }
+        textarea, select, button {
+            background: #2a2a2a;
             color: var(--text-color);
             border: 1px solid var(--border-color);
             border-radius: 8px;
             padding: 12px;
             font-size: 1rem;
             outline: none;
+            width: 100%;
+            box-sizing: border-box;
         }
-
-        select {
-            flex: 1;
-        }
-
         textarea {
             resize: vertical;
-            min-height: 100px;
+            min-height: 90px;
         }
-
         button {
             background-color: var(--primary-color);
             color: #121212;
@@ -155,184 +64,72 @@
             cursor: pointer;
             transition: opacity 0.2s;
         }
-
         button:hover {
             opacity: 0.9;
         }
-
-        .result-box {
-            background: var(--surface-color);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
+        .result {
+            background: #121212;
             padding: 12px;
-            min-height: 100px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            min-height: 70px;
             white-space: pre-wrap;
+            font-size: 0.95rem;
         }
-
-        .invite-box {
-            margin-top: auto;
-            background: var(--surface-color);
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
+        .download-link {
+            text-align: center;
+            margin-top: 6px;
+        }
+        .download-link a {
+            color: var(--primary-color);
+            text-decoration: none;
             font-size: 0.85rem;
         }
-
-        .invite-box input {
-            width: 100%;
-            margin-top: 6px;
-            background: #121212;
-            border: 1px solid var(--border-color);
-            padding: 8px;
-            border-radius: 4px;
-            color: var(--text-color);
-            font-size: 0.8rem;
+        .download-link a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
 <body>
 
-    <!-- Сайдбар із активними контактами -->
-    <sidebar>
-        <div class="sidebar-header">
-            <span>Контакти</span>
-            <span id="online-count" style="font-size: 0.8rem; color: var(--accent-green);">0 онлайн</span>
+    <div class="container">
+        <h2>Habla Mobile</h2>
+        
+        <select id="targetLang">
+            <option value="en">English</option>
+            <option value="uk">Українська</option>
+            <option value="es">Español</option>
+            <option value="de">Deutsch</option>
+        </select>
+
+        <textarea id="inputText" placeholder="Введіть текст для перекладу..."></textarea>
+        <button id="translateBtn">Перекласти</button>
+
+        <div class="result" id="resultText">Тут з'явиться переклад...</div>
+
+        <div class="download-link">
+            <a href="/downloads/habla.apk">📥 Завантажити актуальний Habla.apk</a>
         </div>
-        <ul id="contactsList" class="contacts-list">
-            <li class="contact-item" style="color: var(--text-muted); text-align: center; cursor: default;">Завантаження...</li>
-        </ul>
-
-        <div class="invite-box">
-            <span>Реферальне посилання:</span>
-            <input type="text" id="referralLink" readonly onclick="this.select()">
-        </div>
-
-        <div class="my-info" id="myIdDisplay">Мій ID: ...</div>
-    </sidebar>
-
-    <!-- Основний інтерфейс -->
-    <main>
-        <div class="header-panel">
-            <h2>Habla Mobile</h2>
-            <div class="status-indicator">
-                <div id="statusDot" class="status-dot"></div>
-                <span id="statusText">Підключення...</span>
-            </div>
-        </div>
-
-        <div class="translator-container">
-            <div class="lang-selects">
-                <select id="sourceLang">
-                    <option value="uk">Українська</option>
-                    <option value="en">English</option>
-                    <option value="es">Español</option>
-                    <option value="de">Deutsch</option>
-                </select>
-                <select id="targetLang">
-                    <option value="en" selected>English</option>
-                    <option value="uk">Українська</option>
-                    <option value="es">Español</option>
-                    <option value="de">Deutsch</option>
-                </select>
-            </div>
-
-            <textarea id="inputText" placeholder="Введіть текст для перекладу..."></textarea>
-            <button id="translateBtn">Перекласти</button>
-
-            <div class="result-box" id="resultText">Тут з'явиться переклад...</div>
-        </div>
-    </main>
+    </div>
 
     <script>
-        // Генерація або отримання постійного userId
-        let userId = localStorage.getItem('habla_user_id');
-        if (!userId) {
-            userId = 'HB-' + Math.floor(1000 + Math.random() * 9000);
-            localStorage.setItem('habla_user_id', userId);
-        }
-
-        const userName = 'Tester-' + userId.split('-')[1];
-        document.getElementById('myIdDisplay').innerText = `Мій ID: ${userId}`;
-
-        // Формування реферального посилання
-        const refParam = new URLSearchParams(window.location.search).get('ref');
-        const refLink = `${window.location.origin}/?ref=${userId}`;
-        document.getElementById('referralLink').value = refLink;
-
-        // Підключення до Socket.io
-        const socket = io();
-
-        socket.on('connect', () => {
-            document.getElementById('statusDot').classList.add('online');
-            document.getElementById('statusText').innerText = 'Онлайн';
-            
-            // Реєструємося на сервері та передаємо реферал (якщо перейшли за посиланням)
-            socket.emit('register_user', {
-                userId: userId,
-                userName: userName,
-                ref: refParam
-            });
-        });
-
-        socket.on('disconnect', () => {
-            document.getElementById('statusDot').classList.remove('online');
-            document.getElementById('statusText').innerText = 'Відключено';
-        });
-
-        // Оновлення списку активних користувачів у реальному часі
-        socket.on('update_contacts', (contacts) => {
-            const listEl = document.getElementById('contactsList');
-            const countEl = document.getElementById('online-count');
-            listEl.innerHTML = '';
-            
-            countEl.innerText = `${contacts.length} онлайн`;
-
-            if (contacts.length === 0) {
-                listEl.innerHTML = '<li class="contact-item" style="color: var(--text-muted); text-align: center; cursor: default;">Нікого немає онлайн</li>';
-                return;
-            }
-
-            contacts.forEach(contact => {
-                if (contact.userId === userId) return; // Не показуємо себе у списку
-                const li = document.createElement('li');
-                li.className = 'contact-item';
-                li.innerText = `${contact.userName} (${contact.userId})`;
-                li.onclick = () => {
-                    // Тактильний відгук (вібрація) якщо підтримується
-                    if (navigator.vibrate) navigator.vibrate(40);
-                    alert(`Вибрано контакт: ${contact.userName}`);
-                };
-                listEl.appendChild(li);
-            });
-        });
-
-        // Логіка перекладу тексту через бекенд
         document.getElementById('translateBtn').onclick = async () => {
             const text = document.getElementById('inputText').value.trim();
-            const sourceLang = document.getElementById('sourceLang').value;
             const targetLang = document.getElementById('targetLang').value;
             const resultBox = document.getElementById('resultText');
 
             if (!text) return;
-
-            if (navigator.vibrate) navigator.vibrate(30);
             resultBox.innerText = 'Перекладається...';
 
             try {
                 const response = await fetch('/api/translate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text, sourceLang, targetLang })
+                    body: JSON.stringify({ text, targetLang })
                 });
-
                 const data = await response.json();
-                if (data.translatedText) {
-                    resultBox.innerText = data.translatedText;
-                } else {
-                    resultBox.innerText = 'Помилка перекладу';
-                }
-            } catch (err) {
-                console.error(err);
+                resultBox.innerText = data.translatedText || 'Помилка перекладу';
+            } catch (e) {
                 resultBox.innerText = 'Помилка з\'єднання з сервером';
             }
         };
