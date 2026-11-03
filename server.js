@@ -7,15 +7,12 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-// Middleware для обробки JSON та роздачі статичних файлів з поточної папки
 app.use(express.json());
 app.use(express.static(path.join(__dirname)));
 
-// Сховище активних користувачів та реферальних зв'язків у пам'яті сервера
-const activeUsers = new Map(); // userId -> { socketId, userName, referredBy }
-const referrals = new Map();   // referrerId -> Set of invited userIds
+const activeUsers = new Map();
+const referrals = new Map();
 
-// Ендпоінт для перекладу текстів через Groq API
 app.post('/api/translate', async (req, res) => {
     const { text, sourceLang, targetLang } = req.body;
     
@@ -33,7 +30,7 @@ app.post('/api/translate', async (req, res) => {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                model: 'qwen/qwen3.8-27b', // Використовуємо вашу модель із конфігурації проєкту
+                model: 'qwen/qwen3.8-27b',
                 messages: [
                     {
                         role: 'system',
@@ -66,11 +63,9 @@ app.post('/api/translate', async (req, res) => {
     }
 });
 
-// Налаштування WebSocket з'єднань через Socket.io
 io.on('connection', (socket) => {
-    console.log('Нове з'єднано клієнта:', socket.id);
+    console.log("Нове з'єднано клієнта:", socket.id);
 
-    // Реєстрація користувача та обробка реферального посилання
     socket.on('register_user', (data) => {
         const { userId, userName, ref } = data;
         if (!userId) return;
@@ -91,14 +86,12 @@ io.on('connection', (socket) => {
 
         console.log(`Зареєстровано активного користувача: ${userId} [${userName}]`);
         
-        // Оновлюємо список активних контактів для всіх підключених
         io.emit('update_contacts', Array.from(activeUsers.entries()).map(([id, info]) => ({
             userId: id,
             userName: info.userName
         })));
     });
 
-    // Відключення користувача
     socket.on('disconnect', () => {
         console.log('Клієнт відключився:', socket.id);
         for (let [userId, info] of activeUsers.entries()) {
@@ -107,7 +100,6 @@ io.on('connection', (socket) => {
                 break;
             }
         }
-        // Оновлюємо список контактів
         io.emit('update_contacts', Array.from(activeUsers.entries()).map(([id, info]) => ({
             userId: id,
             userName: info.userName
@@ -117,5 +109,5 @@ io.on('connection', (socket) => {
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-    console.log(` Habla Backend запущено на порту ${PORT}`);
+    console.log(`Habla Backend запущено на порту ${PORT}`);
 });
