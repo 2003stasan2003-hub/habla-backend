@@ -50,7 +50,7 @@ function broadcastContacts() {
     io.emit('update_contacts', contactsList);
 }
 
-// Повністю робочий API перекладу зі стабільною моделлю
+// Професійний API перекладу зі стабільною моделлю Mixtral
 app.post('/api/translate', async (req, res) => {
     const { text, targetLang } = req.body;
     
@@ -61,6 +61,7 @@ app.post('/api/translate', async (req, res) => {
     try {
         const apiKey = process.env.GROQ_API_KEY;
         if (!apiKey) {
+            console.error('Помилка: GROQ_API_KEY не знайдено.');
             return res.status(500).json({ error: 'API ключ Groq не налаштовано на сервері' });
         }
 
@@ -71,11 +72,12 @@ app.post('/api/translate', async (req, res) => {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                model: 'llama3-8b-8192', // Гарантовано працююча, надшвидка модель
+                // Гарантовано стабільна модель для перекладу на всі мови
+                model: 'mixtral-8x7b-32768', 
                 messages: [
                     { 
                         role: 'system', 
-                        content: `Translate the following text accurately into language code "${targetLang}". Return ONLY the translated text without extra explanations.` 
+                        content: `You are a professional real-time translator. Translate the following text accurately into language code "${targetLang}". Return ONLY the translated text without any extra explanations, formatting, or conversational filler.` 
                     },
                     { role: 'user', content: text }
                 ],
