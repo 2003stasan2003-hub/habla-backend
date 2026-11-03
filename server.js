@@ -10,20 +10,18 @@ const io = new Server(server);
 app.use(express.json());
 app.use(express.static(path.join(__dirname)));
 
-// Зберігаємо активних користувачів за їхнім нікнеймом
-const activeUsers = new Map(); // socket.id -> { socketId, nickname }
+// Зберігаємо активних користувачів за нікнеймом
+const activeUsers = new Map();
 
 io.on('connection', (socket) => {
     console.log(`Користувач підключився: ${socket.id}`);
 
-    // Реєстрація або оновлення нікнейму
     socket.on('register_user', (data) => {
         const nickname = data && data.nickname ? data.nickname.trim() : `User-${socket.id.slice(-4)}`;
         activeUsers.set(socket.id, { socketId: socket.id, nickname });
         broadcastContacts();
     });
 
-    // Пошук іншого користувача за нікнеймом
     socket.on('find_user', (targetNickname, callback) => {
         let found = false;
         const cleanTarget = targetNickname.trim().toLowerCase();
@@ -53,15 +51,48 @@ function broadcastContacts() {
     io.emit('update_contacts', contactsList);
 }
 
-// API для перекладу
+// Повноцінний API перекладу через Groq API
 app.post('/api/translate', async (req, res) => {
     const { text, targetLang } = req.body;
-    if (!text) return res.status(400).json({ error: 'Відсутній текст' });
+    
+    if (!text) {
+        return res.status(400).json({ error: 'Відсутній текст для перекладу' });
+    }
 
     try {
-        res.json({ translatedText: `[Переклад на ${targetLang}]: ${text}` });
+        const apiKey = process.env.GROQ_API_KEY;
+        if (!apiKey) {
+            return res.status(500).json({ error: 'API ключ Groq не налаштовано на сервері' });
+        }
+
+        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${apiKey}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                model: 'llama-3.3-70b-versatile',
+                messages: [
+                    { 
+                        role: 'system', 
+                        content: `Translate the following text accurately into language code "${targetLang}". Return ONLY the translated text without extra explanations.` 
+                    },
+                    { role: 'user', content: text }
+                ],
+                temperature: 0.3
+            })
+        });
+
+        const data = await response.json();
+        const translatedText = data.choices && data.choices[0] && data.choices[0].message 
+            ? data.choices[0].message.content.trim() 
+            : 'Помилка відповіді від AI';
+
+        res.json({ translatedText });
     } catch (error) {
-        res.status(500).json({ error: 'Помилка сервера' });
+        console.error('Помилка перекладу:', error);
+        res.status(500).json({ error: 'Помилка сервера при перекладі' });
     }
 });
 
