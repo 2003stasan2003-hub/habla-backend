@@ -62,7 +62,7 @@ function broadcastContacts() {
     io.emit('update_contacts', contactsList);
 }
 
-// Ендпоінт перекладу через офіційний Groq SDK
+// Ендпоінт перекладу через офіційний Groq SDK з оригінальною моделлю проєкту
 app.post('/api/translate', async (req, res) => {
     try {
         const { text, targetLang } = req.body;
@@ -79,7 +79,7 @@ app.post('/api/translate', async (req, res) => {
         else if (targetLang === 'pl' || targetLang === 'pl-PL') targetLanguageName = "Polish";
 
         const completion = await groq.chat.completions.create({
-            model: "llama-3.3-70b-versatile",
+            model: "qwen/qwen3.8-27b",
             messages: [
                 {
                     role: "system",
