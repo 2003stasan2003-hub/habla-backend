@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Habla Mobile</title>
-    <!-- Підключення Socket.io клієнта -->
     <script src="/socket.io/socket.io.js"></script>
     <style>
         :root {
@@ -231,10 +230,12 @@
         .user-details .name {
             font-weight: bold;
             font-size: 0.95rem;
+            cursor: pointer;
+            color: var(--primary-color);
         }
 
-        .user-details .id {
-            font-size: 0.8rem;
+        .user-details .hint {
+            font-size: 0.75rem;
             color: var(--text-muted);
         }
 
@@ -281,7 +282,7 @@
             outline: none;
         }
 
-        /* ФІРМОВЕ КАСТОМНЕ МОДАЛЬНЕ ВІКНО (Замість убогого prompt) */
+        /* КАСТОМНЕ МОДАЛЬНЕ ВІКНО */
         .custom-modal-overlay {
             position: fixed;
             top: 0;
@@ -388,7 +389,7 @@
         <button class="send-btn" id="sendBtn">Надіслати</button>
     </div>
 
-    <!-- Затемнення фону та бокове меню -->
+    <!-- Бокове меню -->
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
@@ -399,8 +400,8 @@
         <div class="user-card">
             <div class="user-avatar" id="userAvatarLetter">U</div>
             <div class="user-details">
-                <div class="name" id="userNameDisplay">User</div>
-                <div class="id" id="userIdDisplay">ID: HB-xxxx</div>
+                <div class="name" id="userNameDisplay" title="Натисніть, щоб змінити нік">User</div>
+                <div class="hint">Натисніть на нік, щоб змінити</div>
             </div>
         </div>
 
@@ -418,12 +419,12 @@
         </div>
     </div>
 
-    <!-- Наше кастомне модальне вікно (в стилі програми) -->
+    <!-- Кастомне модальне вікно -->
     <div class="custom-modal-overlay" id="customModalOverlay">
         <div class="custom-modal">
-            <h3>Додати співрозмовника</h3>
-            <p id="modalPromptDesc">Введіть ID або нікнейм тестувальника для зв'язку.</p>
-            <input type="text" id="modalInput" placeholder="Напр. HB-6819 або Stasan">
+            <h3 id="modalTitle">Додати співрозмовника</h3>
+            <p id="modalPromptDesc">Введіть нікнейм тестувальника.</p>
+            <input type="text" id="modalInput" placeholder="Напр. Stasan або Phone">
             <div class="custom-modal-buttons">
                 <button class="btn-cancel" id="modalCancelBtn">Скасувати</button>
                 <button class="btn-confirm" id="modalConfirmBtn">OK</button>
@@ -432,29 +433,27 @@
     </div>
 
     <script>
-        // Ініціалізація користувача (унікальний ID та ім'я)
-        let userId = localStorage.getItem('habla_user_id');
-        if (!userId) {
-            userId = 'HB-' + Math.floor(1000 + Math.random() * 9000);
-            localStorage.setItem('habla_user_id', userId);
+        // Ініціалізація нікнейму користувача
+        let myNickname = localStorage.getItem('habla_nickname');
+        if (!myNickname) {
+            myNickname = 'User-' + Math.floor(100 + Math.random() * 900);
+            localStorage.setItem('habla_nickname', myNickname);
         }
 
-        let userName = localStorage.getItem('habla_user_name') || 'User';
-        document.getElementById('userIdDisplay').innerText = `ID: ${userId}`;
-        document.getElementById('userNameDisplay').innerText = userName;
-        document.getElementById('userAvatarLetter').innerText = userName.charAt(0).toUpperCase();
+        function updateUIUser() {
+            document.getElementById('userNameDisplay').innerText = myNickname;
+            document.getElementById('userAvatarLetter').innerText = myNickname.charAt(0).toUpperCase();
+        }
+        updateUIUser();
 
-        // Підключення до Socket.io бекенду
+        // Підключення до Socket.io
         const socket = io();
 
         socket.on('connect', () => {
-            socket.emit('register_user', {
-                userId: userId,
-                userName: userName
-            });
+            socket.emit('register_user', { nickname: myNickname });
         });
 
-        // Управління виїзним боковим меню
+        // Меню
         const sidebar = document.getElementById('sidebar');
         const sidebarOverlay = document.getElementById('sidebarOverlay');
 
@@ -471,14 +470,30 @@
         document.getElementById('closeMenu').onclick = closeSidebar;
         sidebarOverlay.onclick = closeSidebar;
 
-        // Логіка кастомного модального вікна (заміна prompt)
+        // Зміна нікнейму при натисканні на нього в меню
+        document.getElementById('userNameDisplay').onclick = () => {
+            showModal("Зміна нікнейму", "Введіть новий нікнейм для цього пристрою:", myNickname, (newNick) => {
+                if (newNick) {
+                    myNickname = newNick.trim();
+                    localStorage.setItem('habla_nickname', myNickname);
+                    updateUIUser();
+                    socket.emit('register_user', { nickname: myNickname });
+                    alert(`Нік змінено на: ${myNickname}`);
+                }
+            });
+        };
+
+        // Модальне вікно (універсальне)
         const modalOverlay = document.getElementById('customModalOverlay');
         const modalInput = document.getElementById('modalInput');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalPromptDesc = document.getElementById('modalPromptDesc');
         let modalCallback = null;
 
-        function showCustomPrompt(description, callback) {
-            document.getElementById('modalPromptDesc').innerText = `Ваш ID: ${userId}. ${description}`;
-            modalInput.value = '';
+        function showModal(title, desc, defaultVal, callback) {
+            modalTitle.innerText = title;
+            modalPromptDesc.innerText = desc;
+            modalInput.value = defaultVal || '';
             modalOverlay.style.display = 'flex';
             modalInput.focus();
             modalCallback = callback;
@@ -490,10 +505,10 @@
         };
 
         document.getElementById('modalConfirmBtn').onclick = () => {
-            const value = modalInput.value.trim();
+            const val = modalInput.value.trim();
             modalOverlay.style.display = 'none';
-            if (modalCallback && value) {
-                modalCallback(value);
+            if (modalCallback && val) {
+                modalCallback(val);
             }
             modalCallback = null;
         };
@@ -504,20 +519,26 @@
             }
         };
 
-        // Кнопка "+ Додати користувача" у меню
+        // Кнопка "+ Додати користувача"
         document.getElementById('addContactBtn').onclick = () => {
             closeSidebar();
-            showCustomPrompt("Введіть ID або нікнейм тестувальника для зв'язку.", (targetIdOrNick) => {
-                alert(`Знайдено та додано співрозмовника: ${targetIdOrNick}`);
+            showModal("Додати співрозмовника", "Введіть нікнейм тестувальника, з яким хочете зв'язатися:", "", (targetNick) => {
+                socket.emit('find_user', targetNick, (res) => {
+                    if (res.success) {
+                        alert(`Успішно! Знайдено тестувальника: ${res.nickname}`);
+                    } else {
+                        alert(res.message);
+                    }
+                });
             });
         };
 
-        // Кнопка завантаження APK / QR-коду
+        // Кнопка завантаження APK
         document.getElementById('qrCodeBtn').onclick = () => {
             window.location.href = '/downloads/habla.apk';
         };
 
-        // Логіка перекладу тексту через бекенд
+        // Переклад
         document.getElementById('sendBtn').onclick = async () => {
             const text = document.getElementById('inputText').value.trim();
             const targetLang = document.getElementById('targetLangHeader').value;
@@ -536,7 +557,7 @@
                 const data = await response.json();
                 chatArea.innerHTML = `
                     <div style="background: #1e1e1e; padding: 12px; border-radius: 8px; border: 1px solid #333; width: 100%; text-align: left;">
-                        <div style="color: #888; font-size: 0.85rem; margin-bottom: 4px;">Ви: ${text}</div>
+                        <div style="color: #888; font-size: 0.85rem; margin-bottom: 4px;">Ви (${myNickname}): ${text}</div>
                         <div style="color: #e0e0e0; font-size: 1rem;"><b>Переклад:</b> ${data.translatedText || 'Помилка'}</div>
                     </div>
                 `;
