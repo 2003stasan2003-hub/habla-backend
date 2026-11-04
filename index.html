@@ -169,6 +169,7 @@
             padding: 10px 12px;
             border-radius: 8px;
             border: 1px solid #2f3552;
+            padding-right: 12px;
         }
 
         .switch {
@@ -431,6 +432,27 @@
     <script>
         const socket = io();
 
+        // Завантаження доступних голосів ОС для природнішого синтезу
+        let availableVoices = [];
+        function populateVoiceList() {
+            if (typeof speechSynthesis === 'undefined') {
+                return;
+            }
+            availableVoices = speechSynthesis.getVoices();
+        }
+        populateVoiceList();
+        if (typeof speechSynthesis !== 'undefined' && speechSynthesis.onvoiceschanged !== undefined) {
+            speechSynthesis.onvoiceschanged = populateVoiceList;
+        }
+
+        const ttsLangMap = {
+            'Ukrainian': 'uk-UA',
+            'English': 'en-US',
+            'Spanish': 'es-ES',
+            'German': 'de-DE',
+            'French': 'fr-FR'
+        };
+
         const translations = {
             Ukrainian: {
                 settings: "Налаштування",
@@ -588,6 +610,20 @@
 
             if (soundToggle.checked && 'speechSynthesis' in window) {
                 const utterance = new SpeechSynthesisUtterance(data.text);
+                
+                // Визначаємо код мови для озвучування
+                const selectedLangCode = ttsLangMap[targetLangSelect.value] || 'uk-UA';
+                utterance.lang = selectedLangCode;
+                
+                // Шукаємо найкращий (природний) голос серед доступних
+                if (availableVoices.length > 0) {
+                    const langVoices = availableVoices.filter(v => v.lang.startsWith(selectedLangCode.split('-')[0]));
+                    if (langVoices.length > 0) {
+                        const bestVoice = langVoices.find(v => v.name.includes('Google') || v.name.includes('Microsoft') || v.name.includes('Natural')) || langVoices[0];
+                        utterance.voice = bestVoice;
+                    }
+                }
+                
                 window.speechSynthesis.speak(utterance);
             }
         });
