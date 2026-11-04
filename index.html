@@ -31,6 +31,24 @@
             font-size: 0.85rem;
             color: #00bcd4;
             border-bottom: 1px solid #282828;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        /* Стиль для клікабельних нікнеймів у списку онлайн */
+        .user-tag {
+            background: #2c2c2c;
+            color: #00bcd4;
+            border: 1px solid #444;
+            padding: 2px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        .user-tag:hover {
+            background: #00838f;
+            color: #fff;
         }
         #chat-container {
             flex: 1;
@@ -121,10 +139,23 @@
         // Реєструємо нік на сервері
         socket.emit('register', myNickname);
 
-        // Слухаємо оновлення списку онлайн-користувачів від сервера
+        // Оновлений блок: тепер кожен користувач у списку стає окремим клікабельним елементом
         socket.on('update-users', (users) => {
-            const usersText = users.join(', ');
-            document.getElementById('online-users').innerText = `Онлайн (${users.length}): ${usersText}`;
+            const onlineContainer = document.getElementById('online-users');
+            onlineContainer.innerHTML = `Онлайн (${users.length}): `;
+
+            users.forEach((username) => {
+                const userTag = document.createElement('span');
+                userTag.className = 'user-tag';
+                userTag.innerText = username;
+                
+                // Дія при кліку на конкретного користувача (поки що тестовий заклик)
+                userTag.addEventListener('click', () => {
+                    alert(`Обрано співрозмовника: ${username}`);
+                });
+
+                onlineContainer.appendChild(userTag);
+            });
         });
 
         // Логіка відправки та перекладу повідомлень (збережена робоча база)
