@@ -580,14 +580,14 @@
             messageDiv.classList.add(isSelf ? 'outgoing' : 'incoming');
 
             let htmlContent = `<div class="author">${escapeHtml(data.user)}</div>`;
-            htmlContent += `<div>${escapeHtml(data.translation || data.text)}</div>`;
+            htmlContent += `<div>${escapeHtml(data.text)}</div>`;
 
             messageDiv.innerHTML = htmlContent;
             chatMessages.appendChild(messageDiv);
             chatMessages.scrollTop = chatMessages.scrollHeight;
 
-            if (soundToggle.checked && 'speechSynthesis' in window && data.translation) {
-                const utterance = new SpeechSynthesisUtterance(data.translation);
+            if (soundToggle.checked && 'speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(data.text);
                 window.speechSynthesis.speak(utterance);
             }
         });
