@@ -20,11 +20,10 @@ const io = new Server(server, {
 app.use(cors());
 app.use(express.json());
 
-// Дозвіл для Android та роздача файлів інтерфейсу
 app.use('/.well-known', express.static('.well-known'));
 app.use(express.static(__dirname));
 
-// --- 1. РОБОЧИЙ МАРШРУТ ПЕРЕКЛАДУ (ЗБЕРЕЖЕНО НА 100%) ---
+// Ендпоінт перекладу через Groq API
 app.post('/api/translate', async (req, res) => {
     try {
         const { text, targetLanguage } = req.body;
@@ -42,7 +41,7 @@ app.post('/api/translate', async (req, res) => {
                 'Authorization': `Bearer ${apiKey}`
             },
             body: JSON.stringify({
-                model: "qwen/qwen3.8-27b", // Актуальна робоча модель з техпаспорта
+                model: "qwen/qwen3.8-27b",
                 messages: [
                     {
                         role: "system",
@@ -50,7 +49,7 @@ app.post('/api/translate', async (req, res) => {
                     },
                     { role: "user", content: text }
                 ],
-                max_tokens: 250 // Захист від перевищення лімітів вихідних токенів
+                max_tokens: 250
             })
         });
 
@@ -73,26 +72,66 @@ app.post('/api/translate', async (req, res) => {
     }
 });
 
-// --- 2. НОВА ЦЕГЛИНКА: SOCKET.IO ДЛЯ ЗВ'ЯЗКУ МІЖ КОРИСТУВАЧАМИ ---
+// Socket.io логіка чату та онлайн користувачів
 const activeUsers = {};
 
 io.on('connection', (socket) => {
     console.log(`Користувач підключився: ${socket.id}`);
 
-    // Коли користувач вводить нік і тисне OK
-    socket.on('register', (nickname) => {
+    socket.on('join', (nickname) => {
         if (!nickname) return;
         activeUsers[socket.id] = nickname;
-        console.log(`Зареєстровано нік: ${nickname}`);
-        // Оновлюємо список онлайн-користувачів для всіх пристроїв
-        io.emit('update-users', Object.values(activeUsers));
+        io.emit('onlineCount', Object.keys(activeUsers).length);
     });
 
-    // Коли користувач закриває додаток або втрачає зв'язок
+    socket.on('chatMessage', async (data) => {
+        try {
+            const apiKey = process.env.GROQ_API_KEY;
+            let translatedText = data.text;
+
+            if (apiKey && data.text) {
+                const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: "qwen/qwen3.8-27b",
+                        messages: [
+                            {
+                                role: "system",
+                                content: `You are a professional translator. Translate the given text accurately and naturally into ${data.targetLang}. Return ONLY the translated text without any extra notes or formatting.`
+                            },
+                            { role: "user", content: data.text }
+                        ],
+                        max_tokens: 250
+                    })
+                });
+                const result = await response.json();
+                if (result.choices && result.choices[0] && result.choices[0].message) {
+                    translatedText = result.choices[0].message.content.trim();
+                }
+            }
+
+            io.emit('chatMessage', {
+                user: data.user,
+                text: data.text,
+                translation: translatedText
+            });
+        } catch (e) {
+            console.error("Помилка сокет-перекладу:", e);
+            io.emit('chatMessage', {
+                user: data.user,
+                text: data.text,
+                translation: data.text
+            });
+        }
+    });
+
     socket.on('disconnect', () => {
-        console.log(`Користувач відключився: ${socket.id}`);
         delete activeUsers[socket.id];
-        io.emit('update-users', Object.values(activeUsers));
+        io.emit('onlineCount', Object.keys(activeUsers).length);
     });
 });
 
