@@ -40,7 +40,7 @@ app.post('/api/translate', async (req, res) => {
                 'Authorization': `Bearer ${apiKey}`
             },
             body: JSON.stringify({
-                model: "qwen/qwen3.8-27b",
+                model: "llama-3.3-70b-versatile",
                 messages: [
                     {
                         role: "system",
@@ -95,7 +95,7 @@ io.on('connection', (socket) => {
                         'Authorization': `Bearer ${apiKey}`
                     },
                     body: JSON.stringify({
-                        model: "qwen/qwen3.8-27b",
+                        model: "llama-3.3-70b-versatile",
                         messages: [
                             {
                                 role: "system",
