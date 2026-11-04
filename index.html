@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Habla Mobile</title>
-    <!-- Підключаємо клієнтську частину Socket.io -->
+    <!-- Підключаємо Socket.io -->
     <script src="/socket.io/socket.io.js"></script>
     <style>
         body {
@@ -19,36 +19,37 @@
         }
         header {
             background: #1f1f1f;
-            padding: 12px;
-            text-align: center;
+            padding: 12px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             border-bottom: 1px solid #333;
+        }
+        .header-left {
+            display: flex;
+            flex-direction: column;
         }
         h1 { margin: 0; font-size: 1.2rem; color: #00bcd4; }
         .subtitle { font-size: 0.85rem; color: #888; }
+        
+        /* Випадаючий список вибору мови у шапці */
+        .language-select {
+            background: #2c2c2c;
+            color: #00bcd4;
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-size: 0.9rem;
+            outline: none;
+            cursor: pointer;
+        }
+
         #online-users {
             padding: 8px 15px;
             background: #181818;
             font-size: 0.85rem;
             color: #00bcd4;
             border-bottom: 1px solid #282828;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-        /* Стиль для клікабельних нікнеймів у списку онлайн */
-        .user-tag {
-            background: #2c2c2c;
-            color: #00bcd4;
-            border: 1px solid #444;
-            padding: 2px 8px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.8rem;
-        }
-        .user-tag:hover {
-            background: #00838f;
-            color: #fff;
         }
         #chat-container {
             flex: 1;
@@ -83,6 +84,7 @@
             background: #1f1f1f;
             border-top: 1px solid #333;
             gap: 10px;
+            align-items: center;
         }
         input[type="text"] {
             flex: 1;
@@ -97,26 +99,50 @@
         input[type="text"]:focus {
             border-color: #00bcd4;
         }
-        button {
+        .action-btn {
             background: #00bcd4;
             color: #121212;
             border: none;
             border-radius: 8px;
-            padding: 0 20px;
+            padding: 10px 15px;
             font-weight: bold;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        button:active { opacity: 0.8; }
+        .mic-btn {
+            background: #1f1f1f;
+            border: 2px solid #00bcd4;
+            color: #00bcd4;
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .mic-btn:active, .action-btn:active { opacity: 0.8; }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>Habla Mobile</h1>
-        <div class="subtitle" id="user-subtitle">Підключення...</div>
+        <div class="header-left">
+            <h1>Habla Mobile</h1>
+            <div class="subtitle" id="user-subtitle">Підключення...</div>
+        </div>
+        <select class="language-select" id="target-lang">
+            <option value="Spanish">Spanish</option>
+            <option value="English">English</option>
+            <option value="German">German</option>
+            <option value="Ukrainian">Ukrainian</option>
+        </select>
     </header>
 
-    <!-- Рядок зі списком онлайн-користувачів -->
     <div id="online-users">Онлайн: очікування підключення...</div>
 
     <div id="chat-container">
@@ -124,44 +150,34 @@
     </div>
 
     <div id="input-container">
+        <button class="mic-btn" id="mic-btn" title="Голосовий ввід">🎤</button>
         <input type="text" id="message-input" placeholder="Введіть текст або мікрофон...">
-        <button id="send-btn">&#10148;</button>
+        <button class="action-btn" id="send-btn">&#10148;</button>
     </div>
 
     <script>
-        // Ініціалізація Socket.io
         const socket = io();
 
-        // Запит нікнейму при вході у додаток
         let myNickname = prompt("Введіть ваш нікнейм:") || "Гість";
         document.getElementById('user-subtitle').innerText = myNickname;
         
-        // Реєструємо нік на сервері
         socket.emit('register', myNickname);
 
-        // Оновлений блок: тепер кожен користувач у списку стає окремим клікабельним елементом
         socket.on('update-users', (users) => {
-            const onlineContainer = document.getElementById('online-users');
-            onlineContainer.innerHTML = `Онлайн (${users.length}): `;
-
-            users.forEach((username) => {
-                const userTag = document.createElement('span');
-                userTag.className = 'user-tag';
-                userTag.innerText = username;
-                
-                // Дія при кліку на конкретного користувача (поки що тестовий заклик)
-                userTag.addEventListener('click', () => {
-                    alert(`Обрано співрозмовника: ${username}`);
-                });
-
-                onlineContainer.appendChild(userTag);
-            });
+            const usersText = users.join(', ');
+            document.getElementById('online-users').innerText = `Онлайн (${users.length}): ${usersText}`;
         });
 
-        // Логіка відправки та перекладу повідомлень (збережена робоча база)
         const inputField = document.getElementById('message-input');
         const sendBtn = document.getElementById('send-btn');
+        const micBtn = document.getElementById('mic-btn');
         const chatContainer = document.getElementById('chat-container');
+        const targetLangSelect = document.getElementById('target-lang');
+
+        // Кнопка мікрофона активує поле вводу без зайвих діалогових вікон
+        micBtn.addEventListener('click', () => {
+            inputField.focus();
+        });
 
         sendBtn.addEventListener('click', async () => {
             const text = inputField.value.trim();
@@ -170,18 +186,28 @@
             appendMessage(`${myNickname}: ${text}`, 'sent');
             inputField.value = '';
 
+            const targetLanguage = targetLangSelect ? targetLangSelect.value : 'Spanish';
+
             try {
                 const response = await fetch('/api/translate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text, targetLanguage: 'Spanish' })
+                    body: JSON.stringify({ text, targetLanguage })
                 });
                 const data = await response.json();
                 if (data.translatedText) {
                     appendMessage(`[Переклад]: ${data.translatedText}`, 'received');
+                } else if (data.error) {
+                    appendMessage(`[Помилка]: ${data.error}`, 'received');
                 }
             } catch (err) {
                 console.error('Помилка перекладу:', err);
+            }
+        });
+
+        inputField.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendBtn.click();
             }
         });
 
