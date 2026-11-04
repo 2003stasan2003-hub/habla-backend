@@ -40,7 +40,7 @@ app.post('/api/translate', async (req, res) => {
                 'Authorization': `Bearer ${apiKey}`
             },
             body: JSON.stringify({
-                model: "llama-3.3-70b-versatile",
+                model: "qwen/qwen3.8-27b",
                 messages: [
                     {
                         role: "system",
@@ -95,7 +95,7 @@ io.on('connection', (socket) => {
                         'Authorization': `Bearer ${apiKey}`
                     },
                     body: JSON.stringify({
-                        model: "llama-3.3-70b-versatile",
+                        model: "qwen/qwen3.8-27b",
                         messages: [
                             {
                                 role: "system",
@@ -114,15 +114,13 @@ io.on('connection', (socket) => {
 
             io.emit('chatMessage', {
                 user: data.user,
-                text: data.text,
-                translation: translatedText
+                text: translatedText
             });
         } catch (e) {
             console.error("Помилка сокет-перекладу:", e);
             io.emit('chatMessage', {
                 user: data.user,
-                text: data.text,
-                translation: data.text
+                text: data.text
             });
         }
     });
