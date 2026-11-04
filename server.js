@@ -23,7 +23,6 @@ app.use(express.json());
 app.use('/.well-known', express.static('.well-known'));
 app.use(express.static(__dirname));
 
-// Ендпоінт перекладу через Groq API
 app.post('/api/translate', async (req, res) => {
     try {
         const { text, targetLanguage } = req.body;
@@ -72,7 +71,6 @@ app.post('/api/translate', async (req, res) => {
     }
 });
 
-// Socket.io логіка чату та онлайн користувачів
 const activeUsers = {};
 
 io.on('connection', (socket) => {
