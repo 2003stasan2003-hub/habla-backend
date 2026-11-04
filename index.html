@@ -4,541 +4,163 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Habla Mobile</title>
+    <!-- Підключаємо клієнтську частину Socket.io -->
     <script src="/socket.io/socket.io.js"></script>
     <style>
-        :root {
-            --bg-color: #121212;
-            --surface-color: #1e1e1e;
-            --primary-color: #bb86fc;
-            --text-color: #e0e0e0;
-            --text-muted: #888888;
-            --border-color: #333333;
-            --accent-blue: #007bff;
-            --accent-red: #ff4444;
-        }
-
-        * {
-            box-sizing: border-box;
+        body {
+            background-color: #121212;
+            color: #e0e0e0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             margin: 0;
             padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
             display: flex;
             flex-direction: column;
             height: 100vh;
-            overflow: hidden;
         }
-
         header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 16px;
-            background-color: var(--bg-color);
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .menu-btn {
-            background: none;
-            border: none;
-            color: var(--text-color);
-            font-size: 1.5rem;
-            cursor: pointer;
-        }
-
-        .app-title {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: var(--text-color);
-            line-height: 1.2;
-        }
-
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            background: var(--surface-color);
-            padding: 6px 10px;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            font-size: 0.9rem;
-        }
-
-        .header-right select {
-            background: transparent;
-            color: var(--text-color);
-            border: none;
-            outline: none;
-            font-size: 0.9rem;
-            cursor: pointer;
-        }
-
-        .chat-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            padding: 16px;
-            overflow-y: auto;
-            gap: 12px;
-        }
-
-        .message-box {
-            background: var(--surface-color);
+            background: #1f1f1f;
             padding: 12px;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            width: 100%;
-            text-align: left;
-        }
-
-        .footer-panel {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 12px 16px;
-            background-color: var(--bg-color);
-            border-top: 1px solid var(--border-color);
-        }
-
-        .mic-btn {
-            background: var(--surface-color);
-            border: 1px solid var(--border-color);
-            border-radius: 50%;
-            width: 44px;
-            height: 44px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            color: var(--text-color);
-            font-size: 1.1rem;
-            flex-shrink: 0;
-            transition: background 0.2s;
-        }
-
-        .mic-btn.recording {
-            background: var(--accent-red);
-            border-color: var(--accent-red);
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
-        }
-
-        .input-wrapper {
-            flex: 1;
-            background: var(--surface-color);
-            border: 1px solid var(--border-color);
-            border-radius: 24px;
-            padding: 10px 16px;
-            color: var(--text-color);
-            font-size: 0.95rem;
-            outline: none;
-        }
-
-        .send-btn {
-            background-color: var(--accent-blue);
-            color: #ffffff;
-            border: none;
-            border-radius: 24px;
-            padding: 10px 20px;
-            font-weight: bold;
-            font-size: 0.95rem;
-            cursor: pointer;
-            flex-shrink: 0;
-        }
-
-        .sidebar-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.6);
-            display: none;
-            z-index: 99;
-        }
-
-        .sidebar {
-            position: fixed;
-            top: 0;
-            left: -300px;
-            width: 280px;
-            height: 100%;
-            background-color: var(--surface-color);
-            border-right: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            padding: 16px;
-            transition: left 0.3s ease;
-            z-index: 100;
-        }
-
-        .sidebar.open {
-            left: 0;
-        }
-
-        .sidebar-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 1.1rem;
-            font-weight: bold;
-            margin-bottom: 20px;
-        }
-
-        .close-menu {
-            background: none;
-            border: none;
-            color: var(--text-color);
-            font-size: 1.5rem;
-            cursor: pointer;
-        }
-
-        .user-card {
-            background: #2a2a2a;
-            border-radius: 10px;
-            padding: 12px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 16px;
-            border: 1px solid var(--border-color);
-        }
-
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            background: var(--accent-blue);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            color: #fff;
-        }
-
-        .user-details .name {
-            font-weight: bold;
-            font-size: 0.95rem;
-            cursor: pointer;
-            color: var(--primary-color);
-        }
-
-        .user-details .hint {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-        }
-
-        .menu-action-btn {
-            background: var(--accent-blue);
-            color: #fff;
-            border: none;
-            border-radius: 8px;
-            padding: 12px;
-            font-weight: bold;
-            width: 100%;
-            cursor: pointer;
-            margin-bottom: 10px;
             text-align: center;
-            font-size: 0.95rem;
+            border-bottom: 1px solid #333;
         }
-
-        .menu-action-btn.secondary {
-            background: #2a2a2a;
-            border: 1px solid var(--border-color);
-            color: var(--text-color);
+        h1 { margin: 0; font-size: 1.2rem; color: #00bcd4; }
+        .subtitle { font-size: 0.85rem; color: #888; }
+        #online-users {
+            padding: 8px 15px;
+            background: #181818;
+            font-size: 0.85rem;
+            color: #00bcd4;
+            border-bottom: 1px solid #282828;
         }
-
-        /* КАСТОМНЕ МОДАЛЬНЕ ВІКНО */
-        .custom-modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.75);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 200;
-        }
-
-        .custom-modal {
-            background: var(--surface-color);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 20px;
-            width: 85%;
-            max-width: 340px;
+        #chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
             display: flex;
             flex-direction: column;
-            gap: 14px;
-        }
-
-        .custom-modal input {
-            background: var(--bg-color);
-            border: 1px solid var(--border-color);
-            color: var(--text-color);
-            padding: 12px;
-            border-radius: 8px;
-            font-size: 0.95rem;
-            outline: none;
-            width: 100%;
-        }
-
-        .custom-modal-buttons {
-            display: flex;
-            justify-content: flex-end;
             gap: 10px;
         }
-
-        .custom-modal-buttons button {
-            padding: 8px 16px;
-            border-radius: 6px;
+        .message {
+            max-width: 75%;
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+        .message.sent {
+            background: #00838f;
+            color: #fff;
+            align-self: flex-end;
+            border-bottom-right-radius: 2px;
+        }
+        .message.received {
+            background: #272727;
+            color: #e0e0e0;
+            align-self: flex-start;
+            border-bottom-left-radius: 2px;
+        }
+        #input-container {
+            display: flex;
+            padding: 10px;
+            background: #1f1f1f;
+            border-top: 1px solid #333;
+            gap: 10px;
+        }
+        input[type="text"] {
+            flex: 1;
+            background: #2c2c2c;
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 10px 15px;
+            color: #fff;
+            font-size: 1rem;
+            outline: none;
+        }
+        input[type="text"]:focus {
+            border-color: #00bcd4;
+        }
+        button {
+            background: #00bcd4;
+            color: #121212;
+            border: none;
+            border-radius: 8px;
+            padding: 0 20px;
             font-weight: bold;
             cursor: pointer;
-            border: none;
         }
-
-        .btn-cancel { background: #333; color: #e0e0e0; }
-        .btn-confirm { background: var(--accent-blue); color: #fff; }
+        button:active { opacity: 0.8; }
     </style>
 </head>
 <body>
 
     <header>
-        <div class="header-left">
-            <button class="menu-btn" id="openMenu">☰</button>
-            <div class="app-title">Habla<br>Mobile</div>
-        </div>
-        <div class="header-right">
-            <span style="color: var(--text-muted);">На:</span>
-            <select id="targetLangHeader">
-                <option value="es" selected>Español</option>
-                <option value="uk">Українська</option>
-                <option value="en">English</option>
-                <option value="de">Deutsch</option>
-            </select>
-        </div>
+        <h1>Habla Mobile</h1>
+        <div class="subtitle" id="user-subtitle">Підключення...</div>
     </header>
 
-    <div class="chat-container" id="chatArea">
-        <div style="color: var(--text-muted); text-align: center; margin-top: auto; margin-bottom: auto;">
-            Почніть розмову або введіть текст...
-        </div>
+    <!-- Рядок зі списком онлайн-користувачів -->
+    <div id="online-users">Онлайн: очікування підключення...</div>
+
+    <div id="chat-container">
+        <!-- Сюди потраплятимуть повідомлення -->
     </div>
 
-    <div class="footer-panel">
-        <button class="mic-btn" id="micBtn" title="Голосовий ввід">🎤</button>
-        <input type="text" class="input-wrapper" id="inputText" placeholder="Почніть розмову або введіть текст...">
-        <button class="send-btn" id="sendBtn">Надіслати</button>
-    </div>
-
-    <div class="sidebar-overlay" id="sidebarOverlay"></div>
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <span>Меню</span>
-            <button class="close-menu" id="closeMenu">✕</button>
-        </div>
-
-        <div class="user-card">
-            <div class="user-avatar" id="userAvatarLetter">U</div>
-            <div class="user-details">
-                <div class="name" id="userNameDisplay">User</div>
-                <div class="hint">Натисніть, щоб змінити</div>
-            </div>
-        </div>
-
-        <button class="menu-action-btn" id="addContactBtn">+ Додати користувача</button>
-        <button class="menu-action-btn secondary" id="qrCodeBtn">Завантажити APK</button>
-    </div>
-
-    <div class="custom-modal-overlay" id="customModalOverlay">
-        <div class="custom-modal">
-            <h3 id="modalTitle" style="font-size: 1.05rem;">Вікно</h3>
-            <p id="modalPromptDesc" style="font-size: 0.85rem; color: var(--text-muted);"></p>
-            <input type="text" id="modalInput" placeholder="...">
-            <div class="custom-modal-buttons">
-                <button class="btn-cancel" id="modalCancelBtn">Скасувати</button>
-                <button class="btn-confirm" id="modalConfirmBtn">OK</button>
-            </div>
-        </div>
+    <div id="input-container">
+        <input type="text" id="message-input" placeholder="Введіть текст або мікрофон...">
+        <button id="send-btn">&#10148;</button>
     </div>
 
     <script>
-        let myNickname = localStorage.getItem('habla_nickname');
-        if (!myNickname) {
-            myNickname = 'User-' + Math.floor(100 + Math.random() * 900);
-            localStorage.setItem('habla_nickname', myNickname);
-        }
-
-        function updateUIUser() {
-            document.getElementById('userNameDisplay').innerText = myNickname;
-            document.getElementById('userAvatarLetter').innerText = myNickname.charAt(0).toUpperCase();
-        }
-        updateUIUser();
-
+        // Ініціалізація Socket.io
         const socket = io();
-        socket.on('connect', () => {
-            socket.emit('register_user', { nickname: myNickname });
+
+        // Запит нікнейму при вході у додаток
+        let myNickname = prompt("Введіть ваш нікнейм:") || "Гість";
+        document.getElementById('user-subtitle').innerText = myNickname;
+        
+        // Реєструємо нік на сервері
+        socket.emit('register', myNickname);
+
+        // Слухаємо оновлення списку онлайн-користувачів від сервера
+        socket.on('update-users', (users) => {
+            const usersText = users.join(', ');
+            document.getElementById('online-users').innerText = `Онлайн (${users.length}): ${usersText}`;
         });
 
-        const sidebar = document.getElementById('sidebar');
-        const sidebarOverlay = document.getElementById('sidebarOverlay');
+        // Логіка відправки та перекладу повідомлень (збережена робоча база)
+        const inputField = document.getElementById('message-input');
+        const sendBtn = document.getElementById('send-btn');
+        const chatContainer = document.getElementById('chat-container');
 
-        document.getElementById('openMenu').onclick = () => {
-            sidebar.classList.add('open');
-            sidebarOverlay.style.display = 'block';
-        };
-
-        const closeSidebar = () => {
-            sidebar.classList.remove('open');
-            sidebarOverlay.style.display = 'none';
-        };
-
-        document.getElementById('closeMenu').onclick = closeSidebar;
-        sidebarOverlay.onclick = closeSidebar;
-
-        // Зміна нікнейму
-        document.getElementById('userNameDisplay').onclick = () => {
-            showModal("Зміна нікнейму", "Введіть новий нікнейм:", myNickname, (newNick) => {
-                if (newNick) {
-                    myNickname = newNick.trim();
-                    localStorage.setItem('habla_nickname', myNickname);
-                    updateUIUser();
-                    socket.emit('register_user', { nickname: myNickname });
-                }
-            });
-        };
-
-        // Модальне вікно
-        const modalOverlay = document.getElementById('customModalOverlay');
-        const modalInput = document.getElementById('modalInput');
-        const modalTitle = document.getElementById('modalTitle');
-        const modalPromptDesc = document.getElementById('modalPromptDesc');
-        let modalCallback = null;
-
-        function showModal(title, desc, defaultVal, callback) {
-            modalTitle.innerText = title;
-            modalPromptDesc.innerText = desc;
-            modalInput.value = defaultVal || '';
-            modalOverlay.style.display = 'flex';
-            modalInput.focus();
-            modalCallback = callback;
-        }
-
-        document.getElementById('modalCancelBtn').onclick = () => {
-            modalOverlay.style.display = 'none';
-            modalCallback = null;
-        };
-
-        document.getElementById('modalConfirmBtn').onclick = () => {
-            const val = modalInput.value.trim();
-            modalOverlay.style.display = 'none';
-            if (modalCallback && val) modalCallback(val);
-            modalCallback = null;
-        };
-
-        modalInput.onkeydown = (e) => {
-            if (e.key === 'Enter') document.getElementById('modalConfirmBtn').click();
-        };
-
-        document.getElementById('addContactBtn').onclick = () => {
-            closeSidebar();
-            showModal("Додати співрозмовника", "Введіть нікнейм тестувальника:", "", (targetNick) => {
-                socket.emit('find_user', targetNick, (res) => {
-                    alert(res.success ? `Знайдено тестувальника: ${res.nickname}` : res.message);
-                });
-            });
-        };
-
-        document.getElementById('qrCodeBtn').onclick = () => {
-            window.location.href = '/downloads/habla.apk';
-        };
-
-        // Голосовий ввід (Мікрофон) через Web Speech API
-        const micBtn = document.getElementById('micBtn');
-        const inputText = document.getElementById('inputText');
-
-        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            const recognition = new SpeechRecognition();
-            recognition.continuous = false;
-            recognition.interimResults = false;
-            recognition.lang = 'uk-UA';
-
-            micBtn.onclick = () => {
-                try {
-                    recognition.start();
-                    micBtn.classList.add('recording');
-                } catch(e) {
-                    recognition.stop();
-                    micBtn.classList.remove('recording');
-                }
-            };
-
-            recognition.onresult = (event) => {
-                const speechResult = event.results[0][0].transcript;
-                inputText.value = speechResult;
-                micBtn.classList.remove('recording');
-            };
-
-            recognition.onerror = () => {
-                micBtn.classList.remove('recording');
-            };
-
-            recognition.onend = () => {
-                micBtn.classList.remove('recording');
-            };
-        } else {
-            micBtn.onclick = () => {
-                alert('Голосовий ввід не підтримується цим браузером');
-            };
-        }
-
-        // Переклад тексту через Groq API
-        document.getElementById('sendBtn').onclick = async () => {
-            const text = inputText.value.trim();
-            const targetLang = document.getElementById('targetLangHeader').value;
-            const chatArea = document.getElementById('chatArea');
-
+        sendBtn.addEventListener('click', async () => {
+            const text = inputField.value.trim();
             if (!text) return;
 
-            chatArea.innerHTML = `<div class="message-box" style="color: var(--text-muted);">Перекладається...</div>`;
+            appendMessage(`${myNickname}: ${text}`, 'sent');
+            inputField.value = '';
 
             try {
                 const response = await fetch('/api/translate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text, targetLang })
+                    body: JSON.stringify({ text, targetLanguage: 'Spanish' })
                 });
                 const data = await response.json();
-                
-                chatArea.innerHTML = `
-                    <div class="message-box">
-                        <div style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 4px;">Ви (${myNickname}): ${text}</div>
-                        <div style="color: var(--text-color); font-size: 1rem;"><b>Переклад:</b> ${data.translatedText || data.error || 'Помилка'}</div>
-                    </div>
-                `;
-                inputText.value = '';
-            } catch (e) {
-                chatArea.innerHTML = `<div class="message-box" style="color: var(--accent-red);">Помилка з'єднання з сервером</div>`;
+                if (data.translatedText) {
+                    appendMessage(`[Переклад]: ${data.translatedText}`, 'received');
+                }
+            } catch (err) {
+                console.error('Помилка перекладу:', err);
             }
-        };
+        });
+
+        function appendMessage(text, type) {
+            const div = document.createElement('div');
+            div.className = `message ${type}`;
+            div.innerText = text;
+            chatContainer.appendChild(div);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
     </script>
 </body>
 </html>
