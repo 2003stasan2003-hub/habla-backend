@@ -23,6 +23,49 @@ app.use(express.json());
 app.use('/.well-known', express.static('.well-known'));
 app.use(express.static(__dirname));
 
+// Універсальна функція перекладу з підтримкою резервних моделей (Fallback)
+async function translateWithFallback(apiKey, text, targetLanguage) {
+    const models = [
+        "qwen/qwen3.8-27b",
+        "llama-3.3-70b-versatile",
+        "llama-3.1-8b-instant"
+    ];
+
+    for (const model of models) {
+        try {
+            const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({
+                    model: model,
+                    messages: [
+                        {
+                            role: "system",
+                            content: `You are a professional translator. Translate the given text accurately and naturally into ${targetLanguage}. Return ONLY the translated text without any extra notes or formatting.`
+                        },
+                        { role: "user", content: text }
+                    ],
+                    max_tokens: 250
+                })
+            });
+
+            const data = await response.json();
+            
+            if (response.ok && data.choices && data.choices[0] && data.choices[0].message) {
+                return data.choices[0].message.content.trim();
+            } else {
+                console.warn(`⚠️ Модель ${model} не відповіла успішно, перемикаємось на наступну...`, data);
+            }
+        } catch (err) {
+            console.warn(`⚠️ Помилка запиту до моделі ${model}:`, err.message);
+        }
+    }
+    return null; // Якщо всі моделі недоступні
+}
+
 app.post('/api/translate', async (req, res) => {
     try {
         const { text, targetLanguage } = req.body;
@@ -33,36 +76,10 @@ app.post('/api/translate', async (req, res) => {
             return res.status(500).json({ error: 'API ключ Groq не знайдено на сервері' });
         }
 
-        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-            model: "qwen/qwen3.8-27b",
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
-            },
-            body: JSON.stringify({
-                model: "qwen/qwen3.8-27b",
-                messages: [
-                    {
-                        role: "system",
-                        content: `You are a professional translator. Translate the given text accurately and naturally into ${targetLanguage}. Return ONLY the translated text without any extra notes or formatting.`
-                    },
-                    { role: "user", content: text }
-                ],
-                max_tokens: 250
-            })
-        });
-
-        const data = await response.json();
-        
-        if (!response.ok) {
-            console.error('Помилка Groq API:', data);
-            return res.status(500).json({ error: 'Помилка мовної моделі Groq' });
+        const translatedText = await translateWithFallback(apiKey, text, targetLanguage || 'English');
+        if (!translatedText) {
+            return res.status(500).json({ error: 'Помилка всіх мовних моделей Groq' });
         }
-
-        const translatedText = data.choices && data.choices[0] && data.choices[0].message 
-            ? data.choices[0].message.content.trim() 
-            : text;
 
         res.json({ translatedText });
 
@@ -78,9 +95,8 @@ const allKnownUsers = new Set(); // Зберігає всі унікальні �
 function broadcastUsers() {
     const onlineNames = new Set(Object.values(activeSockets));
     
-    // Формуємо список усіх відомих користувачів з їхнім статусом
     const usersList = Array.from(allKnownUsers).map(name => ({
-        id: name, // Використовуємо ім'я як унікальний ідентифікатор в списку
+        id: name,
         name: name,
         isOnline: onlineNames.has(name)
     }));
@@ -105,27 +121,9 @@ io.on('connection', (socket) => {
             let translatedText = data.text;
 
             if (apiKey && data.text) {
-                const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${apiKey}`
-                    },
-                    body: JSON.stringify({
-                        model: "qwen/qwen3.8-27b",
-                        messages: [
-                            {
-                                role: "system",
-                                content: `You are a professional translator. Translate the given text accurately and naturally into ${data.targetLang}. Return ONLY the translated text without any extra notes or formatting.`
-                            },
-                            { role: "user", content: data.text }
-                        ],
-                        max_tokens: 250
-                    })
-                });
-                const result = await response.json();
-                if (result.choices && result.choices[0] && result.choices[0].message) {
-                    translatedText = result.choices[0].message.content.trim();
+                const result = await translateWithFallback(apiKey, data.text, data.targetLang || 'English');
+                if (result) {
+                    translatedText = result;
                 }
             }
 
@@ -137,7 +135,6 @@ io.on('connection', (socket) => {
             };
 
             if (data.recipientName) {
-                // Особисте повідомлення: надсилаємо відправнику та шукаємо співрозмовника за ім'ям серед активних
                 socket.emit('chatMessage', messagePayload);
                 
                 let recipientSocketId = Object.keys(activeSockets).find(
