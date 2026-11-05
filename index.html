@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="uk">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -506,14 +506,14 @@
             <span id="header-partner-name"></span>
             <button id="header-clear-partner" title="Загальний чат">✕</button>
         </div>
-        <div id="online-count" class="online-status" title="Натисніть для перегляду списку">Онлайн: 1</div>
+        <div id="online-count" class="online-status" title="Натисніть для перегляду списку">En línea: 1</div>
     </header>
 
     <div class="lang-panel">
-        <label for="target-lang" id="label-translate-to">Перекладати на:</label>
+        <label for="target-lang" id="label-translate-to">Traducir a:</label>
         <select id="target-lang" class="lang-select">
-            <option value="English">English</option>
             <option value="Spanish">Spanish</option>
+            <option value="English">English</option>
             <option value="Ukrainian">Ukrainian</option>
             <option value="German">German</option>
             <option value="French">French</option>
@@ -524,12 +524,12 @@
 
     <div id="side-menu" class="side-menu">
         <div class="menu-header">
-            <span class="menu-title" id="menu-title-text">Налаштування</span>
+            <span class="menu-title" id="menu-title-text">Configuración</span>
             <button id="close-menu-btn" class="close-menu-btn">✕</button>
         </div>
 
         <div class="menu-section">
-            <label id="label-profile">Ваш профіль</label>
+            <label id="label-profile">Tu perfil</label>
             <div class="user-badge-container">
                 <div id="user-avatar-large" class="user-avatar-large">Г</div>
                 <div id="user-display" class="user-badge">Гість</div>
@@ -537,29 +537,30 @@
         </div>
 
         <div class="menu-section">
-            <label id="label-online-users">Користувачі</label>
+            <label id="label-online-users">Usuarios</label>
             <div id="online-users-list" class="online-users-list">
-                <span class="online-user-item" style="color: #8a91b4; justify-content: center;">Завантаження...</span>
+                <span class="online-user-item" style="color: #8a91b4; justify-content: center;">Cargando...</span>
             </div>
         </div>
 
         <div class="menu-section">
-            <label for="interface-lang" id="label-interface-lang">Мова інтерфейсу:</label>
+            <label for="interface-lang" id="label-interface-lang">Idioma de la interfaz</label>
             <select id="interface-lang" class="lang-select">
+                <option value="Spanish" selected>Spanish</option>
                 <option value="Ukrainian">Ukrainian</option>
                 <option value="English">English</option>
-                <option value="Spanish">Spanish</option>
                 <option value="German">German</option>
                 <option value="French">French</option>
             </select>
         </div>
 
         <div class="menu-section">
-            <label id="label-voice-over">Озвучування перекладу</label>
+            <label id="label-voice-over">Locución de traducción</label>
             <div class="toggle-container">
-                <span id="label-enable-sound" style="font-size: 0.9rem; color: #e0e0e0;">Увімкнути звук</span>
+                <span id="label-enable-sound" style="font-size: 0.9rem; color: #e0e0e0;">Activar sonido</span>
                 <label class="switch">
-                    <input type="checkbox" id="sound-toggle" checked>
+                    <!-- За замовчуванням звук вимкнено (без атрибута checked) -->
+                    <input type="checkbox" id="sound-toggle">
                     <span class="slider"></span>
                 </label>
             </div>
@@ -570,7 +571,7 @@
 
     <div class="input-container">
         <div class="input-wrapper">
-            <input type="text" id="message-input" placeholder="Введіть повідомлення або скажіть..." autocomplete="off">
+            <input type="text" id="message-input" placeholder="Escribe un mensaje o habla..." autocomplete="off">
             <button id="mic-btn" class="mic-button" title="Голосовий ввід">🎤</button>
         </div>
         <button id="send-btn" class="send-button" title="Відправити">➤</button>
@@ -607,6 +608,17 @@
         };
 
         const translations = {
+            Spanish: {
+                settings: "Configuración",
+                profile: "Tu perfil",
+                onlineUsersTitle: "Usuarios",
+                interfaceLang: "Idioma de la interfaz",
+                voiceOver: "Locución de traducción",
+                enableSound: "Activar sonido",
+                translateTo: "Traducir a:",
+                online: "En línea",
+                placeholder: "Escribe un mensaje o habla..."
+            },
             Ukrainian: {
                 settings: "Налаштування",
                 profile: "Ваш профіль",
@@ -628,17 +640,6 @@
                 translateTo: "Translate to:",
                 online: "Online",
                 placeholder: "Type a message or speak..."
-            },
-            Spanish: {
-                settings: "Configuración",
-                profile: "Tu perfil",
-                onlineUsersTitle: "Usuarios",
-                interfaceLang: "Idioma de la interfaz",
-                voiceOver: "Locución de traducción",
-                enableSound: "Activar sonido",
-                translateTo: "Traducir a:",
-                online: "En línea",
-                placeholder: "Escribe un mensaje o habla..."
             },
             German: {
                 settings: "Einstellungen",
@@ -698,7 +699,7 @@
 
         function updateInterfaceTexts() {
             const lang = interfaceLangSelect.value;
-            const t = translations[lang] || translations.Ukrainian;
+            const t = translations[lang] || translations.Spanish;
 
             menuTitleText.textContent = t.settings;
             labelProfile.textContent = t.profile;
@@ -710,6 +711,10 @@
             messageInput.placeholder = t.placeholder;
             onlineCount.textContent = `${t.online}: ${currentOnlineCount}`;
         }
+
+        // Встановлюємо іспанську мову інтерфейсу за замовчуванням
+        interfaceLangSelect.value = "Spanish";
+        updateInterfaceTexts();
 
         interfaceLangSelect.addEventListener('change', updateInterfaceTexts);
 
@@ -784,7 +789,7 @@
 
             let authorLabel = escapeHtml(data.user);
             if (data.isPrivate) {
-                authorLabel += ` 🔒 (Особисте)`;
+                authorLabel += ` 🔒 (Privado)`;
             }
 
             let htmlContent = `<div class="author"><span>${authorLabel}</span></div>`;
@@ -794,9 +799,10 @@
             chatMessages.appendChild(messageDiv);
             chatMessages.scrollTop = chatMessages.scrollHeight;
 
+            // Звук спрацьовуватиме лише якщо користувач самостійно увімкнув перемикач
             if (soundToggle.checked && 'speechSynthesis' in window) {
                 const utterance = new SpeechSynthesisUtterance(data.text);
-                const selectedLangCode = ttsLangMap[targetLangSelect.value] || 'uk-UA';
+                const selectedLangCode = ttsLangMap[targetLangSelect.value] || 'es-ES';
                 utterance.lang = selectedLangCode;
                 
                 if (availableVoices.length > 0) {
@@ -814,7 +820,7 @@
         socket.on('onlineCount', (count) => {
             currentOnlineCount = count;
             const lang = interfaceLangSelect.value;
-            const t = translations[lang] || translations.Ukrainian;
+            const t = translations[lang] || translations.Spanish;
             onlineCount.textContent = `${t.online}: ${count}`;
         });
 
@@ -830,13 +836,13 @@
                 userItem.innerHTML = `
                     <div class="user-info-left">
                         <div class="user-avatar-small">${firstLetter}</div>
-                        <span>${escapeHtml(user.name)}${isMe ? ' (ви)' : ''}</span>
+                        <span>${escapeHtml(user.name)}${isMe ? ' (tú)' : ''}</span>
                     </div>
-                    <div class="status-dot ${user.isOnline ? 'online' : 'offline'}" title="${user.isOnline ? 'Онлайн' : 'Офлайн'}"></div>
+                    <div class="status-dot ${user.isOnline ? 'online' : 'offline'}" title="${user.isOnline ? 'En línea' : 'Desconectado'}"></div>
                 `;
 
                 if (!isMe) {
-                    userItem.title = "Натисніть, щоб писати приватно";
+                    userItem.title = "Haz clic para chatear en privado";
                     userItem.addEventListener('click', () => {
                         setRecipient(user.name);
                         closeMenu();
@@ -863,7 +869,7 @@
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
         if (!SpeechRecognition) {
-            console.warn("Speech Recognition API не підтримується цим браузером.");
+            console.warn("Speech Recognition API не поддерживается этим браузером.");
             micBtn.style.display = 'none';
         } else {
             const recognition = new SpeechRecognition();
@@ -877,7 +883,7 @@
                     return;
                 }
 
-                recognition.lang = 'uk-UA'; 
+                recognition.lang = 'es-ES'; 
 
                 try {
                     recognition.start();
