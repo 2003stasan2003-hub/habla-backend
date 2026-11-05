@@ -91,4 +91,59 @@ io.on('connection', (socket) => {
 
     // Відключення користувача
     socket.on('disconnect', () => {
-        console.log(`Ко
+        console.log(`Користувач відключився: ${socket.id}`);
+        activeUsers.delete(socket.id);
+    });
+});
+
+// Функція надсилання персональних контактів
+function sendPersonalizedContacts(socket) {
+    const user = activeUsers.get(socket.id);
+    if (!user) return;
+
+    const myContacts = userContacts.get(user.name)` || new Set();
+    const contactsList = [];
+
+    myContacts.forEach(contactName => {
+        let isOnline = false;
+        for (let [_, u] of activeUsers) {
+            if (u.name === contactName) {
+                isOnline = true;
+                break;
+            }
+        }
+        contactsList.push({
+            name: contactName,
+            online: isOnline
+        });
+    });
+
+    socket.emit('contacts_update', contactsList);
+}
+
+// Функція надсилання доступних користувачів для додавання
+function sendAvailableUsers(socket) {
+    const user = activeUsers.get(socket.id);
+    if (!user) return;
+
+    const myContacts = userContacts.get(user.name) || new Set();
+    const available = [];
+    const seenNames = new Set();
+
+    for (let [_, u] of activeUsers) {
+        if (u.name !== user.name && !seenNames.has(u.name)) {
+            seenNames.add(u.name);
+            available.push({
+                name: u.name,
+                isContact: myContacts.has(u.name)
+            });
+        }
+    }
+
+    socket.emit('available_users_update', available);
+}
+
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+    console.log(`Сервер запущено на порту ${PORT}`);
+});
