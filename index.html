@@ -299,7 +299,7 @@
         <span>Перекладати на:</span>
         <select id="targetLang" class="lang-select">
             <option value="English">English</option>
-            <option value="Spanish">Spanish</option>
+            <option value="Spanish" selected>Spanish</option>
             <option value="French">French</option>
             <option value="Ukrainian">Ukrainian</option>
         </select>
@@ -347,7 +347,6 @@
             <div class="sidebar-section toggle-row">
                 <span>Озвучування перекладу</span>
                 <label class="switch">
-                    <!-- Без атрибута checked — вимкнено за замовчуванням -->
                     <input type="checkbox" id="soundToggle">
                     <span class="slider"></span>
                 </label>
@@ -455,7 +454,7 @@
             chatMessages.scrollTop = chatMessages.scrollHeight;
         });
 
-        // Голосовий ввід (вимкнений за замовчуванням, активується лише при кліку)
+        // Голосовий ввід з червоним підсвічуванням мікрофона під час запису
         const micBtn = document.getElementById('micBtn');
         let isListening = false;
         
@@ -472,7 +471,7 @@
             if (!isListening) {
                 recognition.start();
                 isListening = true;
-                micBtn.style.color = '#00ffcc';
+                micBtn.style.color = '#ef4444'; // Червоне підсвічування під час запису
             } else {
                 recognition.stop();
                 isListening = false;
