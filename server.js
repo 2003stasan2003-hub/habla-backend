@@ -34,6 +34,7 @@ app.post('/api/translate', async (req, res) => {
         }
 
         const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            model: "qwen/qwen3.8-27b",
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -71,13 +72,21 @@ app.post('/api/translate', async (req, res) => {
     }
 });
 
-const activeUsers = {};
+const activeSockets = {}; // socket.id -> username
+const allKnownUsers = new Set(); // Зберігає всі унікальні нікнейми, що заходили
 
 function broadcastUsers() {
-    // Формуємо масив об'єктів { id, name }, виключаючи власне сокет id для зручності на клієнті якщо треба, або повний список
-    const usersList = Object.entries(activeUsers).map(([id, name]) => ({ id, name }));
+    const onlineNames = new Set(Object.values(activeSockets));
+    
+    // Формуємо список усіх відомих користувачів з їхнім статусом
+    const usersList = Array.from(allKnownUsers).map(name => ({
+        id: name, // Використовуємо ім'я як унікальний ідентифікатор в списку
+        name: name,
+        isOnline: onlineNames.has(name)
+    }));
+
     io.emit('update-users', usersList);
-    io.emit('onlineCount', Object.keys(activeUsers).length);
+    io.emit('onlineCount', onlineNames.size);
 }
 
 io.on('connection', (socket) => {
@@ -85,7 +94,8 @@ io.on('connection', (socket) => {
 
     socket.on('join', (nickname) => {
         if (!nickname) return;
-        activeUsers[socket.id] = nickname;
+        activeSockets[socket.id] = nickname;
+        allKnownUsers.add(nickname);
         broadcastUsers();
     });
 
@@ -122,16 +132,21 @@ io.on('connection', (socket) => {
             const messagePayload = {
                 user: data.user,
                 text: translatedText,
-                recipientName: data.recipientId && activeUsers[data.recipientId] ? activeUsers[data.recipientId] : null,
-                isPrivate: !!data.recipientId
+                recipientName: data.recipientName || null,
+                isPrivate: !!data.recipientName
             };
 
-            if (data.recipientId && activeUsers[data.recipientId]) {
-                // Особисте повідомлення: надсилаємо відправнику та отримувачу
+            if (data.recipientName) {
+                // Особисте повідомлення: надсилаємо відправнику та шукаємо співрозмовника за ім'ям серед активних
                 socket.emit('chatMessage', messagePayload);
-                io.to(data.recipientId).emit('chatMessage', messagePayload);
+                
+                let recipientSocketId = Object.keys(activeSockets).find(
+                    id => activeSockets[id] === data.recipientName
+                );
+                if (recipientSocketId && recipientSocketId !== socket.id) {
+                    io.to(recipientSocketId).emit('chatMessage', messagePayload);
+                }
             } else {
-                // Загальне повідомлення для всіх
                 io.emit('chatMessage', messagePayload);
             }
         } catch (e) {
@@ -145,7 +160,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on('disconnect', () => {
-        delete activeUsers[socket.id];
+        delete activeSockets[socket.id];
         broadcastUsers();
     });
 });
