@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Habla Mobile</title>
+    <title>Habla Mobile 3.0</title>
     <script src="/socket.io/socket.io.js"></script>
     <style>
         * {
@@ -70,6 +70,12 @@
             padding: 4px 10px;
             border-radius: 12px;
             border: 1px solid #2f3552;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        .online-status:hover {
+            border-color: #00ffcc;
         }
 
         .lang-panel {
@@ -112,6 +118,7 @@
             flex-direction: column;
             padding: 20px;
             gap: 20px;
+            overflow-y: auto;
         }
 
         .side-menu.open {
@@ -161,6 +168,36 @@
             font-size: 0.95rem;
         }
 
+        .online-users-list {
+            background: #1a1e2e;
+            padding: 6px;
+            border-radius: 8px;
+            border: 1px solid #2f3552;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .online-user-item {
+            color: #e0e0e0;
+            background: #151823;
+            padding: 8px 10px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .online-user-item:hover {
+            background: rgba(0, 255, 204, 0.1);
+            color: #00ffcc;
+        }
+
         .toggle-container {
             display: flex;
             justify-content: space-between;
@@ -169,7 +206,6 @@
             padding: 10px 12px;
             border-radius: 8px;
             border: 1px solid #2f3552;
-            padding-right: 12px;
         }
 
         .switch {
@@ -228,6 +264,31 @@
             display: block;
         }
 
+        /* Індикатор активного отримувача */
+        .recipient-banner {
+            background: #1a1e2e;
+            border-top: 1px solid #2f3552;
+            padding: 6px 16px;
+            font-size: 0.85rem;
+            color: #00ffcc;
+            display: none;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .recipient-banner.active {
+            display: flex;
+        }
+
+        .cancel-recipient {
+            background: none;
+            border: none;
+            color: #ff3b30;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
         #chat-messages {
             flex: 1;
             overflow-y: auto;
@@ -268,11 +329,17 @@
             border-right: 3px solid #00ffcc;
         }
 
+        .message.private {
+            border: 1px dashed #00ffcc;
+        }
+
         .message .author {
             font-size: 0.75rem;
             color: #a0a5c0;
             margin-bottom: 4px;
             font-weight: 600;
+            display: flex;
+            justify-content: space-between;
         }
 
         .input-container {
@@ -369,7 +436,7 @@
             <button id="menu-btn" class="menu-btn" title="Меню">☰</button>
             <div class="logo">Habla Mobile 3.0</div>
         </div>
-        <div id="online-count" class="online-status">Онлайн: 1</div>
+        <div id="online-count" class="online-status" title="Натисніть для перегляду списку">Онлайн: 1</div>
     </header>
 
     <div class="lang-panel">
@@ -397,6 +464,13 @@
         </div>
 
         <div class="menu-section">
+            <label id="label-online-users">Користувачі онлайн (натисніть для вибору)</label>
+            <div id="online-users-list" class="online-users-list">
+                <span class="online-user-item" style="color: #8a91b4; justify-content: center;">Завантаження...</span>
+            </div>
+        </div>
+
+        <div class="menu-section">
             <label for="interface-lang" id="label-interface-lang">Мова інтерфейсу:</label>
             <select id="interface-lang" class="lang-select">
                 <option value="Ukrainian">Ukrainian</option>
@@ -419,6 +493,11 @@
         </div>
     </div>
 
+    <div id="recipient-banner" class="recipient-banner">
+        <span id="recipient-text">Особисте повідомлення для: <b></b></span>
+        <button id="cancel-recipient" class="cancel-recipient">✕ Скасувати</button>
+    </div>
+
     <div id="chat-messages"></div>
 
     <div class="input-container">
@@ -432,7 +511,9 @@
     <script>
         const socket = io();
 
-        // Завантаження доступних голосів ОС для природнішого синтезу
+        let selectedRecipientId = null;
+        let selectedRecipientName = null;
+
         let availableVoices = [];
         function populateVoiceList() {
             if (typeof speechSynthesis === 'undefined') {
@@ -457,57 +538,67 @@
             Ukrainian: {
                 settings: "Налаштування",
                 profile: "Ваш профіль",
+                onlineUsersTitle: "Користувачі онлайн (натисніть для вибору)",
                 interfaceLang: "Мова інтерфейсу",
                 voiceOver: "Озвучування перекладу",
                 enableSound: "Увімкнути звук",
                 translateTo: "Перекладати на:",
                 online: "Онлайн",
                 placeholder: "Введіть повідомлення або скажіть...",
-                guest: "Гість"
+                guest: "Гість",
+                privateTo: "Особисте повідомлення для: "
             },
             English: {
                 settings: "Settings",
                 profile: "Your profile",
+                onlineUsersTitle: "Online users (click to select)",
                 interfaceLang: "Interface language",
                 voiceOver: "Translation voiceover",
                 enableSound: "Enable sound",
                 translateTo: "Translate to:",
                 online: "Online",
                 placeholder: "Type a message or speak...",
-                guest: "Guest"
+                guest: "Guest",
+                privateTo: "Private message to: "
             },
             Spanish: {
                 settings: "Configuración",
                 profile: "Tu perfil",
+                onlineUsersTitle: "Usuarios en línea (clic para seleccionar)",
                 interfaceLang: "Idioma de la interfaz",
                 voiceOver: "Locución de traducción",
                 enableSound: "Activar sonido",
                 translateTo: "Traducir a:",
                 online: "En línea",
                 placeholder: "Escribe un mensaje o habla...",
-                guest: "Invitado"
+                guest: "Invitado",
+                privateTo: "Mensaje privado para: "
             },
             German: {
                 settings: "Einstellungen",
                 profile: "Ihr Profil",
+                onlineUsersTitle: "Online-Benutzer (zum Auswählen anklicken)",
                 interfaceLang: "Benutzeroberflächensprache",
                 voiceOver: "Übersetzungs-Sprachausgabe",
                 enableSound: "Ton einschalten",
                 translateTo: "Übersetzen in:",
                 online: "Online",
                 placeholder: "Nachricht eingeben oder sprechen...",
-                guest: "Gast"
+                guest: "Gast",
+                privateTo: "Private Nachricht an: "
             },
             French: {
                 settings: "Paramètres",
                 profile: "Votre profil",
+                onlineUsersTitle: "Utilisateurs en ligne (cliquez pour sélectionner)",
                 interfaceLang: "Langue de l'interface",
                 voiceOver: "Voix de traduction",
                 enableSound: "Activer le son",
                 translateTo: "Traduire vers :",
                 online: "En ligne",
                 placeholder: "Tapez un message ou parlez...",
-                guest: "Invité"
+                guest: "Invité",
+                privateTo: "Message privé à : "
             }
         };
 
@@ -527,11 +618,17 @@
         const sideMenu = document.getElementById('side-menu');
         const menuOverlay = document.getElementById('menu-overlay');
         const userDisplay = document.getElementById('user-display');
+        const onlineUsersList = document.getElementById('online-users-list');
         const soundToggle = document.getElementById('sound-toggle');
+
+        const recipientBanner = document.getElementById('recipient-banner');
+        const recipientText = document.getElementById('recipient-text');
+        const cancelRecipientBtn = document.getElementById('cancel-recipient');
 
         const labelTranslateTo = document.getElementById('label-translate-to');
         const menuTitleText = document.getElementById('menu-title-text');
         const labelProfile = document.getElementById('label-profile');
+        const labelOnlineUsers = document.getElementById('label-online-users');
         const labelInterfaceLang = document.getElementById('label-interface-lang');
         const labelVoiceOver = document.getElementById('label-voice-over');
         const labelEnableSound = document.getElementById('label-enable-sound');
@@ -544,12 +641,17 @@
 
             menuTitleText.textContent = t.settings;
             labelProfile.textContent = t.profile;
+            labelOnlineUsers.textContent = t.onlineUsersTitle;
             labelInterfaceLang.textContent = t.interfaceLang;
             labelVoiceOver.textContent = t.voiceOver;
             labelEnableSound.textContent = t.enableSound;
             labelTranslateTo.textContent = t.translateTo;
             messageInput.placeholder = t.placeholder;
             onlineCount.textContent = `${t.online}: ${currentOnlineCount}`;
+
+            if (selectedRecipientName) {
+                recipientText.innerHTML = `${t.privateTo}<b>${selectedRecipientName}</b>`;
+            }
         }
 
         interfaceLangSelect.addEventListener('change', updateInterfaceTexts);
@@ -568,8 +670,15 @@
         }
 
         menuBtn.addEventListener('click', openMenu);
+        onlineCount.addEventListener('click', openMenu);
         closeMenuBtn.addEventListener('click', closeMenu);
         menuOverlay.addEventListener('click', closeMenu);
+
+        cancelRecipientBtn.addEventListener('click', () => {
+            selectedRecipientId = null;
+            selectedRecipientName = null;
+            recipientBanner.classList.remove('active');
+        });
 
         function sendMessage() {
             const text = messageInput.value.trim();
@@ -580,7 +689,8 @@
             socket.emit('chatMessage', {
                 text: text,
                 targetLang: targetLang,
-                user: username
+                user: username,
+                recipientId: selectedRecipientId
             });
 
             messageInput.value = '';
@@ -600,8 +710,16 @@
             
             const isSelf = data.user === username;
             messageDiv.classList.add(isSelf ? 'outgoing' : 'incoming');
+            if (data.isPrivate) {
+                messageDiv.classList.add('private');
+            }
 
-            let htmlContent = `<div class="author">${escapeHtml(data.user)}</div>`;
+            let authorLabel = escapeHtml(data.user);
+            if (data.isPrivate) {
+                authorLabel += ` 🔒 (Особисте)`;
+            }
+
+            let htmlContent = `<div class="author"><span>${authorLabel}</span></div>`;
             htmlContent += `<div>${escapeHtml(data.text)}</div>`;
 
             messageDiv.innerHTML = htmlContent;
@@ -610,12 +728,9 @@
 
             if (soundToggle.checked && 'speechSynthesis' in window) {
                 const utterance = new SpeechSynthesisUtterance(data.text);
-                
-                // Визначаємо код мови для озвучування
                 const selectedLangCode = ttsLangMap[targetLangSelect.value] || 'uk-UA';
                 utterance.lang = selectedLangCode;
                 
-                // Шукаємо найкращий (природний) голос серед доступних
                 if (availableVoices.length > 0) {
                     const langVoices = availableVoices.filter(v => v.lang.startsWith(selectedLangCode.split('-')[0]));
                     if (langVoices.length > 0) {
@@ -633,6 +748,38 @@
             const lang = interfaceLangSelect.value;
             const t = translations[lang] || translations.Ukrainian;
             onlineCount.textContent = `${t.online}: ${count}`;
+        });
+
+        socket.on('update-users', (users) => {
+            onlineUsersList.innerHTML = '';
+            users.forEach(user => {
+                const userItem = document.createElement('div');
+                userItem.classList.add('online-user-item');
+                
+                // Якщо це ви самі, можна показати позначку
+                const isMe = user.name === username;
+                userItem.innerHTML = `<span>${escapeHtml(user.name)}${isMe ? ' (ви)' : ''}</span>`;
+
+                if (!isMe) {
+                    userItem.title = "Натисніть, щоб писати приватно";
+                    userItem.addEventListener('click', () => {
+                        selectedRecipientId = user.id;
+                        selectedRecipientName = user.name;
+                        
+                        const lang = interfaceLangSelect.value;
+                        const t = translations[lang] || translations.Ukrainian;
+                        recipientText.innerHTML = `${t.privateTo}<b>${user.name}</b>`;
+                        recipientBanner.classList.add('active');
+
+                        closeMenu();
+                    });
+                } else {
+                    userItem.style.opacity = '0.6';
+                    userItem.style.cursor = 'default';
+                }
+
+                onlineUsersList.appendChild(userItem);
+            });
         });
 
         function escapeHtml(text) {
