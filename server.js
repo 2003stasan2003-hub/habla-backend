@@ -1,7 +1,6 @@
 import express from 'express';
-import { createServer } from 'http';
+import http from 'http';
 import { Server } from 'socket.io';
-import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -9,161 +8,175 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const server = createServer(app);
-const io = new Server(server, {
-    cors: {
-        origin: "*",
-        methods: ["GET", "POST"]
-    }
-});
+const server = http.createServer(app);
+const io = new Server(server);
 
-app.use(cors());
-app.use(express.json());
-
-app.use('/.well-known', express.static('.well-known'));
+// Роздача статичних файлів з поточної папки
 app.use(express.static(__dirname));
 
-app.post('/api/translate', async (req, res) => {
+// Зберігаємо активних користувачів та персональні контакти
+const activeUsers = new Map();
+const userContacts = new Map();
+
+// Функція перекладу через Groq API
+async function translateWithGroq(text, targetLanguage) {
+    const apiKey = process.env.GROQ_API_KEY;
+    if (!apiKey) return text;
+
     try {
-        const { text, targetLanguage } = req.body;
-        if (!text) return res.status(400).json({ error: 'Текст відсутній' });
-
-        const apiKey = process.env.GROQ_API_KEY;
-        if (!apiKey) {
-            return res.status(500).json({ error: 'API ключ Groq не знайдено на сервері' });
-        }
-
         const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-            model: "qwen/qwen3.8-27b",
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
+                'Authorization': `Bearer ${apiKey}`,
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                model: "qwen/qwen3.8-27b",
+                model: 'llama-3.3-70b-versatile',
                 messages: [
                     {
-                        role: "system",
-                        content: `You are a professional translator. Translate the given text accurately and naturally into ${targetLanguage}. Return ONLY the translated text without any extra notes or formatting.`
+                        role: 'system',
+                        content: `You are a professional translator. Translate the following text into ${targetLanguage}. Output ONLY the translated text without any extra explanations, quotes, or conversational filler.`
                     },
-                    { role: "user", content: text }
+                    {
+                        role: 'user',
+                        content: text
+                    }
                 ],
-                max_tokens: 250
+                temperature: 0.3
             })
         });
 
         const data = await response.json();
-        
-        if (!response.ok) {
-            console.error('Помилка Groq API:', data);
-            return res.status(500).json({ error: 'Помилка мовної моделі Groq' });
+        if (data.choices && data.choices[0] && data.choices[0].message) {
+            return data.choices[0].message.content.trim();
         }
-
-        const translatedText = data.choices && data.choices[0] && data.choices[0].message 
-            ? data.choices[0].message.content.trim() 
-            : text;
-
-        res.json({ translatedText });
-
-    } catch (error) {
-        console.error('Помилка сервера:', error);
-        res.status(500).json({ error: 'Помилка сервера при перекладі.' });
+    } catch (err) {
+        console.error('Помилка Groq API перекладу:', err);
     }
-});
-
-const activeSockets = {}; // socket.id -> username
-const allKnownUsers = new Set(); // Зберігає всі унікальні нікнейми, що заходили
-
-function broadcastUsers() {
-    const onlineNames = new Set(Object.values(activeSockets));
-    
-    // Формуємо список усіх відомих користувачів з їхнім статусом
-    const usersList = Array.from(allKnownUsers).map(name => ({
-        id: name, // Використовуємо ім'я як унікальний ідентифікатор в списку
-        name: name,
-        isOnline: onlineNames.has(name)
-    }));
-
-    io.emit('update-users', usersList);
-    io.emit('onlineCount', onlineNames.size);
+    return text;
 }
 
 io.on('connection', (socket) => {
     console.log(`Користувач підключився: ${socket.id}`);
 
-    socket.on('join', (nickname) => {
-        if (!nickname) return;
-        activeSockets[socket.id] = nickname;
-        allKnownUsers.add(nickname);
-        broadcastUsers();
+    socket.on('register_user', (userData) => {
+        const username = userData && userData.name ? userData.name.trim() : 'Tester';
+        const isAdmin = (username === 'StasAn');
+
+        activeUsers.set(socket.id, {
+            id: socket.id,
+            name: username,
+            isAdmin: isAdmin
+        });
+
+        if (!userContacts.has(username)) {
+            userContacts.set(username, new Set());
+        }
+
+        sendPersonalizedContacts(socket);
+        sendAvailableUsers(socket);
     });
 
-    socket.on('chatMessage', async (data) => {
-        try {
-            const apiKey = process.env.GROQ_API_KEY;
-            let translatedText = data.text;
+    socket.on('get_available_users', () => {
+        sendAvailableUsers(socket);
+    });
 
-            if (apiKey && data.text) {
-                const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${apiKey}`
-                    },
-                    body: JSON.stringify({
-                        model: "qwen/qwen3.8-27b",
-                        messages: [
-                            {
-                                role: "system",
-                                content: `You are a professional translator. Translate the given text accurately and naturally into ${data.targetLang}. Return ONLY the translated text without any extra notes or formatting.`
-                            },
-                            { role: "user", content: data.text }
-                        ],
-                        max_tokens: 250
-                    })
-                });
-                const result = await response.json();
-                if (result.choices && result.choices[0] && result.choices[0].message) {
-                    translatedText = result.choices[0].message.content.trim();
-                }
-            }
+    socket.on('add_contact', (contactName) => {
+        const currentUser = activeUsers.get(socket.id);
+        if (!currentUser) return;
 
-            const messagePayload = {
-                user: data.user,
+        const myName = currentUser.name;
+        if (myName === contactName) return;
+
+        if (!userContacts.has(myName)) {
+            userContacts.set(myName, new Set());
+        }
+        userContacts.get(myName).add(contactName);
+
+        sendPersonalizedContacts(socket);
+        sendAvailableUsers(socket);
+    });
+
+    socket.on('check_admin', () => {
+        const currentUser = activeUsers.get(socket.id);
+        if (currentUser && currentUser.isAdmin) {
+            socket.emit('admin_status', { isAdmin: true, message: 'Вітаю, адміністраторе StasAn!' });
+        } else {
+            socket.emit('admin_status', { isAdmin: false });
+        }
+    });
+
+    // Обробка та переклад повідомлень через Groq API
+    socket.on('chat_message', async (data) => {
+        const sender = activeUsers.get(socket.id);
+        if (sender) {
+            const originalText = data.text;
+            const targetLang = data.targetLanguage || 'English';
+            
+            // Виконуємо переклад за допомогою Groq API
+            const translatedText = await translateWithGroq(originalText, targetLang);
+
+            io.emit('chat_message', {
+                senderId: socket.id,
+                senderName: sender.name,
                 text: translatedText,
-                recipientName: data.recipientName || null,
-                isPrivate: !!data.recipientName
-            };
-
-            if (data.recipientName) {
-                // Особисте повідомлення: надсилаємо відправнику та шукаємо співрозмовника за ім'ям серед активних
-                socket.emit('chatMessage', messagePayload);
-                
-                let recipientSocketId = Object.keys(activeSockets).find(
-                    id => activeSockets[id] === data.recipientName
-                );
-                if (recipientSocketId && recipientSocketId !== socket.id) {
-                    io.to(recipientSocketId).emit('chatMessage', messagePayload);
-                }
-            } else {
-                io.emit('chatMessage', messagePayload);
-            }
-        } catch (e) {
-            console.error("Помилка сокет-перекладу:", e);
-            io.emit('chatMessage', {
-                user: data.user,
-                text: data.text,
-                isPrivate: false
+                targetLanguage: targetLang
             });
         }
     });
 
     socket.on('disconnect', () => {
-        delete activeSockets[socket.id];
-        broadcastUsers();
+        console.log(`Користувач відключився: ${socket.id}`);
+        activeUsers.delete(socket.id);
     });
 });
 
+function sendPersonalizedContacts(socket) {
+    const user = activeUsers.get(socket.id);
+    if (!user) return;
+
+    const myContacts = userContacts.get(user.name) || new Set();
+    const contactsList = [];
+
+    myContacts.forEach(contactName => {
+        let isOnline = false;
+        for (let [_, u] of activeUsers) {
+            if (u.name === contactName) {
+                isOnline = true;
+                break;
+            }
+        }
+        contactsList.push({
+            name: contactName,
+            online: isOnline
+        });
+    });
+
+    socket.emit('contacts_update', contactsList);
+}
+
+function sendAvailableUsers(socket) {
+    const user = activeUsers.get(socket.id);
+    if (!user) return;
+
+    const myContacts = userContacts.get(user.name) || new Set();
+    const available = [];
+    const seenNames = new Set();
+
+    for (let [_, u] of activeUsers) {
+        if (u.name !== user.name && !seenNames.has(u.name)) {
+            seenNames.add(u.name);
+            available.push({
+                name: u.name,
+                isContact: myContacts.has(u.name)
+            });
+        }
+    }
+
+    socket.emit('available_users_update', available);
+}
+
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
+server.listen(PORT, () => {
+    console.log(`Сервер запущено на порту ${PORT}`);
+});
