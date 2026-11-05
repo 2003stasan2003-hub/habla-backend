@@ -19,7 +19,7 @@
             flex-direction: column;
             overflow: hidden;
         }
-        /* Шапка додатку */
+        /* Неонова шапка додатку */
         .app-header {
             display: flex;
             align-items: center;
@@ -36,12 +36,13 @@
         .menu-icon {
             font-size: 20px;
             cursor: pointer;
-            color: #38bdf8;
+            color: #00ffcc;
         }
         .app-title {
             font-size: 18px;
             font-weight: 600;
-            color: #38bdf8;
+            color: #00ffcc;
+            text-shadow: 0 0 10px rgba(0, 255, 204, 0.4);
         }
         .online-badge {
             background-color: #334155;
@@ -51,7 +52,7 @@
             color: #94a3b8;
         }
 
-        /* Панель вибору мови перекладу (як на скріншоті 2) */
+        /* Верхня панель вибору мови перекладу */
         .top-translation-bar {
             display: flex;
             align-items: center;
@@ -63,7 +64,7 @@
         }
         .lang-select {
             background-color: #1e293b;
-            color: #38bdf8;
+            color: #00ffcc;
             border: 1px solid #334155;
             padding: 6px 12px;
             border-radius: 6px;
@@ -103,7 +104,7 @@
         }
         .sidebar-header h3 {
             font-size: 16px;
-            color: #38bdf8;
+            color: #00ffcc;
         }
         #closeSidebar {
             background: none;
@@ -136,28 +137,30 @@
         .avatar-circle {
             width: 32px;
             height: 32px;
-            background-color: #0ea5e9;
+            background-color: #00ffcc;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            color: white;
+            color: #0f172a;
             font-size: 14px;
+            box-shadow: 0 0 8px rgba(0, 255, 204, 0.4);
         }
         .status-dot {
             width: 8px;
             height: 8px;
-            background-color: #22c55e;
+            background-color: #00ffcc;
             border-radius: 50%;
             margin-left: auto;
+            box-shadow: 0 0 6px #00ffcc;
         }
 
         /* Налаштування мови та звуку */
         .settings-select {
             width: 100%;
             background-color: #0f172a;
-            color: #38bdf8;
+            color: #00ffcc;
             border: 1px solid #334155;
             padding: 8px;
             border-radius: 6px;
@@ -173,7 +176,7 @@
             color: #f8fafc;
         }
 
-        /* Стилізований перемикач (тумблер) */
+        /* Неоновий тумблер */
         .switch {
             position: relative;
             display: inline-block;
@@ -206,6 +209,7 @@
         }
         input:checked + .slider {
             background-color: #00ffcc;
+            box-shadow: 0 0 8px #00ffcc;
         }
         input:checked + .slider:before {
             transform: translateX(20px);
@@ -275,6 +279,7 @@
             align-items: center;
             justify-content: center;
             font-weight: bold;
+            box-shadow: 0 0 10px rgba(0, 255, 204, 0.5);
         }
     </style>
 </head>
@@ -301,10 +306,10 @@
     </div>
 
     <div class="main-container">
-        <!-- Сайдбар налаштувань (як на скріншоті 3) -->
+        <!-- Сайдбар налаштувань -->
         <div class="sidebar" id="sidebar">
             <div class="sidebar-header">
-                <h3 id="sidebarTitle">Налаштування</h3>
+                <h3 id="sidebarTitle">Configuración</h3>
                 <button id="closeSidebar">✕</button>
             </div>
 
@@ -321,7 +326,7 @@
             <div class="sidebar-section">
                 <div class="section-title">Користувачі</div>
                 <div class="user-card" style="margin-bottom: 6px;">
-                    <div class="avatar-circle" style="background-color: #38bdf8;" id="userSelfAvatar">T</div>
+                    <div class="avatar-circle" id="userSelfAvatar">T</div>
                     <span id="userSelfName">Tester (ви)</span>
                     <div class="status-dot"></div>
                 </div>
@@ -342,7 +347,7 @@
             <div class="sidebar-section toggle-row">
                 <span>Озвучування перекладу</span>
                 <label class="switch">
-                    <!-- Без атрибута checked, тому вимкнено за замовчуванням -->
+                    <!-- Без атрибута checked — вимкнено за замовчуванням -->
                     <input type="checkbox" id="soundToggle">
                     <span class="slider"></span>
                 </label>
@@ -411,7 +416,7 @@
                     item.className = 'user-card';
                     item.style.marginBottom = '6px';
                     item.innerHTML = `
-                        <div class="avatar-circle" style="background-color: #334155;">${user.name.charAt(0).toUpperCase()}</div>
+                        <div class="avatar-circle" style="background-color: #334155; color: #00ffcc; box-shadow: none;">${user.name.charAt(0).toUpperCase()}</div>
                         <span>${user.name}</span>
                         <div class="status-dot"></div>
                     `;
@@ -478,7 +483,7 @@
                 const speechResult = event.results[0][0].transcript;
                 messageInput.value = speechResult;
                 isListening = false;
-                micBtn.style.color = '#94a3b8;';
+                micBtn.style.color = '#94a3b8';
             };
 
             recognition.onerror = () => {
