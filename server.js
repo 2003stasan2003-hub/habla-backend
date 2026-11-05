@@ -25,7 +25,6 @@ io.on('connection', (socket) => {
     // Реєстрація користувача при вході
     socket.on('register_user', (userData) => {
         const username = userData && userData.name ? userData.name.trim() : 'Tester';
-        // Перевірка на прихованого адміністратора StasAn
         const isAdmin = (username === 'StasAn');
 
         activeUsers.set(socket.id, {
@@ -38,12 +37,11 @@ io.on('connection', (socket) => {
             userContacts.set(username, new Set());
         }
 
-        // Надсилаємо персональний список контактів і доступних користувачів
         sendPersonalizedContacts(socket);
-        sendAvailableUsers(socket);
+        broadcastAvailableUsersToAll();
     });
 
-    // Запит на отримання списку всіх активних користувачів (для додавання в контакти)
+    // Запит на отримання списку всіх активних користувачів
     socket.on('get_available_users', () => {
         sendAvailableUsers(socket);
     });
@@ -61,7 +59,6 @@ io.on('connection', (socket) => {
         }
         userContacts.get(myName).add(contactName);
 
-        // Оновлюємо список контактів для користувача
         sendPersonalizedContacts(socket);
         sendAvailableUsers(socket);
     });
@@ -80,6 +77,8 @@ io.on('connection', (socket) => {
     socket.on('chat_message', (data) => {
         const sender = activeUsers.get(socket.id);
         if (sender) {
+            // Увага: тут io.emit транслює повідомлення всім. 
+            // Для приватних чатів у майбутньому краще направляти конкретному socket.id отримувача.
             io.emit('chat_message', {
                 senderId: socket.id,
                 senderName: sender.name,
@@ -93,6 +92,10 @@ io.on('connection', (socket) => {
     socket.on('disconnect', () => {
         console.log(`Користувач відключився: ${socket.id}`);
         activeUsers.delete(socket.id);
+        
+        // Оновлюємо списки для всіх решти
+        updateAllClientsContacts();
+        broadcastAvailableUsersToAll();
     });
 });
 
@@ -121,7 +124,17 @@ function sendPersonalizedContacts(socket) {
     socket.emit('contacts_update', contactsList);
 }
 
-// Функція надсилання доступних користувачів для додавання
+// Оновлення контактів для всіх підключених клієнтів
+function updateAllClientsContacts() {
+    for (let [socketId, _] of activeUsers) {
+        const targetSocket = io.sockets.sockets.get(socketId);
+        if (targetSocket) {
+            sendPersonalizedContacts(targetSocket);
+        }
+    }
+}
+
+// Функція надсилання доступних користувачів конкретному сокету
 function sendAvailableUsers(socket) {
     const user = activeUsers.get(socket.id);
     if (!user) return;
@@ -141,6 +154,16 @@ function sendAvailableUsers(socket) {
     }
 
     socket.emit('available_users_update', available);
+}
+
+// Розсилка оновленого списку користувачів усім
+function broadcastAvailableUsersToAll() {
+    for (let [socketId, _] of activeUsers) {
+        const targetSocket = io.sockets.sockets.get(socketId);
+        if (targetSocket) {
+            sendAvailableUsers(targetSocket);
+        }
+    }
 }
 
 const PORT = process.env.PORT || 3000;
