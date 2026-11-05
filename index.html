@@ -498,21 +498,21 @@
 
     <header>
         <div class="header-left">
-            <button id="menu-btn" class="menu-btn" title="Меню">☰</button>
+            <button id="menu-btn" class="menu-btn" title="Menú">☰</button>
             <div class="logo">Habla Mobile 3.0</div>
         </div>
         <div id="header-partner" class="header-partner">
             <div class="header-partner-avatar" id="header-partner-avatar">?</div>
             <span id="header-partner-name"></span>
-            <button id="header-clear-partner" title="Загальний чат">✕</button>
+            <button id="header-clear-partner" title="Chat general">✕</button>
         </div>
-        <div id="online-count" class="online-status" title="Натисніть для перегляду списку">En línea: 1</div>
+        <div id="online-count" class="online-status" title="Haz clic para ver la lista">En línea: 1</div>
     </header>
 
     <div class="lang-panel">
         <label for="target-lang" id="label-translate-to">Traducir a:</label>
         <select id="target-lang" class="lang-select">
-            <option value="Spanish">Spanish</option>
+            <option value="Spanish" selected>Spanish</option>
             <option value="English">English</option>
             <option value="Ukrainian">Ukrainian</option>
             <option value="German">German</option>
@@ -559,7 +559,7 @@
             <div class="toggle-container">
                 <span id="label-enable-sound" style="font-size: 0.9rem; color: #e0e0e0;">Activar sonido</span>
                 <label class="switch">
-                    <!-- За замовчуванням звук вимкнено (без атрибута checked) -->
+                    <!-- За замовчуванням звук вимкнено -->
                     <input type="checkbox" id="sound-toggle">
                     <span class="slider"></span>
                 </label>
@@ -572,9 +572,9 @@
     <div class="input-container">
         <div class="input-wrapper">
             <input type="text" id="message-input" placeholder="Escribe un mensaje o habla..." autocomplete="off">
-            <button id="mic-btn" class="mic-button" title="Голосовий ввід">🎤</button>
+            <button id="mic-btn" class="mic-button" title="Entrada de voz">🎤</button>
         </div>
-        <button id="send-btn" class="send-button" title="Відправити">➤</button>
+        <button id="send-btn" class="send-button" title="Enviar">➤</button>
     </div>
 
     <script>
@@ -712,8 +712,9 @@
             onlineCount.textContent = `${t.online}: ${currentOnlineCount}`;
         }
 
-        // Встановлюємо іспанську мову інтерфейсу за замовчуванням
+        // Жорстко встановлюємо іспанську мову за замовчуванням
         interfaceLangSelect.value = "Spanish";
+        targetLangSelect.value = "Spanish";
         updateInterfaceTexts();
 
         interfaceLangSelect.addEventListener('change', updateInterfaceTexts);
@@ -799,7 +800,6 @@
             chatMessages.appendChild(messageDiv);
             chatMessages.scrollTop = chatMessages.scrollHeight;
 
-            // Звук спрацьовуватиме лише якщо користувач самостійно увімкнув перемикач
             if (soundToggle.checked && 'speechSynthesis' in window) {
                 const utterance = new SpeechSynthesisUtterance(data.text);
                 const selectedLangCode = ttsLangMap[targetLangSelect.value] || 'es-ES';
