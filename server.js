@@ -73,14 +73,20 @@ app.post('/api/translate', async (req, res) => {
 
 const activeUsers = {};
 
+function broadcastUsers() {
+    // Формуємо масив об'єктів { id, name }, виключаючи власне сокет id для зручності на клієнті якщо треба, або повний список
+    const usersList = Object.entries(activeUsers).map(([id, name]) => ({ id, name }));
+    io.emit('update-users', usersList);
+    io.emit('onlineCount', Object.keys(activeUsers).length);
+}
+
 io.on('connection', (socket) => {
     console.log(`Користувач підключився: ${socket.id}`);
 
     socket.on('join', (nickname) => {
         if (!nickname) return;
         activeUsers[socket.id] = nickname;
-        io.emit('onlineCount', Object.keys(activeUsers).length);
-        io.emit('update-users', Object.values(activeUsers));
+        broadcastUsers();
     });
 
     socket.on('chatMessage', async (data) => {
@@ -113,23 +119,34 @@ io.on('connection', (socket) => {
                 }
             }
 
-            io.emit('chatMessage', {
+            const messagePayload = {
                 user: data.user,
-                text: translatedText
-            });
+                text: translatedText,
+                recipientName: data.recipientId && activeUsers[data.recipientId] ? activeUsers[data.recipientId] : null,
+                isPrivate: !!data.recipientId
+            };
+
+            if (data.recipientId && activeUsers[data.recipientId]) {
+                // Особисте повідомлення: надсилаємо відправнику та отримувачу
+                socket.emit('chatMessage', messagePayload);
+                io.to(data.recipientId).emit('chatMessage', messagePayload);
+            } else {
+                // Загальне повідомлення для всіх
+                io.emit('chatMessage', messagePayload);
+            }
         } catch (e) {
             console.error("Помилка сокет-перекладу:", e);
             io.emit('chatMessage', {
                 user: data.user,
-                text: data.text
+                text: data.text,
+                isPrivate: false
             });
         }
     });
 
     socket.on('disconnect', () => {
         delete activeUsers[socket.id];
-        io.emit('onlineCount', Object.keys(activeUsers).length);
-        io.emit('update-users', Object.values(activeUsers));
+        broadcastUsers();
     });
 });
 
