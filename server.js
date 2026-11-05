@@ -11,14 +11,11 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-// Роздача статичних файлів з поточної папки
 app.use(express.static(__dirname));
 
-// Зберігаємо активних користувачів та персональні контакти
 const activeUsers = new Map();
 const userContacts = new Map();
 
-// Функція перекладу через Groq API
 async function translateWithGroq(text, targetLanguage) {
     const apiKey = process.env.GROQ_API_KEY;
     if (!apiKey) return text;
@@ -100,20 +97,18 @@ io.on('connection', (socket) => {
     socket.on('check_admin', () => {
         const currentUser = activeUsers.get(socket.id);
         if (currentUser && currentUser.isAdmin) {
-            socket.emit('admin_status', { isAdmin: true, message: 'Вітаю, адміністраторе StasAn!' });
+            socket.emit('admin_status', { isAdmin: true });
         } else {
             socket.emit('admin_status', { isAdmin: false });
         }
     });
 
-    // Обробка та переклад повідомлень через Groq API
     socket.on('chat_message', async (data) => {
         const sender = activeUsers.get(socket.id);
         if (sender) {
             const originalText = data.text;
             const targetLang = data.targetLanguage || 'English';
             
-            // Виконуємо переклад за допомогою Groq API
             const translatedText = await translateWithGroq(originalText, targetLang);
 
             io.emit('chat_message', {
