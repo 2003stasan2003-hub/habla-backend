@@ -564,7 +564,6 @@
 
         let selectedRecipientName = null;
 
-        // Збереження і завантаження нікнейму з localStorage (щоб не вводити щоразу)
         let username = localStorage.getItem('habla_username');
         if (!username) {
             username = prompt("Введіть ваш нікнейм:") || "Гість";
@@ -743,7 +742,7 @@
             });
 
             messageInput.value = '';
-            messageInput.focus();
+            // Прибрано автоматичний виклик .focus(), щоб клавіатура не з'являлася сама
         }
 
         sendBtn.addEventListener('click', sendMessage);
@@ -882,7 +881,7 @@
             recognition.onresult = (event) => {
                 const speechText = event.results[0][0].transcript;
                 messageInput.value += (messageInput.value ? ' ' : '') + speechText;
-                messageInput.focus();
+                // Прибрано автоматичний виклик .focus() після розпізнавання голосу
             };
 
             recognition.onerror = (event) => {
