@@ -26,12 +26,13 @@
         header {
             background: #151823;
             border-bottom: 1px solid #2a2f45;
-            padding: 12px 16px;
+            padding: 10px 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             box-shadow: 0 4px 20px rgba(0, 255, 204, 0.05);
             z-index: 10;
+            min-height: 56px;
         }
 
         .header-left {
@@ -56,11 +57,51 @@
         }
 
         .logo {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             font-weight: 700;
             color: #00ffcc;
             text-shadow: 0 0 10px rgba(0, 255, 204, 0.4);
             letter-spacing: 0.5px;
+        }
+
+        .header-partner {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            background: #1e2233;
+            padding: 4px 10px;
+            border-radius: 16px;
+            border: 1px solid #00ffcc;
+            font-size: 0.85rem;
+            color: #00ffcc;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .header-partner.active {
+            display: flex;
+        }
+
+        .header-partner-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #0056b3 0%, #00ffcc 100%);
+            color: #fff;
+            font-weight: bold;
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .header-partner button {
+            background: none;
+            border: none;
+            color: #ff3b30;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.9rem;
+            padding: 0 2px;
         }
 
         .online-status {
@@ -315,30 +356,6 @@
             display: block;
         }
 
-        .recipient-banner {
-            background: #1a1e2e;
-            border-top: 1px solid #2f3552;
-            padding: 6px 16px;
-            font-size: 0.85rem;
-            color: #00ffcc;
-            display: none;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .recipient-banner.active {
-            display: flex;
-        }
-
-        .cancel-recipient {
-            background: none;
-            border: none;
-            color: #ff3b30;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 0.9rem;
-        }
-
         #chat-messages {
             flex: 1;
             overflow-y: auto;
@@ -484,6 +501,11 @@
             <button id="menu-btn" class="menu-btn" title="Меню">☰</button>
             <div class="logo">Habla Mobile 3.0</div>
         </div>
+        <div id="header-partner" class="header-partner">
+            <div class="header-partner-avatar" id="header-partner-avatar">?</div>
+            <span id="header-partner-name"></span>
+            <button id="header-clear-partner" title="Загальний чат">✕</button>
+        </div>
         <div id="online-count" class="online-status" title="Натисніть для перегляду списку">Онлайн: 1</div>
     </header>
 
@@ -544,11 +566,6 @@
         </div>
     </div>
 
-    <div id="recipient-banner" class="recipient-banner">
-        <span id="recipient-text">Особисте повідомлення для: <b></b></span>
-        <button id="cancel-recipient" class="cancel-recipient">✕ Скасувати</button>
-    </div>
-
     <div id="chat-messages"></div>
 
     <div class="input-container">
@@ -599,8 +616,7 @@
                 enableSound: "Увімкнути звук",
                 translateTo: "Перекладати на:",
                 online: "Онлайн",
-                placeholder: "Введіть повідомлення або скажіть...",
-                privateTo: "Особисте повідомлення для: "
+                placeholder: "Введіть повідомлення або скажіть..."
             },
             English: {
                 settings: "Settings",
@@ -611,8 +627,7 @@
                 enableSound: "Enable sound",
                 translateTo: "Translate to:",
                 online: "Online",
-                placeholder: "Type a message or speak...",
-                privateTo: "Private message to: "
+                placeholder: "Type a message or speak..."
             },
             Spanish: {
                 settings: "Configuración",
@@ -623,8 +638,7 @@
                 enableSound: "Activar sonido",
                 translateTo: "Traducir a:",
                 online: "En línea",
-                placeholder: "Escribe un mensaje o habla...",
-                privateTo: "Mensaje privado para: "
+                placeholder: "Escribe un mensaje o habla..."
             },
             German: {
                 settings: "Einstellungen",
@@ -635,8 +649,7 @@
                 enableSound: "Ton einschalten",
                 translateTo: "Übersetzen in:",
                 online: "Online",
-                placeholder: "Nachricht eingeben oder sprechen...",
-                privateTo: "Private Nachricht an: "
+                placeholder: "Nachricht eingeben oder sprechen..."
             },
             French: {
                 settings: "Paramètres",
@@ -647,8 +660,7 @@
                 enableSound: "Activer le son",
                 translateTo: "Traduire vers :",
                 online: "En ligne",
-                placeholder: "Tapez un message ou parlez...",
-                privateTo: "Message privé à : "
+                placeholder: "Tapez un message ou parlez..."
             }
         };
 
@@ -669,9 +681,10 @@
         const onlineUsersList = document.getElementById('online-users-list');
         const soundToggle = document.getElementById('sound-toggle');
 
-        const recipientBanner = document.getElementById('recipient-banner');
-        const recipientText = document.getElementById('recipient-text');
-        const cancelRecipientBtn = document.getElementById('cancel-recipient');
+        const headerPartner = document.getElementById('header-partner');
+        const headerPartnerAvatar = document.getElementById('header-partner-avatar');
+        const headerPartnerName = document.getElementById('header-partner-name');
+        const headerClearPartner = document.getElementById('header-clear-partner');
 
         const labelTranslateTo = document.getElementById('label-translate-to');
         const menuTitleText = document.getElementById('menu-title-text');
@@ -696,10 +709,6 @@
             labelTranslateTo.textContent = t.translateTo;
             messageInput.placeholder = t.placeholder;
             onlineCount.textContent = `${t.online}: ${currentOnlineCount}`;
-
-            if (selectedRecipientName) {
-                recipientText.innerHTML = `${t.privateTo}<b>${selectedRecipientName}</b>`;
-            }
         }
 
         interfaceLangSelect.addEventListener('change', updateInterfaceTexts);
@@ -723,9 +732,21 @@
         closeMenuBtn.addEventListener('click', closeMenu);
         menuOverlay.addEventListener('click', closeMenu);
 
-        cancelRecipientBtn.addEventListener('click', () => {
-            selectedRecipientName = null;
-            recipientBanner.classList.remove('active');
+        function setRecipient(name) {
+            selectedRecipientName = name;
+            if (name) {
+                headerPartnerAvatar.textContent = name.charAt(0).toUpperCase();
+                headerPartnerName.textContent = name;
+                headerPartner.classList.add('active');
+                onlineCount.style.display = 'none';
+            } else {
+                headerPartner.classList.remove('active');
+                onlineCount.style.display = 'block';
+            }
+        }
+
+        headerClearPartner.addEventListener('click', () => {
+            setRecipient(null);
         });
 
         function sendMessage() {
@@ -742,7 +763,6 @@
             });
 
             messageInput.value = '';
-            // Прибрано автоматичний виклик .focus(), щоб клавіатура не з'являлася сама
         }
 
         sendBtn.addEventListener('click', sendMessage);
@@ -818,13 +838,7 @@
                 if (!isMe) {
                     userItem.title = "Натисніть, щоб писати приватно";
                     userItem.addEventListener('click', () => {
-                        selectedRecipientName = user.name;
-                        
-                        const lang = interfaceLangSelect.value;
-                        const t = translations[lang] || translations.Ukrainian;
-                        recipientText.innerHTML = `${t.privateTo}<b>${user.name}</b>`;
-                        recipientBanner.classList.add('active');
-
+                        setRecipient(user.name);
                         closeMenu();
                     });
                 } else {
@@ -881,7 +895,6 @@
             recognition.onresult = (event) => {
                 const speechText = event.results[0][0].transcript;
                 messageInput.value += (messageInput.value ? ' ' : '') + speechText;
-                // Прибрано автоматичний виклик .focus() після розпізнавання голосу
             };
 
             recognition.onerror = (event) => {
