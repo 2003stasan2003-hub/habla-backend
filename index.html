@@ -629,13 +629,20 @@
             </div>
         </div>
 
-        <!-- НОВИЙ БЛОК: Поширення та QR-код для встановлення -->
+        <!-- БЛОК ПОШИРЕННЯ: Системне меню (WhatsApp, Viber...) + QR-код -->
         <div class="menu-section">
             <label id="label-share-app">Instalar / Compartir App</label>
             <div style="background: #1a1e2e; padding: 10px; border-radius: 8px; border: 1px solid #2f3552; display: flex; flex-direction: column; gap: 8px; align-items: center; text-align: center;">
                 <img id="qr-code-img" src="" alt="QR Code" style="width: 110px; height: 110px; background: #fff; padding: 4px; border-radius: 6px;">
                 <div id="app-url-text" style="font-size: 0.75rem; color: #8a91b4; word-break: break-all;">---</div>
-                <button id="copy-link-btn" style="background: #00ffcc; color: #0d0e15; border: none; padding: 6px 10px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.8rem; width: 100%;">
+                
+                <!-- Кнопка системного поширення (відкриває WhatsApp, Viber, Telegram тощо на смартфоні) -->
+                <button id="native-share-btn" style="background: linear-gradient(135deg, #00ffcc 0%, #00b894 100%); color: #0d0e15; border: none; padding: 8px 10px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.8rem; width: 100%;">
+                    📤 Поділитися (WhatsApp, Viber...)
+                </button>
+
+                <!-- Кнопка копіювання посилання -->
+                <button id="copy-link-btn" style="background: #2f3552; color: #00ffcc; border: none; padding: 6px 10px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.8rem; width: 100%;">
                     📋 Копіювати посилання
                 </button>
             </div>
@@ -698,11 +705,31 @@
             localStorage.setItem('habla_username', username);
         }
 
-        // Автоматичне заповнення посилання та генерація QR-коду в сайдбарі
+        // Генерація QR-коду та посилання в сайдбарі
         const currentAppUrl = window.location.origin;
         document.getElementById('app-url-text').textContent = currentAppUrl;
         document.getElementById('qr-code-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(currentAppUrl)}`;
 
+        // Кнопка системного поширення (викликає меню смартфона з усіма месенджерами)
+        document.getElementById('native-share-btn').addEventListener('click', async () => {
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: 'Habla Mobile 3.0',
+                        text: 'Приєднуйся до мого месенджера Habla Mobile!',
+                        url: currentAppUrl
+                    });
+                } catch (err) {
+                    console.log('Поширення скасовано користувачем', err);
+                }
+            } else {
+                // Якщо браузер не підтримує (наприклад, старий ПК) — копіюємо в буфер
+                navigator.clipboard.writeText(currentAppUrl);
+                alert('Посилання скопійовано в буфер обміну!');
+            }
+        });
+
+        // Кнопка простого копіювання посилання
         document.getElementById('copy-link-btn').addEventListener('click', () => {
             navigator.clipboard.writeText(currentAppUrl).then(() => {
                 alert('¡Enlace copiado / Посилання скопійовано!');
@@ -766,6 +793,7 @@
                 noContacts: "Sin contactos",
                 apiStatus: "Estado API Groq",
                 shareApp: "Instalar / Compartir App",
+                nativeShare: "📤 Compartir (WhatsApp, Viber...)",
                 copyLink: "📋 Copiar enlace"
             },
             English: {
@@ -787,6 +815,7 @@
                 noContacts: "No contacts",
                 apiStatus: "Groq API Status",
                 shareApp: "Install / Share App",
+                nativeShare: "📤 Share (WhatsApp, Viber...)",
                 copyLink: "📋 Copy Link"
             },
             Ukrainian: {
@@ -808,6 +837,7 @@
                 noContacts: "Немає контактів",
                 apiStatus: "Статус API Groq",
                 shareApp: "Встановити / Поділитися додатком",
+                nativeShare: "📤 Поділитися (WhatsApp, Viber...)",
                 copyLink: "📋 Копіювати посилання"
             },
             German: {
@@ -829,6 +859,7 @@
                 noContacts: "Keine Kontakte",
                 apiStatus: "Groq API-Status",
                 shareApp: "App installieren / teilen",
+                nativeShare: "📤 Teilen (WhatsApp, Viber...)",
                 copyLink: "📋 Link kopieren"
             },
             French: {
@@ -849,7 +880,8 @@
                 deleteBtn: "Supprimer",
                 noContacts: "Aucun contact",
                 apiStatus: "Statut API Groq",
-                shareApp: "Installer / Partager l'application",
+                shareApp: "Installer / Partager",
+                nativeShare: "📤 Partager (WhatsApp, Viber...)",
                 copyLink: "📋 Copier le lien"
             }
         };
@@ -889,6 +921,7 @@
         const labelEnableSound = document.getElementById('label-enable-sound');
         const labelApiStatus = document.getElementById('label-api-status');
         const labelShareApp = document.getElementById('label-share-app');
+        const nativeShareBtn = document.getElementById('native-share-btn');
         const copyLinkBtn = document.getElementById('copy-link-btn');
 
         let currentOnlineCount = 1;
@@ -909,6 +942,7 @@
             labelTranslateTo.textContent = t.translateTo;
             labelApiStatus.textContent = t.apiStatus;
             labelShareApp.textContent = t.shareApp;
+            nativeShareBtn.textContent = t.nativeShare;
             copyLinkBtn.textContent = t.copyLink;
             messageInput.placeholder = t.placeholder;
             newContactInput.placeholder = t.addPlaceholder;
