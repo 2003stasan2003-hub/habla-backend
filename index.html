@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Habla Mobile 3.0</title>
-    <!-- Підключення PWA маніфесту для встановлення -->
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#00ffcc">
     <script src="/socket.io/socket.io.js"></script>
@@ -227,30 +226,31 @@
         .user-badge-container {
             display: flex;
             align-items: center;
-            gap: 10px;
+            justify-content: space-between;
             background: #1a1e2e;
             padding: 8px 12px;
             border-radius: 8px;
             border: 1px solid #2f3552;
         }
 
-        .user-avatar-large {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #00ffcc 0%, #7928ca 100%);
-            color: #0d0e15;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.1rem;
-        }
-
         .user-badge {
             color: #00ffcc;
             font-weight: 600;
             font-size: 0.95rem;
+        }
+
+        .reset-user-btn {
+            background: rgba(255, 59, 48, 0.2);
+            border: 1px solid #ff3b30;
+            color: #ff3b30;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .reset-user-btn:hover {
+            background: rgba(255, 59, 48, 0.4);
         }
 
         .add-contact-box {
@@ -489,12 +489,16 @@
         <div class="menu-section">
             <label id="label-profile">Tu perfil</label>
             <div class="user-badge-container">
-                <div id="user-avatar-large" class="user-avatar-large">G</div>
-                <div id="user-display" class="user-badge">Invitado</div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div id="user-avatar-large" class="user-avatar-large">G</div>
+                    <div id="user-display" class="user-badge">Invitado</div>
+                </div>
+                <!-- Кнопка скидання користувача для зміни ніку -->
+                <button id="reset-user-btn" class="reset-user-btn">Змінити нік</button>
             </div>
         </div>
 
-        <!-- Двостовпчиковий індикатор лімітів Groq API -->
+        <!-- Індикатор лімітів Groq API -->
         <div class="menu-section">
             <label id="label-api-status">Estado API Groq</label>
             <div style="display: flex; gap: 8px;">
@@ -509,7 +513,7 @@
             </div>
         </div>
 
-        <!-- БЛОК ПОШИРЕННЯ: Кнопка «Поділитися» без дужок + QR-код -->
+        <!-- БЛОК ПОШИРЕННЯ: Кнопка «Поділитися» без дужок -->
         <div class="menu-section">
             <label id="label-share-app">Instalar / Compartir App</label>
             <div style="background: #1a1e2e; padding: 10px; border-radius: 8px; border: 1px solid #2f3552; display: flex; flex-direction: column; gap: 8px; align-items: center; text-align: center;">
@@ -524,7 +528,7 @@
             </div>
         </div>
 
-        <!-- ДОДАВАННЯ НОВОГО КОНТАКТУ -->
+        <!-- ДОДАВАННЯ КОНТАКТУ -->
         <div class="menu-section">
             <label id="label-online-users">Contactos / Usuarios</label>
             <div class="add-contact-box">
@@ -571,7 +575,6 @@
 
         let selectedRecipientName = null;
         let recentContactsOrder = JSON.parse(localStorage.getItem('habla_recent_contacts') || '[]');
-        // Зберігаємо додані локально користувачі, щоб вони одразу відображалися у стрічці
         let localAddedContacts = JSON.parse(localStorage.getItem('habla_local_contacts') || '[]');
 
         let username = localStorage.getItem('habla_username');
@@ -580,6 +583,30 @@
             username = username.trim();
             localStorage.setItem('habla_username', username);
         }
+
+        // АВТО-ПЕРЕПІДКЛЮЧЕННЯ (AUTO-RECONNECT) ПРИ ВТРАТІ ЗВ'ЯЗКУ АБО ПРОКИДАННІ ТЕЛЕФОНУ
+        socket.on('connect', () => {
+            if (username) {
+                socket.emit('join', username);
+            }
+        });
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                if (!socket.connected) {
+                    socket.connect();
+                }
+                if (username) {
+                    socket.emit('join', username);
+                }
+            }
+        });
+
+        // Кнопка зміни ніку (скидання профілю)
+        document.getElementById('reset-user-btn').addEventListener('click', () => {
+            localStorage.removeItem('habla_username');
+            location.reload();
+        });
 
         const currentAppUrl = window.location.origin;
         document.getElementById('app-url-text').textContent = currentAppUrl;
@@ -661,8 +688,9 @@
                 noContacts: "Sin contactos",
                 apiStatus: "Estado API Groq",
                 shareApp: "Instalar / Compartir App",
-                nativeShare: "📤 Compartir",
-                copyLink: "📋 Copiar enlace"
+                nativeShare: "📤 Поділитися",
+                copyLink: "📋 Copiar enlace",
+                resetUser: "Змінити нік"
             },
             English: {
                 settings: "Settings",
@@ -679,8 +707,9 @@
                 noContacts: "No contacts",
                 apiStatus: "Groq API Status",
                 shareApp: "Install / Share App",
-                nativeShare: "📤 Share",
-                copyLink: "📋 Copy Link"
+                nativeShare: "📤 Поділитися",
+                copyLink: "📋 Copy Link",
+                resetUser: "Змінити нік"
             },
             Ukrainian: {
                 settings: "Налаштування",
@@ -698,7 +727,8 @@
                 apiStatus: "Статус API Groq",
                 shareApp: "Встановити / Поділитися додатком",
                 nativeShare: "📤 Поділитися",
-                copyLink: "📋 Копіювати посилання"
+                copyLink: "📋 Копіювати посилання",
+                resetUser: "Змінити нік"
             },
             German: {
                 settings: "Einstellungen",
@@ -715,8 +745,9 @@
                 noContacts: "Keine Kontakte",
                 apiStatus: "Groq API-Status",
                 shareApp: "App installieren / teilen",
-                nativeShare: "📤 Teilen",
-                copyLink: "📋 Link kopieren"
+                nativeShare: "📤 Поділитися",
+                copyLink: "📋 Link kopieren",
+                resetUser: "Змінити нік"
             },
             French: {
                 settings: "Paramètres",
@@ -733,8 +764,9 @@
                 noContacts: "Aucun contact",
                 apiStatus: "Statut API Groq",
                 shareApp: "Installer / Partager",
-                nativeShare: "📤 Partager",
-                copyLink: "📋 Copier le lien"
+                nativeShare: "📤 Поділитися",
+                copyLink: "📋 Copier le lien",
+                resetUser: "Змінити нік"
             }
         };
 
@@ -769,6 +801,7 @@
         const labelShareApp = document.getElementById('label-share-app');
         const nativeShareBtn = document.getElementById('native-share-btn');
         const copyLinkBtn = document.getElementById('copy-link-btn');
+        const resetUserBtn = document.getElementById('reset-user-btn');
 
         let currentOnlineCount = 1;
         let lastUsersData = [];
@@ -792,6 +825,7 @@
             labelShareApp.textContent = t.shareApp;
             nativeShareBtn.textContent = t.nativeShare;
             copyLinkBtn.textContent = t.copyLink;
+            resetUserBtn.textContent = t.resetUser;
             messageInput.placeholder = t.placeholder;
             newContactInput.placeholder = t.addPlaceholder;
             addContactBtn.textContent = t.addBtn;
@@ -826,13 +860,11 @@
         closeMenuBtn.addEventListener('click', closeMenu);
         menuOverlay.addEventListener('click', closeMenu);
 
-        // Додавання контакту вручну з миттєвим відображенням у стрічці зверху
         addContactBtn.addEventListener('click', () => {
             const targetName = newContactInput.value.trim();
             if (targetName && targetName !== username) {
                 socket.emit('add-contact', targetName);
                 
-                // Зберігаємо локально, щоб одразу бачити у верхній стрічці
                 if (!localAddedContacts.includes(targetName)) {
                     localAddedContacts.push(targetName);
                     localStorage.setItem('habla_local_contacts', JSON.stringify(localAddedContacts));
@@ -972,7 +1004,6 @@
             const lang = interfaceLangSelect.value;
             const t = translations[lang] || translations.Spanish;
 
-            // Об'єднуємо список із сервера та локально додані контакти
             let allNamesMap = new Map();
             users.forEach(u => allNamesMap.set(u.name, u));
             localAddedContacts.forEach(name => {
@@ -988,7 +1019,6 @@
                 return;
             }
 
-            // Сортування: вибраний або останній нещодавній іде на перше місце
             combinedUsers.sort((a, b) => {
                 const indexA = recentContactsOrder.indexOf(a.name);
                 const indexB = recentContactsOrder.indexOf(b.name);
@@ -1017,7 +1047,6 @@
                     <div class="pill-dot ${user.isOnline ? 'online' : 'offline'}"></div>
                 `;
 
-                // Клік по контакту: обираємо людину для приватної розмови та підіймаємо на перше місце
                 pill.addEventListener('click', () => {
                     selectedRecipientName = user.name;
 
