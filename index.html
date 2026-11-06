@@ -647,7 +647,8 @@
                 privateTo: "Mensaje privado para: ",
                 addPlaceholder: "Añadir por apodo...",
                 addBtn: "Añadir",
-                removeBtn: "Eliminar"
+                removeBtn: "Eliminar",
+                noContacts: "Sin contactos"
             },
             English: {
                 settings: "Settings",
@@ -662,7 +663,8 @@
                 privateTo: "Private message to: ",
                 addPlaceholder: "Add by nickname...",
                 addBtn: "Add",
-                removeBtn: "Remove"
+                removeBtn: "Remove",
+                noContacts: "No contacts"
             },
             Ukrainian: {
                 settings: "Налаштування",
@@ -677,7 +679,8 @@
                 privateTo: "Особисте повідомлення для: ",
                 addPlaceholder: "Додати за ніком...",
                 addBtn: "Додати",
-                removeBtn: "Видалити"
+                removeBtn: "Видалити",
+                noContacts: "Немає контактів"
             },
             German: {
                 settings: "Einstellungen",
@@ -692,7 +695,8 @@
                 privateTo: "Private Nachricht an: ",
                 addPlaceholder: "Nach Spitzname...",
                 addBtn: "Hinzufügen",
-                removeBtn: "Entfernen"
+                removeBtn: "Entfernen",
+                noContacts: "Keine Kontakte"
             },
             French: {
                 settings: "Paramètres",
@@ -702,12 +706,13 @@
                 voiceOver: "Voix de traduction",
                 enableSound: "Activer le son",
                 translateTo: "Traduire vers :",
-                online: "En ligne",
+                online: "En línea",
                 placeholder: "Tapez un message ou parlez...",
                 privateTo: "Message privé à : ",
                 addPlaceholder: "Ajouter par pseudo...",
                 addBtn: "Ajouter",
-                removeBtn: "Supprimer"
+                removeBtn: "Supprimer",
+                noContacts: "Aucun contact"
             }
         };
 
@@ -745,7 +750,6 @@
 
         let currentOnlineCount = 1;
 
-        // Зберігаємо та завантажуємо мову інтерфейсу з localStorage (Spanish за замовчуванням)
         let savedInterfaceLang = localStorage.getItem('habla_interface_lang') || 'Spanish';
         interfaceLangSelect.value = savedInterfaceLang;
 
@@ -775,7 +779,7 @@
             updateInterfaceTexts();
         });
 
-        updateInterfaceTexts(); // Оновлюємо текст одразу при завантаженні
+        updateInterfaceTexts();
 
         userDisplay.textContent = username;
         userAvatarLarge.textContent = username.charAt(0).toUpperCase();
@@ -890,7 +894,7 @@
             const t = translations[lang] || translations.Spanish;
 
             if (users.length === 0) {
-                onlineUsersList.innerHTML = `<span class="online-user-item" style="color: #8a91b4; justify-content: center;">Sin contactos</span>`;
+                onlineUsersList.innerHTML = `<span class="online-user-item" style="color: #8a91b4; justify-content: center;">${t.noContacts}</span>`;
                 return;
             }
 
@@ -963,7 +967,6 @@
                     return;
                 }
                 
-                // Автоматично беремо мову розпізнавання відповідно до обраної мови інтерфейсу
                 const currentInterfaceLang = interfaceLangSelect.value;
                 recognition.lang = ttsLangMap[currentInterfaceLang] || 'es-ES';
 
