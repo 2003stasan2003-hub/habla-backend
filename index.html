@@ -73,33 +73,7 @@
             cursor: pointer;
         }
 
-        /* Панель мов */
-        .lang-panel {
-            background: #17212b;
-            padding: 8px 16px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            border-bottom: 1px solid #0f1621;
-            font-size: 0.85rem;
-        }
-
-        .lang-panel label {
-            color: #89a1b2;
-        }
-
-        .lang-select {
-            background: #242f3d;
-            color: #00ffcc;
-            border: 1px solid #2b5278;
-            padding: 4px 10px;
-            border-radius: 6px;
-            outline: none;
-            font-size: 0.85rem;
-            cursor: pointer;
-        }
-
-        /* Стрічка історій/контактів зверху (як на скріншоті) */
+        /* Стрічка історій/контактів зверху */
         .top-stories-strip {
             background: #17212b;
             border-bottom: 1px solid #0f1621;
@@ -293,6 +267,17 @@
             font-size: 0.85rem;
         }
 
+        .lang-select {
+            background: #242f3d;
+            color: #00ffcc;
+            border: 1px solid #2b5278;
+            padding: 6px 10px;
+            border-radius: 6px;
+            outline: none;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+
         .menu-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -439,17 +424,6 @@
         <div id="online-count" class="online-status" title="Online">Online: 1</div>
     </header>
 
-    <div class="lang-panel">
-        <label for="target-lang" id="label-translate-to">Traducir a:</label>
-        <select id="target-lang" class="lang-select">
-            <option value="English">English</option>
-            <option value="Spanish" selected>Spanish</option>
-            <option value="Ukrainian">Ukrainian</option>
-            <option value="German">German</option>
-            <option value="French">French</option>
-        </select>
-    </div>
-
     <!-- ВЕРХНЯ СТРІЧКА ІСТОРІЙ З КОНТАКТАМИ -->
     <div id="top-stories-strip" class="top-stories-strip">
         <span style="color: #89a1b2; font-size: 0.85rem; padding: 4px;">Cargando...</span>
@@ -512,7 +486,7 @@
 
         <div class="menu-section">
             <label for="interface-lang" id="label-interface-lang">Idioma de la interfaz:</label>
-            <select id="interface-lang" class="lang-select" style="width:100%;">
+            <select id="interface-lang" class="lang-select">
                 <option value="Spanish">Spanish</option>
                 <option value="English">English</option>
                 <option value="Ukrainian">Ukrainian</option>
@@ -547,6 +521,16 @@
         let recentContactsOrder = JSON.parse(localStorage.getItem('habla_recent_contacts') || '[]');
         let localAddedContacts = JSON.parse(localStorage.getItem('habla_local_contacts') || '[]');
 
+        // Автовизначення мови пристрою за замовчуванням
+        function getDeviceLanguage() {
+            const navLang = (navigator.language || navigator.userLanguage || 'es').toLowerCase();
+            if (navLang.startsWith('uk')) return 'Ukrainian';
+            if (navLang.startsWith('en')) return 'English';
+            if (navLang.startsWith('de')) return 'German';
+            if (navLang.startsWith('fr')) return 'French';
+            return 'Spanish';
+        }
+
         let username = localStorage.getItem('habla_username');
         if (!username) {
             username = prompt("Introduce tu apodo / Introduce your nickname:") || "Invitado";
@@ -554,16 +538,27 @@
             localStorage.setItem('habla_username', username);
         }
 
-        socket.on('connect', () => {
+        const interfaceLangSelect = document.getElementById('interface-lang');
+        let savedInterfaceLang = localStorage.getItem('habla_interface_lang') || getDeviceLanguage();
+        interfaceLangSelect.value = savedInterfaceLang;
+
+        function joinWithLanguage() {
             if (username) {
-                socket.emit('join', username);
+                socket.emit('join', {
+                    username: username,
+                    lang: interfaceLangSelect.value
+                });
             }
+        }
+
+        socket.on('connect', () => {
+            joinWithLanguage();
         });
 
         document.addEventListener('visibilitychange', () => {
             if (document.visibilityState === 'visible') {
                 if (!socket.connected) socket.connect();
-                if (username) socket.emit('join', username);
+                joinWithLanguage();
             }
         });
 
@@ -606,25 +601,23 @@
         function speakText(textToSpeech) {
             if (!('speechSynthesis' in window)) return;
             const utterance = new SpeechSynthesisUtterance(textToSpeech);
-            const selectedLangCode = ttsLangMap[targetLangSelect.value] || 'es-ES';
+            const selectedLangCode = ttsLangMap[interfaceLangSelect.value] || 'es-ES';
             utterance.lang = selectedLangCode;
             window.speechSynthesis.cancel();
             window.speechSynthesis.speak(utterance);
         }
 
         const translations = {
-            Spanish: { settings: "Configuración", profile: "Tu perfil", onlineUsersTitle: "Añadir contacto", interfaceLang: "Idioma de la interfaz", voiceOver: "Locución de traducción", enableSound: "Activar sonido", translateTo: "Traducir a:", online: "En línea", placeholder: "Escribe un mensaje...", addPlaceholder: "Añadir por apodo...", addBtn: "Añadir", noContacts: "Sin contactos", apiStatus: "Estado API Groq", shareApp: "Compartir App", nativeShare: "📤 Поділитися", copyLink: "📋 Copiar enlace", resetUser: "Змінити нік" },
-            English: { settings: "Settings", profile: "Your profile", onlineUsersTitle: "Add contact", interfaceLang: "Interface language", voiceOver: "Translation voiceover", enableSound: "Enable sound", translateTo: "Translate to:", online: "Online", placeholder: "Type a message...", addPlaceholder: "Add by nickname...", addBtn: "Add", noContacts: "No contacts", apiStatus: "Groq API Status", shareApp: "Share App", nativeShare: "📤 Поділитися", copyLink: "📋 Copy Link", resetUser: "Змінити нік" },
-            Ukrainian: { settings: "Налаштування", profile: "Ваш профіль", onlineUsersTitle: "Додати контакт", interfaceLang: "Мова інтерфейсу", voiceOver: "Озвучування перекладу", enableSound: "Увімкнути звук", translateTo: "Перекладати на:", online: "Онлайн", placeholder: "Введіть повідомлення...", addPlaceholder: "Додати за ніком...", addBtn: "Додати", noContacts: "Немає контактів", apiStatus: "Статус API Groq", shareApp: "Поділитися додатком", nativeShare: "📤 Поділитися", copyLink: "📋 Копіювати посилання", resetUser: "Змінити нік" },
-            German: { settings: "Einstellungen", profile: "Ihr Profil", onlineUsersTitle: "Kontakt hinzufügen", interfaceLang: "Sprache", voiceOver: "Sprachausgabe", enableSound: "Ton", translateTo: "Übersetzen in:", online: "Online", placeholder: "Nachricht...", addPlaceholder: "Spitzname...", addBtn: "Hinzufügen", noContacts: "Keine", apiStatus: "API-Status", shareApp: "App teilen", nativeShare: "📤 Поділитися", copyLink: "📋 Link kopieren", resetUser: "Змінити нік" },
-            French: { settings: "Paramètres", profile: "Profil", onlineUsersTitle: "Ajouter", interfaceLang: "Langue", voiceOver: "Voix", enableSound: "Son", translateTo: "Traduire :", online: "En ligne", placeholder: "Message...", addPlaceholder: "Pseudo...", addBtn: "Ajouter", noContacts: "Aucun", apiStatus: "Statut API", shareApp: "Partager", nativeShare: "📤 Поділитися", copyLink: "📋 Copier", resetUser: "Змінити нік" }
+            Spanish: { settings: "Configuración", profile: "Tu perfil", onlineUsersTitle: "Añadir contacto", interfaceLang: "Idioma de la interfaz", voiceOver: "Locución de traducción", enableSound: "Activar sonido", apiStatus: "Estado API Groq", shareApp: "Compartir App", nativeShare: "📤 Поділитися", copyLink: "📋 Copiar enlace", resetUser: "Змінити нік", placeholder: "Escribe un mensaje...", addPlaceholder: "Añadir por apodo...", addBtn: "Añadir", noContacts: "Sin contactos", online: "En línea" },
+            English: { settings: "Settings", profile: "Your profile", onlineUsersTitle: "Add contact", interfaceLang: "Interface language", voiceOver: "Translation voiceover", enableSound: "Enable sound", apiStatus: "Groq API Status", shareApp: "Share App", nativeShare: "📤 Поділитися", copyLink: "📋 Copy Link", resetUser: "Змінити нік", placeholder: "Type a message...", addPlaceholder: "Add by nickname...", addBtn: "Add", noContacts: "No contacts", online: "Online" },
+            Ukrainian: { settings: "Налаштування", profile: "Ваш профіль", onlineUsersTitle: "Додати контакт", interfaceLang: "Мова інтерфейсу", voiceOver: "Озвучування перекладу", enableSound: "Увімкнути звук", apiStatus: "Статус API Groq", shareApp: "Поділитися додатком", nativeShare: "📤 Поділитися", copyLink: "📋 Копіювати посилання", resetUser: "Змінити нік", placeholder: "Введіть повідомлення...", addPlaceholder: "Додати за ніком...", addBtn: "Додати", noContacts: "Немає контактів", online: "Онлайн" },
+            German: { settings: "Einstellungen", profile: "Ihr Profil", onlineUsersTitle: "Kontakt hinzufügen", interfaceLang: "Sprache", voiceOver: "Sprachausgabe", enableSound: "Ton", apiStatus: "API-Status", shareApp: "App teilen", nativeShare: "📤 Поділитися", copyLink: "📋 Link kopieren", resetUser: "Змінити нік", placeholder: "Nachricht...", addPlaceholder: "Spitzname...", addBtn: "Hinzufügen", noContacts: "Keine", online: "Online" },
+            French: { settings: "Paramètres", profile: "Profil", onlineUsersTitle: "Ajouter", interfaceLang: "Langue", voiceOver: "Voix", enableSound: "Son", apiStatus: "Statut API", shareApp: "Partager", nativeShare: "📤 Поділитися", copyLink: "📋 Copier", resetUser: "Змінити нік", placeholder: "Message...", addPlaceholder: "Pseudo...", addBtn: "Ajouter", noContacts: "Aucun", online: "En ligne" }
         };
 
         const messageInput = document.getElementById('message-input');
         const sendBtn = document.getElementById('send-btn');
         const chatMessages = document.getElementById('chat-messages');
-        const targetLangSelect = document.getElementById('target-lang');
-        const interfaceLangSelect = document.getElementById('interface-lang');
         const onlineCount = document.getElementById('online-count');
         const micBtn = document.getElementById('mic-btn');
         
@@ -643,9 +636,6 @@
         let lastUsersData = [];
         let lastIsAdmin = false;
 
-        let savedInterfaceLang = localStorage.getItem('habla_interface_lang') || 'Spanish';
-        interfaceLangSelect.value = savedInterfaceLang;
-
         function updateInterfaceTexts() {
             const lang = interfaceLangSelect.value;
             const t = translations[lang] || translations.Spanish;
@@ -656,7 +646,6 @@
             document.getElementById('label-interface-lang').textContent = t.interfaceLang;
             document.getElementById('label-voice-over').textContent = t.voiceOver;
             document.getElementById('label-enable-sound').textContent = t.enableSound;
-            document.getElementById('label-translate-to').textContent = t.translateTo;
             document.getElementById('label-api-status').textContent = t.apiStatus;
             document.getElementById('label-share-app').textContent = t.shareApp;
             document.getElementById('native-share-btn').textContent = t.nativeShare;
@@ -671,15 +660,17 @@
         }
 
         interfaceLangSelect.addEventListener('change', () => {
-            localStorage.setItem('habla_interface_lang', interfaceLangSelect.value);
+            const newLang = interfaceLangSelect.value;
+            localStorage.setItem('habla_interface_lang', newLang);
             updateInterfaceTexts();
+            joinWithLanguage(); // Оновлюємо мову на сервері на льоту
         });
 
         updateInterfaceTexts();
 
         userDisplay.textContent = username;
         userAvatarLarge.textContent = username.charAt(0).toUpperCase();
-        socket.emit('join', username);
+        joinWithLanguage();
 
         function openMenu() { sideMenu.classList.add('open'); menuOverlay.classList.add('active'); }
         function closeMenu() { sideMenu.classList.remove('open'); menuOverlay.classList.remove('active'); }
@@ -707,7 +698,11 @@
         function sendMessage() {
             const text = messageInput.value.trim();
             if (!text) return;
-            socket.emit('chatMessage', { text: text, targetLang: targetLangSelect.value, user: username, recipientName: selectedRecipientName });
+            socket.emit('chatMessage', { 
+                text: text, 
+                user: username, 
+                recipientName: selectedRecipientName 
+            });
             messageInput.value = '';
         }
 
@@ -818,6 +813,7 @@
             return text.replace(/[&<>"']/g, function(m) { return map[m]; });
         }
 
+        // Автоматична прив'язка мікрофона до встановленої мови пристрою/додатку
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (!SpeechRecognition) {
             micBtn.style.display = 'none';
@@ -828,7 +824,7 @@
 
             micBtn.addEventListener('click', () => {
                 if (isListening) { recognition.stop(); return; }
-                recognition.lang = ttsLangMap[targetLangSelect.value] || 'es-ES';
+                recognition.lang = ttsLangMap[interfaceLangSelect.value] || 'es-ES';
                 try { recognition.start(); } catch (e) { console.error(e); }
             });
 
