@@ -229,64 +229,79 @@
         .online-user-item {
             color: #e0e0e0;
             background: #151823;
-            padding: 6px 8px;
+            padding: 8px 10px;
             border-radius: 6px;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .online-user-item:hover {
+            background: rgba(0, 255, 204, 0.1);
+            color: #00ffcc;
         }
 
         .user-info-left {
             display: flex;
             align-items: center;
-            gap: 8px;
-            cursor: pointer;
-        }
-
-        .user-info-left:hover {
-            color: #00ffcc;
+            gap: 10px;
+            flex: 1;
         }
 
         .user-avatar-small {
-            width: 24px;
-            height: 24px;
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
             background: linear-gradient(135deg, #0056b3 0%, #00ffcc 100%);
             color: #fff;
             font-weight: bold;
-            font-size: 0.75rem;
+            font-size: 0.8rem;
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
         .status-dot {
-            width: 7px;
-            height: 7px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
+            flex-shrink: 0;
         }
         .status-dot.online {
             background-color: #00ffcc;
-            box-shadow: 0 0 5px #00ffcc;
+            box-shadow: 0 0 6px #00ffcc;
         }
         .status-dot.offline {
-            background-color: #555;
+            background-color: #ff3b30; /* Червоний колір для офлайн-статусу */
+            box-shadow: 0 0 6px #ff3b30;
         }
 
-        .contact-action-btn {
-            background: none;
-            border: 1px solid #ff3b30;
+        /* Контекстне меню при правому кліку */
+        #custom-context-menu {
+            display: none;
+            position: fixed;
+            background: #1a1e2e;
+            border: 1px solid #2f3552;
+            border-radius: 8px;
+            padding: 6px;
+            z-index: 1000;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+        }
+
+        .context-menu-item {
+            padding: 8px 12px;
+            font-size: 0.85rem;
             color: #ff3b30;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 0.75rem;
             cursor: pointer;
+            border-radius: 4px;
+            transition: background 0.2s;
         }
 
-        .contact-action-btn.add {
-            border-color: #00ffcc;
-            color: #00ffcc;
+        .context-menu-item:hover {
+            background: rgba(255, 59, 48, 0.15);
         }
 
         .toggle-container {
@@ -540,6 +555,11 @@
 
     <div id="menu-overlay" class="menu-overlay"></div>
 
+    <!-- Кастомне контекстне меню при правому кліку -->
+    <div id="custom-context-menu">
+        <div id="ctx-delete-btn" class="context-menu-item">Видалити</div>
+    </div>
+
     <div id="side-menu" class="side-menu">
         <div class="menu-header">
             <span class="menu-title" id="menu-title-text">Configuración</span>
@@ -607,6 +627,7 @@
         const socket = io();
 
         let selectedRecipientName = null;
+        let activeContextUser = null; // Зберігає ім'я користувача для контекстного меню
 
         let username = localStorage.getItem('habla_username');
         if (!username) {
@@ -647,7 +668,7 @@
                 privateTo: "Mensaje privado para: ",
                 addPlaceholder: "Añadir por apodo...",
                 addBtn: "Añadir",
-                removeBtn: "Eliminar",
+                deleteBtn: "Eliminar",
                 noContacts: "Sin contactos"
             },
             English: {
@@ -663,7 +684,7 @@
                 privateTo: "Private message to: ",
                 addPlaceholder: "Add by nickname...",
                 addBtn: "Add",
-                removeBtn: "Remove",
+                deleteBtn: "Delete",
                 noContacts: "No contacts"
             },
             Ukrainian: {
@@ -679,7 +700,7 @@
                 privateTo: "Особисте повідомлення для: ",
                 addPlaceholder: "Додати за ніком...",
                 addBtn: "Додати",
-                removeBtn: "Видалити",
+                deleteBtn: "Видалити",
                 noContacts: "Немає контактів"
             },
             German: {
@@ -695,7 +716,7 @@
                 privateTo: "Private Nachricht an: ",
                 addPlaceholder: "Nach Spitzname...",
                 addBtn: "Hinzufügen",
-                removeBtn: "Entfernen",
+                deleteBtn: "Löschen",
                 noContacts: "Keine Kontakte"
             },
             French: {
@@ -711,7 +732,7 @@
                 privateTo: "Message privé à : ",
                 addPlaceholder: "Ajouter par pseudo...",
                 addBtn: "Ajouter",
-                removeBtn: "Supprimer",
+                deleteBtn: "Supprimer",
                 noContacts: "Aucun contact"
             }
         };
@@ -735,6 +756,9 @@
 
         const newContactInput = document.getElementById('new-contact-input');
         const addContactBtn = document.getElementById('add-contact-btn');
+
+        const customContextMenu = document.getElementById('custom-context-menu');
+        const ctxDeleteBtn = document.getElementById('ctx-delete-btn');
 
         const recipientBanner = document.getElementById('recipient-banner');
         const recipientText = document.getElementById('recipient-text');
@@ -767,6 +791,7 @@
             messageInput.placeholder = t.placeholder;
             newContactInput.placeholder = t.addPlaceholder;
             addContactBtn.textContent = t.addBtn;
+            ctxDeleteBtn.textContent = t.deleteBtn;
             onlineCount.textContent = `${t.online}: ${currentOnlineCount}`;
 
             if (selectedRecipientName) {
@@ -793,12 +818,26 @@
         function closeMenu() {
             sideMenu.classList.remove('open');
             menuOverlay.classList.remove('active');
+            customContextMenu.style.display = 'none';
         }
 
         menuBtn.addEventListener('click', openMenu);
         onlineCount.addEventListener('click', openMenu);
         closeMenuBtn.addEventListener('click', closeMenu);
         menuOverlay.addEventListener('click', closeMenu);
+
+        // Закриття контекстного меню при кліку в будь-яке інше місце
+        document.addEventListener('click', () => {
+            customContextMenu.style.display = 'none';
+        });
+
+        ctxDeleteBtn.addEventListener('click', () => {
+            if (activeContextUser) {
+                socket.emit('remove-contact', activeContextUser);
+                customContextMenu.style.display = 'none';
+                activeContextUser = null;
+            }
+        });
 
         cancelRecipientBtn.addEventListener('click', () => {
             selectedRecipientName = null;
@@ -894,7 +933,7 @@
             const t = translations[lang] || translations.Spanish;
 
             if (users.length === 0) {
-                onlineUsersList.innerHTML = `<span class="online-user-item" style="color: #8a91b4; justify-content: center;">${t.noContacts}</span>`;
+                onlineUsersList.innerHTML = `<span class="online-user-item" style="color: #8a91b4; justify-content: center; cursor: default;">${t.noContacts}</span>`;
                 return;
             }
 
@@ -909,31 +948,30 @@
                     statusBadgeText = user.isMutual ? ' ⭐' : (user.myAdd ? ' ⏳' : '');
                 }
 
+                // Компактний елемент без великої кнопки: аватар, ім'я та статус-крапка (зелена або червона)
                 userItem.innerHTML = `
-                    <div class="user-info-left" title="Click para chatear en privado">
+                    <div class="user-info-left">
                         <div class="user-avatar-small">${firstLetter}</div>
                         <span>${escapeHtml(user.name)}${statusBadgeText}</span>
                     </div>
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <div class="status-dot ${user.isOnline ? 'online' : 'offline'}" title="${user.isOnline ? 'En línea' : 'Desconectado'}"></div>
-                        <button class="contact-action-btn ${user.myAdd ? '' : 'add'}">${user.myAdd ? t.removeBtn : t.addBtn}</button>
-                    </div>
+                    <div class="status-dot ${user.isOnline ? 'online' : 'offline'}" title="${user.isOnline ? 'Online' : 'Offline'}"></div>
                 `;
 
-                userItem.querySelector('.user-info-left').addEventListener('click', () => {
+                // Лівий клік — вибір абонента для приватного зв'язку
+                userItem.addEventListener('click', () => {
                     selectedRecipientName = user.name;
                     recipientText.innerHTML = `${t.privateTo}<b>${user.name}</b>`;
                     recipientBanner.classList.add('active');
                     closeMenu();
                 });
 
-                const actionBtn = userItem.querySelector('.contact-action-btn');
-                actionBtn.addEventListener('click', () => {
-                    if (user.myAdd) {
-                        socket.emit('remove-contact', user.name);
-                    } else {
-                        socket.emit('add-contact', user.name);
-                    }
+                // Правий клік (contextmenu) — виклик меню функцій (видалити тощо)
+                userItem.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                    activeContextUser = user.name;
+                    customContextMenu.style.display = 'block';
+                    customContextMenu.style.left = `${e.clientX}px`;
+                    customContextMenu.style.top = `${e.clientY}px`;
                 });
 
                 onlineUsersList.appendChild(userItem);
