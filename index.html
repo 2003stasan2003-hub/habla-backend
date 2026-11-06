@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Habla Mobile 3.0</title>
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#00ffcc">
+    <meta name="theme-color" content="#0e1621">
     <script src="/socket.io/socket.io.js"></script>
     <style>
         * {
@@ -15,8 +15,8 @@
         }
 
         body {
-            background-color: #0d0e15;
-            color: #e0e0e0;
+            background-color: #0e1621;
+            color: #f5f5f5;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             display: flex;
             flex-direction: column;
@@ -25,158 +25,163 @@
             overflow: hidden;
         }
 
+        /* Шапка у стилі Telegram */
         header {
-            background: #151823;
-            border-bottom: 1px solid #2a2f45;
+            background: #17212b;
+            border-bottom: 1px solid #0f1621;
             padding: 12px 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 4px 20px rgba(0, 255, 204, 0.05);
             z-index: 10;
         }
 
         .header-left {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
         }
 
         .menu-btn {
             background: none;
             border: none;
-            color: #00ffcc;
+            color: #89a1b2;
             font-size: 1.5rem;
             cursor: pointer;
-            padding: 4px 8px;
+            padding: 2px 6px;
             border-radius: 6px;
-            transition: background 0.2s;
+            transition: color 0.2s;
         }
 
         .menu-btn:hover {
-            background: rgba(0, 255, 204, 0.1);
+            color: #00ffcc;
         }
 
         .logo {
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: #00ffcc;
-            text-shadow: 0 0 10px rgba(0, 255, 204, 0.4);
-            letter-spacing: 0.5px;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #ffffff;
+            letter-spacing: 0.3px;
         }
 
         .online-status {
-            font-size: 0.85rem;
-            color: #a0a5c0;
-            background: #1e2233;
+            font-size: 0.8rem;
+            color: #89a1b2;
+            background: #242f3d;
             padding: 4px 10px;
-            border-radius: 12px;
-            border: 1px solid #2f3552;
+            border-radius: 14px;
             cursor: pointer;
-            transition: border-color 0.2s;
         }
 
-        .online-status:hover {
-            border-color: #00ffcc;
-        }
-
+        /* Панель мов */
         .lang-panel {
-            background: #121520;
+            background: #17212b;
             padding: 8px 16px;
             display: flex;
             align-items: center;
             gap: 10px;
-            border-bottom: 1px solid #1f2438;
-            font-size: 0.9rem;
+            border-bottom: 1px solid #0f1621;
+            font-size: 0.85rem;
         }
 
         .lang-panel label {
-            color: #8a91b4;
+            color: #89a1b2;
         }
 
         .lang-select {
-            background: #1a1e2e;
+            background: #242f3d;
             color: #00ffcc;
-            border: 1px solid #2f3552;
-            padding: 6px 12px;
-            border-radius: 8px;
+            border: 1px solid #2b5278;
+            padding: 4px 10px;
+            border-radius: 6px;
             outline: none;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             cursor: pointer;
         }
 
-        /* ГОРИЗОНТАЛЬНА СТРІЧКА КОНТАКТІВ ЗВЕРХУ */
-        .top-contacts-strip {
-            background: #151823;
-            border-bottom: 1px solid #2f3552;
-            padding: 8px 12px;
+        /* Стрічка історій/контактів зверху (як на скріншоті) */
+        .top-stories-strip {
+            background: #17212b;
+            border-bottom: 1px solid #0f1621;
+            padding: 12px 16px;
             display: flex;
-            gap: 10px;
+            gap: 16px;
             overflow-x: auto;
             white-space: nowrap;
             scrollbar-width: none;
         }
-        .top-contacts-strip::-webkit-scrollbar {
+        .top-stories-strip::-webkit-scrollbar {
             display: none;
         }
 
-        .contact-pill {
-            background: #1a1e2e;
-            border: 1px solid #2f3552;
-            color: #e0e0e0;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 0.85rem;
+        .story-item {
             display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             cursor: pointer;
             flex-shrink: 0;
-            transition: all 0.2s;
+            transition: transform 0.2s;
         }
 
-        .contact-pill:hover {
-            border-color: #00ffcc;
-            background: rgba(0, 255, 204, 0.05);
+        .story-item:hover {
+            transform: scale(1.05);
         }
 
-        .contact-pill.active {
-            border-color: #00ffcc;
-            background: rgba(0, 255, 204, 0.15);
-            color: #00ffcc;
-            font-weight: bold;
-        }
-
-        .pill-avatar {
-            width: 22px;
-            height: 22px;
+        .story-avatar-wrapper {
+            position: relative;
+            width: 56px;
+            height: 56px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #0056b3 0%, #00ffcc 100%);
-            color: #fff;
+            padding: 2px;
+            background: linear-gradient(135deg, #00ffcc 0%, #2b5278 100%);
+        }
+
+        .story-avatar {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: #242f3d;
+            color: #ffffff;
             font-weight: bold;
-            font-size: 0.75rem;
+            font-size: 1.1rem;
             display: flex;
             align-items: center;
             justify-content: center;
+            overflow: hidden;
         }
 
-        .pill-dot {
-            width: 7px;
-            height: 7px;
+        .story-dot {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            width: 12px;
+            height: 12px;
             border-radius: 50%;
+            border: 2px solid #17212b;
         }
-        .pill-dot.online { background-color: #00ffcc; box-shadow: 0 0 5px #00ffcc; }
-        .pill-dot.offline { background-color: #ff3b30; }
+        .story-dot.online { background-color: #3acc6e; }
+        .story-dot.offline { background-color: #89a1b2; }
 
+        .story-name {
+            font-size: 0.75rem;
+            color: #b1c3d1;
+            max-width: 64px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-align: center;
+        }
+
+        /* Бокове меню */
         .side-menu {
             position: fixed;
             top: 0;
             left: -280px;
             width: 280px;
             height: 100%;
-            background: #121520;
-            border-right: 1px solid #2a2f45;
-            box-shadow: 5px 0 25px rgba(0, 0, 0, 0.5);
+            background: #17212b;
+            border-right: 1px solid #2b5278;
+            box-shadow: 5px 0 25px rgba(0, 0, 0, 0.6);
             z-index: 100;
             transition: left 0.3s ease;
             display: flex;
@@ -194,7 +199,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid #1f2438;
+            border-bottom: 1px solid #242f3d;
             padding-bottom: 12px;
         }
 
@@ -207,7 +212,7 @@
         .close-menu-btn {
             background: none;
             border: none;
-            color: #a0a5c0;
+            color: #89a1b2;
             font-size: 1.3rem;
             cursor: pointer;
         }
@@ -219,18 +224,29 @@
         }
 
         .menu-section label {
-            font-size: 0.85rem;
-            color: #8a91b4;
+            font-size: 0.8rem;
+            color: #89a1b2;
         }
 
         .user-badge-container {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            background: #1a1e2e;
+            background: #242f3d;
             padding: 8px 12px;
             border-radius: 8px;
-            border: 1px solid #2f3552;
+        }
+
+        .user-avatar-large {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00ffcc 0%, #2b5278 100%);
+            color: #0e1621;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .user-badge {
@@ -249,9 +265,6 @@
             cursor: pointer;
             font-weight: bold;
         }
-        .reset-user-btn:hover {
-            background: rgba(255, 59, 48, 0.4);
-        }
 
         .add-contact-box {
             display: flex;
@@ -260,8 +273,8 @@
 
         .add-contact-input {
             flex: 1;
-            background: #1a1e2e;
-            border: 1px solid #2f3552;
+            background: #242f3d;
+            border: 1px solid #2b5278;
             color: #fff;
             padding: 6px 10px;
             border-radius: 6px;
@@ -271,7 +284,7 @@
 
         .add-contact-btn {
             background: #00ffcc;
-            color: #0d0e15;
+            color: #0e1621;
             border: none;
             padding: 6px 10px;
             border-radius: 6px;
@@ -287,11 +300,9 @@
             z-index: 99;
             display: none;
         }
+        .menu-overlay.active { display: block; }
 
-        .menu-overlay.active {
-            display: block;
-        }
-
+        /* Повідомлення */
         #chat-messages {
             flex: 1;
             overflow-y: auto;
@@ -299,7 +310,7 @@
             display: flex;
             flex-direction: column;
             gap: 12px;
-            background: radial-gradient(circle at center, #111422 0%, #0d0e15 100%);
+            background: #0e1621;
         }
 
         .message {
@@ -309,25 +320,19 @@
             font-size: 0.95rem;
             line-height: 1.4;
             word-break: break-word;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-            animation: fadeIn 0.3s ease;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
             position: relative;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(5px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
         .message.incoming {
-            background: #1a1e2e;
-            color: #e0e0e0;
+            background: #182533;
+            color: #f5f5f5;
             align-self: flex-start;
-            border-left: 3px solid #7928ca;
+            border-left: 3px solid #2b5278;
         }
 
         .message.outgoing {
-            background: #0056b3;
+            background: #2b5278;
             color: #fff;
             align-self: flex-end;
             border-right: 3px solid #00ffcc;
@@ -339,7 +344,7 @@
 
         .message .author {
             font-size: 0.75rem;
-            color: #a0a5c0;
+            color: #6c91b2;
             margin-bottom: 4px;
             font-weight: 600;
         }
@@ -356,19 +361,16 @@
             cursor: pointer;
             font-size: 0.85rem;
             opacity: 0.7;
-            transition: opacity 0.2s, transform 0.2s;
+            transition: opacity 0.2s;
             padding: 2px 4px;
         }
+        .speak-btn:hover { opacity: 1; }
 
-        .speak-btn:hover {
-            opacity: 1;
-            transform: scale(1.15);
-        }
-
+        /* Поле введення */
         .input-container {
-            background: #151823;
+            background: #17212b;
             padding: 12px 16px;
-            border-top: 1px solid #2a2f45;
+            border-top: 1px solid #0f1621;
             display: flex;
             align-items: center;
             gap: 10px;
@@ -383,19 +385,17 @@
 
         #message-input {
             width: 100%;
-            background: #1a1e2e;
-            border: 1px solid #2f3552;
+            background: #242f3d;
+            border: 1px solid #2b5278;
             color: #fff;
             padding: 12px 45px 12px 16px;
             border-radius: 24px;
             outline: none;
             font-size: 0.95rem;
-            transition: border-color 0.2s;
         }
 
         #message-input:focus {
             border-color: #00ffcc;
-            box-shadow: 0 0 8px rgba(0, 255, 204, 0.2);
         }
 
         .mic-button {
@@ -406,33 +406,16 @@
             font-size: 1.2rem;
             cursor: pointer;
             padding: 6px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: transform 0.2s, background 0.2s;
-        }
-
-        .mic-button:hover {
-            background: rgba(255, 255, 255, 0.05);
-            transform: scale(1.1);
         }
 
         .mic-button.listening {
-            background-color: rgba(255, 59, 48, 0.2) !important;
-            box-shadow: 0 0 12px #ff3b30;
-            animation: pulseMic 1.5s infinite;
-        }
-
-        @keyframes pulseMic {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.15); }
-            100% { transform: scale(1); }
+            background-color: rgba(255, 59, 48, 0.2);
+            border-radius: 50%;
         }
 
         .send-button {
-            background: linear-gradient(135deg, #00ffcc 0%, #00b894 100%);
-            color: #0d0e15;
+            background: #2b5278;
+            color: #00ffcc;
             border: none;
             width: 44px;
             height: 44px;
@@ -442,13 +425,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 0 10px rgba(0, 255, 204, 0.3);
-            transition: transform 0.2s, opacity 0.2s;
-            flex-shrink: 0;
-        }
-
-        .send-button:active {
-            transform: scale(0.95);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         }
     </style>
 </head>
@@ -457,9 +434,9 @@
     <header>
         <div class="header-left">
             <button id="menu-btn" class="menu-btn" title="Menu">☰</button>
-            <div class="logo">Habla Mobile 3.0</div>
+            <div class="logo">Habla Mobile</div>
         </div>
-        <div id="online-count" class="online-status" title="Ver lista">En línea: 1</div>
+        <div id="online-count" class="online-status" title="Online">Online: 1</div>
     </header>
 
     <div class="lang-panel">
@@ -473,9 +450,9 @@
         </select>
     </div>
 
-    <!-- ГОРИЗОНТАЛЬНА СТРІЧКА КОНТАКТІВ ЗВЕРХУ -->
-    <div id="top-contacts-strip" class="top-contacts-strip">
-        <span style="color: #8a91b4; font-size: 0.85rem; padding: 4px;">Cargando...</span>
+    <!-- ВЕРХНЯ СТРІЧКА ІСТОРІЙ З КОНТАКТАМИ -->
+    <div id="top-stories-strip" class="top-stories-strip">
+        <span style="color: #89a1b2; font-size: 0.85rem; padding: 4px;">Cargando...</span>
     </div>
 
     <div id="menu-overlay" class="menu-overlay"></div>
@@ -493,42 +470,38 @@
                     <div id="user-avatar-large" class="user-avatar-large">G</div>
                     <div id="user-display" class="user-badge">Invitado</div>
                 </div>
-                <!-- Кнопка скидання користувача для зміни ніку -->
                 <button id="reset-user-btn" class="reset-user-btn">Змінити нік</button>
             </div>
         </div>
 
-        <!-- Індикатор лімітів Groq API -->
         <div class="menu-section">
             <label id="label-api-status">Estado API Groq</label>
             <div style="display: flex; gap: 8px;">
-                <div id="req-box" style="flex: 1; background: #1a1e2e; padding: 8px; border-radius: 8px; border: 1px solid #2f3552; text-align: center; transition: border-color 0.3s, box-shadow 0.3s;">
-                    <div style="font-size: 0.7rem; color: #8a91b4; margin-bottom: 2px;">REQS</div>
+                <div id="req-box" style="flex: 1; background: #242f3d; padding: 8px; border-radius: 8px; border: 1px solid #2b5278; text-align: center;">
+                    <div style="font-size: 0.7rem; color: #89a1b2; margin-bottom: 2px;">REQS</div>
                     <div id="req-value" style="font-size: 0.95rem; font-weight: bold; color: #00ffcc;">---</div>
                 </div>
-                <div id="tok-box" style="flex: 1; background: #1a1e2e; padding: 8px; border-radius: 8px; border: 1px solid #2f3552; text-align: center; transition: border-color 0.3s, box-shadow 0.3s;">
-                    <div style="font-size: 0.7rem; color: #8a91b4; margin-bottom: 2px;">TOKENS</div>
+                <div id="tok-box" style="flex: 1; background: #242f3d; padding: 8px; border-radius: 8px; border: 1px solid #2b5278; text-align: center;">
+                    <div style="font-size: 0.7rem; color: #89a1b2; margin-bottom: 2px;">TOKENS</div>
                     <div id="tok-value" style="font-size: 0.95rem; font-weight: bold; color: #00ffcc;">---</div>
                 </div>
             </div>
         </div>
 
-        <!-- БЛОК ПОШИРЕННЯ: Кнопка «Поділитися» без дужок -->
         <div class="menu-section">
             <label id="label-share-app">Instalar / Compartir App</label>
-            <div style="background: #1a1e2e; padding: 10px; border-radius: 8px; border: 1px solid #2f3552; display: flex; flex-direction: column; gap: 8px; align-items: center; text-align: center;">
-                <img id="qr-code-img" src="" alt="QR Code" style="width: 110px; height: 110px; background: #fff; padding: 4px; border-radius: 6px;">
-                <div id="app-url-text" style="font-size: 0.75rem; color: #8a91b4; word-break: break-all;">---</div>
-                <button id="native-share-btn" style="background: linear-gradient(135deg, #00ffcc 0%, #00b894 100%); color: #0d0e15; border: none; padding: 8px 10px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.8rem; width: 100%;">
+            <div style="background: #242f3d; padding: 10px; border-radius: 8px; border: 1px solid #2b5278; display: flex; flex-direction: column; gap: 8px; align-items: center; text-align: center;">
+                <img id="qr-code-img" src="" alt="QR Code" style="width: 100px; height: 100px; background: #fff; padding: 4px; border-radius: 6px;">
+                <div id="app-url-text" style="font-size: 0.75rem; color: #89a1b2; word-break: break-all;">---</div>
+                <button id="native-share-btn" style="background: #00ffcc; color: #0e1621; border: none; padding: 8px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.8rem; width: 100%;">
                     📤 Поділитися
                 </button>
-                <button id="copy-link-btn" style="background: #2f3552; color: #00ffcc; border: none; padding: 6px 10px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.8rem; width: 100%;">
+                <button id="copy-link-btn" style="background: #17212b; color: #00ffcc; border: 1px solid #2b5278; padding: 6px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.8rem; width: 100%;">
                     📋 Копіювати посилання
                 </button>
             </div>
         </div>
 
-        <!-- ДОДАВАННЯ КОНТАКТУ -->
         <div class="menu-section">
             <label id="label-online-users">Contactos / Usuarios</label>
             <div class="add-contact-box">
@@ -539,7 +512,7 @@
 
         <div class="menu-section">
             <label for="interface-lang" id="label-interface-lang">Idioma de la interfaz:</label>
-            <select id="interface-lang" class="lang-select">
+            <select id="interface-lang" class="lang-select" style="width:100%;">
                 <option value="Spanish">Spanish</option>
                 <option value="English">English</option>
                 <option value="Ukrainian">Ukrainian</option>
@@ -550,12 +523,9 @@
 
         <div class="menu-section">
             <label id="label-voice-over">Locución de traducción</label>
-            <div class="toggle-container">
-                <span id="label-enable-sound" style="font-size: 0.9rem; color: #e0e0e0;">Activar sonido</span>
-                <label class="switch">
-                    <input type="checkbox" id="sound-toggle">
-                    <span class="slider"></span>
-                </label>
+            <div style="display: flex; justify-content: space-between; align-items: center; background: #242f3d; padding: 10px; border-radius: 8px; border: 1px solid #2b5278;">
+                <span id="label-enable-sound" style="font-size: 0.85rem; color: #f5f5f5;">Activar sonido</span>
+                <input type="checkbox" id="sound-toggle" style="width: 18px; height: 18px; accent-color: #00ffcc;">
             </div>
         </div>
     </div>
@@ -564,7 +534,7 @@
 
     <div class="input-container">
         <div class="input-wrapper">
-            <input type="text" id="message-input" placeholder="Escribe un mensaje o habla..." autocomplete="off">
+            <input type="text" id="message-input" placeholder="Escribe un mensaje..." autocomplete="off">
             <button id="mic-btn" class="mic-button" title="Entrada de voz">🎤</button>
         </div>
         <button id="send-btn" class="send-button" title="Enviar">➤</button>
@@ -584,7 +554,6 @@
             localStorage.setItem('habla_username', username);
         }
 
-        // АВТО-ПЕРЕПІДКЛЮЧЕННЯ (AUTO-RECONNECT) ПРИ ВТРАТІ ЗВ'ЯЗКУ АБО ПРОКИДАННІ ТЕЛЕФОНУ
         socket.on('connect', () => {
             if (username) {
                 socket.emit('join', username);
@@ -593,16 +562,11 @@
 
         document.addEventListener('visibilitychange', () => {
             if (document.visibilityState === 'visible') {
-                if (!socket.connected) {
-                    socket.connect();
-                }
-                if (username) {
-                    socket.emit('join', username);
-                }
+                if (!socket.connected) socket.connect();
+                if (username) socket.emit('join', username);
             }
         });
 
-        // Кнопка зміни ніку (скидання профілю)
         document.getElementById('reset-user-btn').addEventListener('click', () => {
             localStorage.removeItem('habla_username');
             location.reload();
@@ -615,26 +579,16 @@
         document.getElementById('native-share-btn').addEventListener('click', async () => {
             if (navigator.share) {
                 try {
-                    await navigator.share({
-                        title: 'Habla Mobile 3.0',
-                        text: 'Приєднуйся до мого месенджера Habla Mobile!',
-                        url: currentAppUrl
-                    });
-                } catch (err) {
-                    console.log('Поширення скасовано', err);
-                }
+                    await navigator.share({ title: 'Habla Mobile 3.0', url: currentAppUrl });
+                } catch (err) { console.log(err); }
             } else {
                 navigator.clipboard.writeText(currentAppUrl);
-                alert('Посилання скопійовано в буфер обміну!');
+                alert('Посилання скопійовано!');
             }
         });
 
         document.getElementById('copy-link-btn').addEventListener('click', () => {
-            navigator.clipboard.writeText(currentAppUrl).then(() => {
-                alert('¡Enlace copiado / Посилання скопійовано!');
-            }).catch(err => {
-                console.error('Помилка копіювання:', err);
-            });
+            navigator.clipboard.writeText(currentAppUrl).then(() => alert('Посилання скопійовано!'));
         });
 
         let availableVoices = [];
@@ -647,127 +601,23 @@
             speechSynthesis.onvoiceschanged = populateVoiceList;
         }
 
-        const ttsLangMap = {
-            'Ukrainian': 'uk-UA',
-            'English': 'en-US',
-            'Spanish': 'es-ES',
-            'German': 'de-DE',
-            'French': 'fr-FR'
-        };
+        const ttsLangMap = { 'Ukrainian': 'uk-UA', 'English': 'en-US', 'Spanish': 'es-ES', 'German': 'de-DE', 'French': 'fr-FR' };
 
         function speakText(textToSpeech) {
             if (!('speechSynthesis' in window)) return;
             const utterance = new SpeechSynthesisUtterance(textToSpeech);
             const selectedLangCode = ttsLangMap[targetLangSelect.value] || 'es-ES';
             utterance.lang = selectedLangCode;
-            
-            if (availableVoices.length > 0) {
-                const langVoices = availableVoices.filter(v => v.lang.startsWith(selectedLangCode.split('-')[0]));
-                if (langVoices.length > 0) {
-                    const bestVoice = langVoices.find(v => v.name.includes('Google') || v.name.includes('Microsoft') || v.name.includes('Natural')) || langVoices[0];
-                    utterance.voice = bestVoice;
-                }
-            }
             window.speechSynthesis.cancel();
             window.speechSynthesis.speak(utterance);
         }
 
         const translations = {
-            Spanish: {
-                settings: "Configuración",
-                profile: "Tu perfil",
-                onlineUsersTitle: "Añadir contacto",
-                interfaceLang: "Idioma de la interfaz",
-                voiceOver: "Locución de traducción",
-                enableSound: "Activar sonido",
-                translateTo: "Traducir a:",
-                online: "En línea",
-                placeholder: "Escribe un mensaje o habla...",
-                addPlaceholder: "Añadir por apodo...",
-                addBtn: "Añadir",
-                noContacts: "Sin contactos",
-                apiStatus: "Estado API Groq",
-                shareApp: "Instalar / Compartir App",
-                nativeShare: "📤 Поділитися",
-                copyLink: "📋 Copiar enlace",
-                resetUser: "Змінити нік"
-            },
-            English: {
-                settings: "Settings",
-                profile: "Your profile",
-                onlineUsersTitle: "Add contact",
-                interfaceLang: "Interface language",
-                voiceOver: "Translation voiceover",
-                enableSound: "Enable sound",
-                translateTo: "Translate to:",
-                online: "Online",
-                placeholder: "Type a message or speak...",
-                addPlaceholder: "Add by nickname...",
-                addBtn: "Add",
-                noContacts: "No contacts",
-                apiStatus: "Groq API Status",
-                shareApp: "Install / Share App",
-                nativeShare: "📤 Поділитися",
-                copyLink: "📋 Copy Link",
-                resetUser: "Змінити нік"
-            },
-            Ukrainian: {
-                settings: "Налаштування",
-                profile: "Ваш профіль",
-                onlineUsersTitle: "Додати контакт",
-                interfaceLang: "Мова інтерфейсу",
-                voiceOver: "Озвучування перекладу",
-                enableSound: "Увімкнути звук",
-                translateTo: "Перекладати на:",
-                online: "Онлайн",
-                placeholder: "Введіть повідомлення або скажіть...",
-                addPlaceholder: "Додати за ніком...",
-                addBtn: "Додати",
-                noContacts: "Немає контактів",
-                apiStatus: "Статус API Groq",
-                shareApp: "Встановити / Поділитися додатком",
-                nativeShare: "📤 Поділитися",
-                copyLink: "📋 Копіювати посилання",
-                resetUser: "Змінити нік"
-            },
-            German: {
-                settings: "Einstellungen",
-                profile: "Ihr Profil",
-                onlineUsersTitle: "Kontakt hinzufügen",
-                interfaceLang: "Benutzeroberflächensprache",
-                voiceOver: "Übersetzungs-Sprachausgabe",
-                enableSound: "Ton einschalten",
-                translateTo: "Übersetzen in:",
-                online: "Online",
-                placeholder: "Nachricht eingeben oder sprechen...",
-                addPlaceholder: "Nach Spitzname...",
-                addBtn: "Hinzufügen",
-                noContacts: "Keine Kontakte",
-                apiStatus: "Groq API-Status",
-                shareApp: "App installieren / teilen",
-                nativeShare: "📤 Поділитися",
-                copyLink: "📋 Link kopieren",
-                resetUser: "Змінити нік"
-            },
-            French: {
-                settings: "Paramètres",
-                profile: "Votre profil",
-                onlineUsersTitle: "Ajouter un contact",
-                interfaceLang: "Langue de l'interface",
-                voiceOver: "Voix de traduction",
-                enableSound: "Activer le son",
-                translateTo: "Traduire vers :",
-                online: "En línea",
-                placeholder: "Tapez un message ou parlez...",
-                addPlaceholder: "Ajouter par pseudo...",
-                addBtn: "Ajouter",
-                noContacts: "Aucun contact",
-                apiStatus: "Statut API Groq",
-                shareApp: "Installer / Partager",
-                nativeShare: "📤 Поділитися",
-                copyLink: "📋 Copier le lien",
-                resetUser: "Змінити нік"
-            }
+            Spanish: { settings: "Configuración", profile: "Tu perfil", onlineUsersTitle: "Añadir contacto", interfaceLang: "Idioma de la interfaz", voiceOver: "Locución de traducción", enableSound: "Activar sonido", translateTo: "Traducir a:", online: "En línea", placeholder: "Escribe un mensaje...", addPlaceholder: "Añadir por apodo...", addBtn: "Añadir", noContacts: "Sin contactos", apiStatus: "Estado API Groq", shareApp: "Compartir App", nativeShare: "📤 Поділитися", copyLink: "📋 Copiar enlace", resetUser: "Змінити нік" },
+            English: { settings: "Settings", profile: "Your profile", onlineUsersTitle: "Add contact", interfaceLang: "Interface language", voiceOver: "Translation voiceover", enableSound: "Enable sound", translateTo: "Translate to:", online: "Online", placeholder: "Type a message...", addPlaceholder: "Add by nickname...", addBtn: "Add", noContacts: "No contacts", apiStatus: "Groq API Status", shareApp: "Share App", nativeShare: "📤 Поділитися", copyLink: "📋 Copy Link", resetUser: "Змінити нік" },
+            Ukrainian: { settings: "Налаштування", profile: "Ваш профіль", onlineUsersTitle: "Додати контакт", interfaceLang: "Мова інтерфейсу", voiceOver: "Озвучування перекладу", enableSound: "Увімкнути звук", translateTo: "Перекладати на:", online: "Онлайн", placeholder: "Введіть повідомлення...", addPlaceholder: "Додати за ніком...", addBtn: "Додати", noContacts: "Немає контактів", apiStatus: "Статус API Groq", shareApp: "Поділитися додатком", nativeShare: "📤 Поділитися", copyLink: "📋 Копіювати посилання", resetUser: "Змінити нік" },
+            German: { settings: "Einstellungen", profile: "Ihr Profil", onlineUsersTitle: "Kontakt hinzufügen", interfaceLang: "Sprache", voiceOver: "Sprachausgabe", enableSound: "Ton", translateTo: "Übersetzen in:", online: "Online", placeholder: "Nachricht...", addPlaceholder: "Spitzname...", addBtn: "Hinzufügen", noContacts: "Keine", apiStatus: "API-Status", shareApp: "App teilen", nativeShare: "📤 Поділитися", copyLink: "📋 Link kopieren", resetUser: "Змінити нік" },
+            French: { settings: "Paramètres", profile: "Profil", onlineUsersTitle: "Ajouter", interfaceLang: "Langue", voiceOver: "Voix", enableSound: "Son", translateTo: "Traduire :", online: "En ligne", placeholder: "Message...", addPlaceholder: "Pseudo...", addBtn: "Ajouter", noContacts: "Aucun", apiStatus: "Statut API", shareApp: "Partager", nativeShare: "📤 Поділитися", copyLink: "📋 Copier", resetUser: "Змінити нік" }
         };
 
         const messageInput = document.getElementById('message-input');
@@ -784,24 +634,10 @@
         const menuOverlay = document.getElementById('menu-overlay');
         const userDisplay = document.getElementById('user-display');
         const userAvatarLarge = document.getElementById('user-avatar-large');
-        const topContactsStrip = document.getElementById('top-contacts-strip');
+        const topStoriesStrip = document.getElementById('top-stories-strip');
         const soundToggle = document.getElementById('sound-toggle');
-
         const newContactInput = document.getElementById('new-contact-input');
         const addContactBtn = document.getElementById('add-contact-btn');
-
-        const labelTranslateTo = document.getElementById('label-translate-to');
-        const menuTitleText = document.getElementById('menu-title-text');
-        const labelProfile = document.getElementById('label-profile');
-        const labelOnlineUsers = document.getElementById('label-online-users');
-        const labelInterfaceLang = document.getElementById('label-interface-lang');
-        const labelVoiceOver = document.getElementById('label-voice-over');
-        const labelEnableSound = document.getElementById('label-enable-sound');
-        const labelApiStatus = document.getElementById('label-api-status');
-        const labelShareApp = document.getElementById('label-share-app');
-        const nativeShareBtn = document.getElementById('native-share-btn');
-        const copyLinkBtn = document.getElementById('copy-link-btn');
-        const resetUserBtn = document.getElementById('reset-user-btn');
 
         let currentOnlineCount = 1;
         let lastUsersData = [];
@@ -814,24 +650,24 @@
             const lang = interfaceLangSelect.value;
             const t = translations[lang] || translations.Spanish;
 
-            menuTitleText.textContent = t.settings;
-            labelProfile.textContent = t.profile;
-            labelOnlineUsers.textContent = t.onlineUsersTitle;
-            labelInterfaceLang.textContent = t.interfaceLang;
-            labelVoiceOver.textContent = t.voiceOver;
-            labelEnableSound.textContent = t.enableSound;
-            labelTranslateTo.textContent = t.translateTo;
-            labelApiStatus.textContent = t.apiStatus;
-            labelShareApp.textContent = t.shareApp;
-            nativeShareBtn.textContent = t.nativeShare;
-            copyLinkBtn.textContent = t.copyLink;
-            resetUserBtn.textContent = t.resetUser;
+            document.getElementById('menu-title-text').textContent = t.settings;
+            document.getElementById('label-profile').textContent = t.profile;
+            document.getElementById('label-online-users').textContent = t.onlineUsersTitle;
+            document.getElementById('label-interface-lang').textContent = t.interfaceLang;
+            document.getElementById('label-voice-over').textContent = t.voiceOver;
+            document.getElementById('label-enable-sound').textContent = t.enableSound;
+            document.getElementById('label-translate-to').textContent = t.translateTo;
+            document.getElementById('label-api-status').textContent = t.apiStatus;
+            document.getElementById('label-share-app').textContent = t.shareApp;
+            document.getElementById('native-share-btn').textContent = t.nativeShare;
+            document.getElementById('copy-link-btn').textContent = t.copyLink;
+            document.getElementById('reset-user-btn').textContent = t.resetUser;
             messageInput.placeholder = t.placeholder;
             newContactInput.placeholder = t.addPlaceholder;
             addContactBtn.textContent = t.addBtn;
             onlineCount.textContent = `${t.online}: ${currentOnlineCount}`;
 
-            renderTopContacts(lastUsersData, lastIsAdmin);
+            renderStories(lastUsersData, lastIsAdmin);
         }
 
         interfaceLangSelect.addEventListener('change', () => {
@@ -845,15 +681,8 @@
         userAvatarLarge.textContent = username.charAt(0).toUpperCase();
         socket.emit('join', username);
 
-        function openMenu() {
-            sideMenu.classList.add('open');
-            menuOverlay.classList.add('active');
-        }
-
-        function closeMenu() {
-            sideMenu.classList.remove('open');
-            menuOverlay.classList.remove('active');
-        }
+        function openMenu() { sideMenu.classList.add('open'); menuOverlay.classList.add('active'); }
+        function closeMenu() { sideMenu.classList.remove('open'); menuOverlay.classList.remove('active'); }
 
         menuBtn.addEventListener('click', openMenu);
         onlineCount.addEventListener('click', openMenu);
@@ -864,126 +693,55 @@
             const targetName = newContactInput.value.trim();
             if (targetName && targetName !== username) {
                 socket.emit('add-contact', targetName);
-                
                 if (!localAddedContacts.includes(targetName)) {
                     localAddedContacts.push(targetName);
                     localStorage.setItem('habla_local_contacts', JSON.stringify(localAddedContacts));
                 }
-
                 newContactInput.value = '';
-                renderTopContacts(lastUsersData, lastIsAdmin);
+                renderStories(lastUsersData, lastIsAdmin);
             }
         });
 
-        newContactInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                addContactBtn.click();
-            }
-        });
+        newContactInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') addContactBtn.click(); });
 
         function sendMessage() {
             const text = messageInput.value.trim();
             if (!text) return;
-
-            const targetLang = targetLangSelect.value;
-
-            socket.emit('chatMessage', {
-                text: text,
-                targetLang: targetLang,
-                user: username,
-                recipientName: selectedRecipientName
-            });
-
+            socket.emit('chatMessage', { text: text, targetLang: targetLangSelect.value, user: username, recipientName: selectedRecipientName });
             messageInput.value = '';
         }
 
         sendBtn.addEventListener('click', sendMessage);
-        messageInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                sendMessage();
-            }
-        });
+        messageInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
 
         socket.on('chatMessage', (data) => {
             const messageDiv = document.createElement('div');
             messageDiv.classList.add('message');
-            
             const isSelf = data.user === username;
             messageDiv.classList.add(isSelf ? 'outgoing' : 'incoming');
-            if (data.isPrivate) {
-                messageDiv.classList.add('private');
-            }
+            if (data.isPrivate) messageDiv.classList.add('private');
 
             let authorLabel = escapeHtml(data.user);
-            if (data.isPrivate) {
-                authorLabel += ` 🔒 (Privado)`;
-            }
+            if (data.isPrivate) authorLabel += ` 🔒`;
 
-            let htmlContent = `<div class="author"><span>${authorLabel}</span></div>`;
-            htmlContent += `<div>${escapeHtml(data.text)}</div>`;
-            htmlContent += `
-                <div class="msg-footer">
-                    <button class="speak-btn" title="Escuchar / Озвучити">🔊</button>
-                </div>
+            messageDiv.innerHTML = `
+                <div class="author"><span>${authorLabel}</span></div>
+                <div>${escapeHtml(data.text)}</div>
+                <div class="msg-footer"><button class="speak-btn" title="🔊">🔊</button></div>
             `;
 
-            messageDiv.innerHTML = htmlContent;
-
-            const speakBtn = messageDiv.querySelector('.speak-btn');
-            speakBtn.addEventListener('click', () => {
-                speakText(data.text);
-            });
-
+            messageDiv.querySelector('.speak-btn').addEventListener('click', () => speakText(data.text));
             chatMessages.appendChild(messageDiv);
             chatMessages.scrollTop = chatMessages.scrollHeight;
 
-            if (soundToggle.checked) {
-                speakText(data.text);
-            }
+            if (soundToggle.checked) speakText(data.text);
         });
 
         socket.on('groq-limits', (limits) => {
             const reqVal = parseInt(limits.requests, 10);
             const tokVal = parseInt(limits.tokens, 10);
-
-            const reqBox = document.getElementById('req-box');
-            const reqElem = document.getElementById('req-value');
-            const tokBox = document.getElementById('tok-box');
-            const tokElem = document.getElementById('tok-value');
-
-            if (reqElem && !isNaN(reqVal)) {
-                reqElem.textContent = reqVal;
-                if (reqVal > 300) {
-                    reqBox.style.borderColor = '#00ffcc';
-                    reqBox.style.boxShadow = '0 0 8px rgba(0, 255, 204, 0.2)';
-                    reqElem.style.color = '#00ffcc';
-                } else if (reqVal >= 100) {
-                    reqBox.style.borderColor = '#ffcc00';
-                    reqBox.style.boxShadow = '0 0 8px rgba(255, 204, 0, 0.2)';
-                    reqElem.style.color = '#ffcc00';
-                } else {
-                    reqBox.style.borderColor = '#ff3b30';
-                    reqBox.style.boxShadow = '0 0 8px rgba(255, 59, 48, 0.3)';
-                    reqElem.style.color = '#ff3b30';
-                }
-            }
-
-            if (tokElem && !isNaN(tokVal)) {
-                tokElem.textContent = tokVal;
-                if (tokVal > 20000) {
-                    tokBox.style.borderColor = '#00ffcc';
-                    tokBox.style.boxShadow = '0 0 8px rgba(0, 255, 204, 0.2)';
-                    tokElem.style.color = '#00ffcc';
-                } else if (tokVal >= 5000) {
-                    tokBox.style.borderColor = '#ffcc00';
-                    tokBox.style.boxShadow = '0 0 8px rgba(255, 204, 0, 0.2)';
-                    tokElem.style.color = '#ffcc00';
-                } else {
-                    tokBox.style.borderColor = '#ff3b30';
-                    tokBox.style.boxShadow = '0 0 8px rgba(255, 59, 48, 0.3)';
-                    tokElem.style.color = '#ff3b30';
-                }
-            }
+            if (!isNaN(reqVal)) document.getElementById('req-value').textContent = reqVal;
+            if (!isNaN(tokVal)) document.getElementById('tok-value').textContent = tokVal;
         });
 
         socket.on('onlineCount', (count) => {
@@ -996,11 +754,11 @@
         socket.on('update-users', ({ users, isAdmin }) => {
             lastUsersData = users;
             lastIsAdmin = isAdmin;
-            renderTopContacts(users, isAdmin);
+            renderStories(users, isAdmin);
         });
 
-        function renderTopContacts(users, isAdmin) {
-            topContactsStrip.innerHTML = '';
+        function renderStories(users, isAdmin) {
+            topStoriesStrip.innerHTML = '';
             const lang = interfaceLangSelect.value;
             const t = translations[lang] || translations.Spanish;
 
@@ -1013,9 +771,8 @@
             });
 
             let combinedUsers = Array.from(allNamesMap.values());
-
             if (combinedUsers.length === 0) {
-                topContactsStrip.innerHTML = `<span style="color: #8a91b4; font-size: 0.85rem; padding: 4px;">${t.noContacts}</span>`;
+                topStoriesStrip.innerHTML = `<span style="color: #89a1b2; font-size: 0.85rem; padding: 4px;">${t.noContacts}</span>`;
                 return;
             }
 
@@ -1029,99 +786,55 @@
             });
 
             combinedUsers.forEach(user => {
-                const pill = document.createElement('div');
-                pill.classList.add('contact-pill');
-                if (selectedRecipientName === user.name) {
-                    pill.classList.add('active');
-                }
+                const story = document.createElement('div');
+                story.classList.add('story-item');
 
                 const firstLetter = user.name.charAt(0).toUpperCase();
                 let statusBadgeText = '';
-                if (isAdmin) {
-                    statusBadgeText = user.isMutual ? ' ⭐' : (user.myAdd ? ' ⏳' : '');
-                }
+                if (isAdmin && user.isMutual) statusBadgeText = ' ⭐';
 
-                pill.innerHTML = `
-                    <div class="pill-avatar">${firstLetter}</div>
-                    <span>${escapeHtml(user.name)}${statusBadgeText}</span>
-                    <div class="pill-dot ${user.isOnline ? 'online' : 'offline'}"></div>
+                story.innerHTML = `
+                    <div class="story-avatar-wrapper" style="${selectedRecipientName === user.name ? 'border: 2px solid #00ffcc;' : ''}">
+                        <div class="story-avatar">${firstLetter}</div>
+                        <div class="story-dot ${user.isOnline ? 'online' : 'offline'}"></div>
+                    </div>
+                    <span class="story-name">${escapeHtml(user.name)}${statusBadgeText}</span>
                 `;
 
-                pill.addEventListener('click', () => {
+                story.addEventListener('click', () => {
                     selectedRecipientName = user.name;
-
                     recentContactsOrder = recentContactsOrder.filter(n => n !== user.name);
                     recentContactsOrder.unshift(user.name);
                     localStorage.setItem('habla_recent_contacts', JSON.stringify(recentContactsOrder));
-
-                    renderTopContacts(lastUsersData, lastIsAdmin);
+                    renderStories(lastUsersData, lastIsAdmin);
                 });
 
-                topContactsStrip.appendChild(pill);
+                topStoriesStrip.appendChild(story);
             });
         }
 
         function escapeHtml(text) {
-            const map = {
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                '"': '&quot;',
-                "'": '&#039;'
-            };
+            const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
             return text.replace(/[&<>"']/g, function(m) { return map[m]; });
         }
 
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-
         if (!SpeechRecognition) {
             micBtn.style.display = 'none';
         } else {
             const recognition = new SpeechRecognition();
             recognition.interimResults = false;
-            recognition.maxAlternatives = 1;
             let isListening = false;
 
             micBtn.addEventListener('click', () => {
-                if (isListening) {
-                    recognition.stop();
-                    return;
-                }
-                
-                const currentInterfaceLang = interfaceLangSelect.value;
-                recognition.lang = ttsLangMap[currentInterfaceLang] || 'es-ES';
-
-                try {
-                    recognition.start();
-                } catch (e) {
-                    console.error("Error:", e);
-                }
+                if (isListening) { recognition.stop(); return; }
+                recognition.lang = ttsLangMap[targetLangSelect.value] || 'es-ES';
+                try { recognition.start(); } catch (e) { console.error(e); }
             });
 
-            recognition.onstart = () => {
-                isListening = true;
-                micBtn.classList.add('listening');
-                micBtn.textContent = "🔴";
-            };
-
-            recognition.onresult = (event) => {
-                const speechText = event.results[0][0].transcript;
-                messageInput.value += (messageInput.value ? ' ' : '') + speechText;
-            };
-
-            recognition.onerror = () => {
-                stopListeningState();
-            };
-
-            recognition.onend = () => {
-                stopListeningState();
-            };
-
-            function stopListeningState() {
-                isListening = false;
-                micBtn.classList.remove('listening');
-                micBtn.textContent = "🎤";
-            }
+            recognition.onstart = () => { isListening = true; micBtn.classList.add('listening'); };
+            recognition.onresult = (event) => { messageInput.value += (messageInput.value ? ' ' : '') + event.results[0][0].transcript; };
+            recognition.onend = () => { isListening = false; micBtn.classList.remove('listening'); };
         }
     </script>
 </body>
