@@ -629,6 +629,18 @@
             </div>
         </div>
 
+        <!-- НОВИЙ БЛОК: Поширення та QR-код для встановлення -->
+        <div class="menu-section">
+            <label id="label-share-app">Instalar / Compartir App</label>
+            <div style="background: #1a1e2e; padding: 10px; border-radius: 8px; border: 1px solid #2f3552; display: flex; flex-direction: column; gap: 8px; align-items: center; text-align: center;">
+                <img id="qr-code-img" src="" alt="QR Code" style="width: 110px; height: 110px; background: #fff; padding: 4px; border-radius: 6px;">
+                <div id="app-url-text" style="font-size: 0.75rem; color: #8a91b4; word-break: break-all;">---</div>
+                <button id="copy-link-btn" style="background: #00ffcc; color: #0d0e15; border: none; padding: 6px 10px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.8rem; width: 100%;">
+                    📋 Копіювати посилання
+                </button>
+            </div>
+        </div>
+
         <div class="menu-section">
             <label id="label-online-users">Contactos / Usuarios</label>
             <div class="add-contact-box">
@@ -686,6 +698,19 @@
             localStorage.setItem('habla_username', username);
         }
 
+        // Автоматичне заповнення посилання та генерація QR-коду в сайдбарі
+        const currentAppUrl = window.location.origin;
+        document.getElementById('app-url-text').textContent = currentAppUrl;
+        document.getElementById('qr-code-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(currentAppUrl)}`;
+
+        document.getElementById('copy-link-btn').addEventListener('click', () => {
+            navigator.clipboard.writeText(currentAppUrl).then(() => {
+                alert('¡Enlace copiado / Посилання скопійовано!');
+            }).catch(err => {
+                console.error('Помилка копіювання:', err);
+            });
+        });
+
         let availableVoices = [];
         function populateVoiceList() {
             if (typeof speechSynthesis === 'undefined') return;
@@ -739,7 +764,9 @@
                 addBtn: "Añadir",
                 deleteBtn: "Eliminar",
                 noContacts: "Sin contactos",
-                apiStatus: "Estado API Groq"
+                apiStatus: "Estado API Groq",
+                shareApp: "Instalar / Compartir App",
+                copyLink: "📋 Copiar enlace"
             },
             English: {
                 settings: "Settings",
@@ -758,7 +785,9 @@
                 addBtn: "Add",
                 deleteBtn: "Delete",
                 noContacts: "No contacts",
-                apiStatus: "Groq API Status"
+                apiStatus: "Groq API Status",
+                shareApp: "Install / Share App",
+                copyLink: "📋 Copy Link"
             },
             Ukrainian: {
                 settings: "Налаштування",
@@ -777,7 +806,9 @@
                 addBtn: "Додати",
                 deleteBtn: "Видалити",
                 noContacts: "Немає контактів",
-                apiStatus: "Статус API Groq"
+                apiStatus: "Статус API Groq",
+                shareApp: "Встановити / Поділитися додатком",
+                copyLink: "📋 Копіювати посилання"
             },
             German: {
                 settings: "Einstellungen",
@@ -796,7 +827,9 @@
                 addBtn: "Hinzufügen",
                 deleteBtn: "Löschen",
                 noContacts: "Keine Kontakte",
-                apiStatus: "Groq API-Status"
+                apiStatus: "Groq API-Status",
+                shareApp: "App installieren / teilen",
+                copyLink: "📋 Link kopieren"
             },
             French: {
                 settings: "Paramètres",
@@ -815,7 +848,9 @@
                 addBtn: "Ajouter",
                 deleteBtn: "Supprimer",
                 noContacts: "Aucun contact",
-                apiStatus: "Statut API Groq"
+                apiStatus: "Statut API Groq",
+                shareApp: "Installer / Partager l'application",
+                copyLink: "📋 Copier le lien"
             }
         };
 
@@ -853,6 +888,8 @@
         const labelVoiceOver = document.getElementById('label-voice-over');
         const labelEnableSound = document.getElementById('label-enable-sound');
         const labelApiStatus = document.getElementById('label-api-status');
+        const labelShareApp = document.getElementById('label-share-app');
+        const copyLinkBtn = document.getElementById('copy-link-btn');
 
         let currentOnlineCount = 1;
 
@@ -871,6 +908,8 @@
             labelEnableSound.textContent = t.enableSound;
             labelTranslateTo.textContent = t.translateTo;
             labelApiStatus.textContent = t.apiStatus;
+            labelShareApp.textContent = t.shareApp;
+            copyLinkBtn.textContent = t.copyLink;
             messageInput.placeholder = t.placeholder;
             newContactInput.placeholder = t.addPlaceholder;
             addContactBtn.textContent = t.addBtn;
