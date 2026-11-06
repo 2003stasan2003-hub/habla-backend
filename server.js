@@ -23,6 +23,8 @@ app.use(express.json());
 app.use('/.well-known', express.static('.well-known'));
 app.use(express.static(__dirname));
 
+let currentGroqLimits = { requests: '---', tokens: '---' };
+
 app.post('/api/translate', async (req, res) => {
     try {
         const { text, targetLanguage } = req.body;
@@ -52,6 +54,13 @@ app.post('/api/translate', async (req, res) => {
                 max_tokens: 250
             })
         });
+
+        const remReq = response.headers.get('x-ratelimit-remaining-requests');
+        const remTok = response.headers.get('x-ratelimit-remaining-tokens');
+        if (remReq) {
+            currentGroqLimits = { requests: remReq, tokens: remTok };
+            io.emit('groq-limits', currentGroqLimits);
+        }
 
         const data = await response.json();
         
@@ -83,18 +92,16 @@ function updateUsers() {
         const currentUsername = activeSockets[id];
         if (!currentUsername) continue;
 
-        // Визначаємо чи є користувач адміном (наприклад, Stasan або Admin)
         const isAdmin = (currentUsername === 'Stasan' || currentUsername === 'Admin');
 
         const usersList = Array.from(allKnownUsers).map(name => {
-            if (name === currentUsername) return null; // Не показуємо самого себе у списку контактів
+            if (name === currentUsername) return null;
 
             const isOnline = onlineNames.has(name);
             const myAdd = userContacts[currentUsername]?.has(name) || false;
             const theirAdd = userContacts[name]?.has(currentUsername) || false;
             const isMutual = myAdd && theirAdd;
 
-            // Адмін бачить усіх. Звичайний користувач бачить лише тих, кого взаємно додали
             if (!isAdmin && !isMutual) {
                 return null;
             }
@@ -116,6 +123,8 @@ function updateUsers() {
 
 io.on('connection', (socket) => {
     console.log(`Користувач підключився: ${socket.id}`);
+
+    socket.emit('groq-limits', currentGroqLimits);
 
     socket.on('join', (nickname) => {
         if (!nickname) return;
@@ -173,6 +182,14 @@ io.on('connection', (socket) => {
                         max_tokens: 250
                     })
                 });
+
+                const remReq = response.headers.get('x-ratelimit-remaining-requests');
+                const remTok = response.headers.get('x-ratelimit-remaining-tokens');
+                if (remReq) {
+                    currentGroqLimits = { requests: remReq, tokens: remTok };
+                    io.emit('groq-limits', currentGroqLimits);
+                }
+
                 const result = await response.json();
                 if (result.choices && result.choices[0] && result.choices[0].message) {
                     translatedText = result.choices[0].message.content.trim();
