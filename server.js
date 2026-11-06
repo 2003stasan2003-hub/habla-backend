@@ -73,19 +73,44 @@ app.post('/api/translate', async (req, res) => {
 });
 
 const activeSockets = {}; // socket.id -> username
-const allKnownUsers = new Set(); // Зберігає всі унікальні нікнейми, що заходили
+const allKnownUsers = new Set(); // Зберігає всі унікальні нікнейми
+const userContacts = {}; // username -> Set of contact usernames added by this user
 
-function broadcastUsers() {
+function updateUsers() {
     const onlineNames = new Set(Object.values(activeSockets));
     
-    // Формуємо список усіх відомих користувачів з їхнім статусом
-    const usersList = Array.from(allKnownUsers).map(name => ({
-        id: name, // Використовуємо ім'я як унікальний ідентифікатор в списку
-        name: name,
-        isOnline: onlineNames.has(name)
-    }));
+    for (let [id, socket] of io.of("/").sockets) {
+        const currentUsername = activeSockets[id];
+        if (!currentUsername) continue;
 
-    io.emit('update-users', usersList);
+        // Визначаємо чи є користувач адміном (наприклад, Stasan або Admin)
+        const isAdmin = (currentUsername === 'Stasan' || currentUsername === 'Admin');
+
+        const usersList = Array.from(allKnownUsers).map(name => {
+            if (name === currentUsername) return null; // Не показуємо самого себе у списку контактів
+
+            const isOnline = onlineNames.has(name);
+            const myAdd = userContacts[currentUsername]?.has(name) || false;
+            const theirAdd = userContacts[name]?.has(currentUsername) || false;
+            const isMutual = myAdd && theirAdd;
+
+            // Адмін бачить усіх. Звичайний користувач бачить лише тих, кого взаємно додали
+            if (!isAdmin && !isMutual) {
+                return null;
+            }
+
+            return {
+                name: name,
+                isOnline: isOnline,
+                myAdd: myAdd,
+                theirAdd: theirAdd,
+                isMutual: isMutual
+            };
+        }).filter(Boolean);
+
+        socket.emit('update-users', { users: usersList, isAdmin });
+    }
+
     io.emit('onlineCount', onlineNames.size);
 }
 
@@ -96,7 +121,32 @@ io.on('connection', (socket) => {
         if (!nickname) return;
         activeSockets[socket.id] = nickname;
         allKnownUsers.add(nickname);
-        broadcastUsers();
+        if (!userContacts[nickname]) {
+            userContacts[nickname] = new Set();
+        }
+        updateUsers();
+    });
+
+    socket.on('add-contact', (targetName) => {
+        const username = activeSockets[socket.id];
+        if (!username || !targetName || username === targetName) return;
+
+        allKnownUsers.add(targetName);
+        if (!userContacts[username]) {
+            userContacts[username] = new Set();
+        }
+        userContacts[username].add(targetName);
+        updateUsers();
+    });
+
+    socket.on('remove-contact', (targetName) => {
+        const username = activeSockets[socket.id];
+        if (!username || !targetName) return;
+
+        if (userContacts[username]) {
+            userContacts[username].delete(targetName);
+        }
+        updateUsers();
     });
 
     socket.on('chatMessage', async (data) => {
@@ -137,7 +187,6 @@ io.on('connection', (socket) => {
             };
 
             if (data.recipientName) {
-                // Особисте повідомлення: надсилаємо відправнику та шукаємо співрозмовника за ім'ям серед активних
                 socket.emit('chatMessage', messagePayload);
                 
                 let recipientSocketId = Object.keys(activeSockets).find(
@@ -161,7 +210,7 @@ io.on('connection', (socket) => {
 
     socket.on('disconnect', () => {
         delete activeSockets[socket.id];
-        broadcastUsers();
+        updateUsers();
     });
 });
 
