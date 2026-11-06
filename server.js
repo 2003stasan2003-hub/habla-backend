@@ -85,7 +85,7 @@ const activeSockets = {};
 const allKnownUsers = new Set(); 
 const userContacts = {}; 
 
-// Перевірка адміністратора незалежно від регістру літер та мови
+// Перевірка адміністратора незалежно від регістру та мови
 function checkIsAdmin(username) {
     if (!username) return false;
     const lower = username.toLowerCase().trim();
