@@ -412,6 +412,7 @@
             word-break: break-word;
             box-shadow: 0 2px 8px rgba(0,0,0,0.2);
             animation: fadeIn 0.3s ease;
+            position: relative;
         }
 
         @keyframes fadeIn {
@@ -442,6 +443,28 @@
             color: #a0a5c0;
             margin-bottom: 4px;
             font-weight: 600;
+        }
+
+        /* Стиль для кнопки-динаміка всередині повідомлення */
+        .msg-footer {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 4px;
+        }
+
+        .speak-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 0.85rem;
+            opacity: 0.7;
+            transition: opacity 0.2s, transform 0.2s;
+            padding: 2px 4px;
+        }
+
+        .speak-btn:hover {
+            opacity: 1;
+            transform: scale(1.15);
         }
 
         .input-container {
@@ -572,7 +595,7 @@
             </div>
         </div>
 
-        <!-- Двостовпчиковий індикатор лімітів Groq API з кольоровою підсвіткою -->
+        <!-- Індикатор лімітів Groq API -->
         <div class="menu-section">
             <label id="label-api-status">Estado API Groq</label>
             <div style="display: flex; gap: 8px;">
@@ -666,6 +689,24 @@
             'German': 'de-DE',
             'French': 'fr-FR'
         };
+
+        // Функція озвучування тексту (використовується як для авто-режиму, так і для кнопки-динаміка)
+        function speakText(textToSpeech) {
+            if (!('speechSynthesis' in window)) return;
+            const utterance = new SpeechSynthesisUtterance(textToSpeech);
+            const selectedLangCode = ttsLangMap[targetLangSelect.value] || 'es-ES';
+            utterance.lang = selectedLangCode;
+            
+            if (availableVoices.length > 0) {
+                const langVoices = availableVoices.filter(v => v.lang.startsWith(selectedLangCode.split('-')[0]));
+                if (langVoices.length > 0) {
+                    const bestVoice = langVoices.find(v => v.name.includes('Google') || v.name.includes('Microsoft') || v.name.includes('Natural')) || langVoices[0];
+                    utterance.voice = bestVoice;
+                }
+            }
+            window.speechSynthesis.cancel(); // Зупиняємо попереднє озвучування, якщо йде паралельно
+            window.speechSynthesis.speak(utterance);
+        }
 
         const translations = {
             Spanish: {
@@ -915,31 +956,33 @@
                 authorLabel += ` 🔒 (Privado)`;
             }
 
+            // Додаємо текст та міні-динамік 🔊 для примусового озвучування
             let htmlContent = `<div class="author"><span>${authorLabel}</span></div>`;
             htmlContent += `<div>${escapeHtml(data.text)}</div>`;
+            htmlContent += `
+                <div class="msg-footer">
+                    <button class="speak-btn" title="Escuchar / Озвучити">🔊</button>
+                </div>
+            `;
 
             messageDiv.innerHTML = htmlContent;
+
+            // Вішаємо обробник кліку на кнопку-динамік всередині цього повідомлення
+            const speakBtn = messageDiv.querySelector('.speak-btn');
+            speakBtn.addEventListener('click', () => {
+                speakText(data.text);
+            });
+
             chatMessages.appendChild(messageDiv);
             chatMessages.scrollTop = chatMessages.scrollHeight;
 
-            if (soundToggle.checked && 'speechSynthesis' in window) {
-                const utterance = new SpeechSynthesisUtterance(data.text);
-                const selectedLangCode = ttsLangMap[targetLangSelect.value] || 'es-ES';
-                utterance.lang = selectedLangCode;
-                
-                if (availableVoices.length > 0) {
-                    const langVoices = availableVoices.filter(v => v.lang.startsWith(selectedLangCode.split('-')[0]));
-                    if (langVoices.length > 0) {
-                        const bestVoice = langVoices.find(v => v.name.includes('Google') || v.name.includes('Microsoft') || v.name.includes('Natural')) || langVoices[0];
-                        utterance.voice = bestVoice;
-                    }
-                }
-                
-                window.speechSynthesis.speak(utterance);
+            // Автоматичне озвучування спрацьовує лише якщо ввімкнено тумблер у налаштуваннях
+            if (soundToggle.checked) {
+                speakText(data.text);
             }
         });
 
-        // Двостовпчиковий світлофор для лімітів Groq API
+        // Індикатор лімітів Groq API
         socket.on('groq-limits', (limits) => {
             const reqVal = parseInt(limits.requests, 10);
             const tokVal = parseInt(limits.tokens, 10);
