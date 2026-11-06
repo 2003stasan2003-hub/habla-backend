@@ -85,6 +85,13 @@ const activeSockets = {}; // socket.id -> username
 const allKnownUsers = new Set(); // Зберігає всі унікальні нікнейми
 const userContacts = {}; // username -> Set of contact usernames added by this user
 
+// Допоміжна функція перевірки на адміністратора (незалежно від регістру)
+function checkIsAdmin(username) {
+    if (!username) return false;
+    const lower = username.toLowerCase().trim();
+    return lower === 'stasan' || lower === 'admin' || lower === 'стасан';
+}
+
 function updateUsers() {
     const onlineNames = new Set(Object.values(activeSockets));
     
@@ -92,7 +99,7 @@ function updateUsers() {
         const currentUsername = activeSockets[id];
         if (!currentUsername) continue;
 
-        const isAdmin = (currentUsername === 'Stasan' || currentUsername === 'Admin');
+        const isAdmin = checkIsAdmin(currentUsername);
 
         const usersList = Array.from(allKnownUsers).map(name => {
             if (name === currentUsername) return null;
