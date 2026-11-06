@@ -81,11 +81,11 @@ app.post('/api/translate', async (req, res) => {
     }
 });
 
-const activeSockets = {}; // socket.id -> username
-const allKnownUsers = new Set(); // Зберігає всі унікальні нікнейми
-const userContacts = {}; // username -> Set of contact usernames added by this user
+const activeSockets = {}; 
+const allKnownUsers = new Set(); 
+const userContacts = {}; 
 
-// Допоміжна функція перевірки на адміністратора (незалежно від регістру)
+// Перевірка адміністратора незалежно від регістру літер та мови
 function checkIsAdmin(username) {
     if (!username) return false;
     const lower = username.toLowerCase().trim();
