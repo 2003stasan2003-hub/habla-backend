@@ -275,11 +275,10 @@
             box-shadow: 0 0 6px #00ffcc;
         }
         .status-dot.offline {
-            background-color: #ff3b30; /* Червоний колір для офлайн-статусу */
+            background-color: #ff3b30;
             box-shadow: 0 0 6px #ff3b30;
         }
 
-        /* Контекстне меню при правому кліку */
         #custom-context-menu {
             display: none;
             position: fixed;
@@ -555,7 +554,6 @@
 
     <div id="menu-overlay" class="menu-overlay"></div>
 
-    <!-- Кастомне контекстне меню при правому кліку -->
     <div id="custom-context-menu">
         <div id="ctx-delete-btn" class="context-menu-item">Видалити</div>
     </div>
@@ -574,6 +572,14 @@
             </div>
         </div>
 
+        <!-- Індикатор лімітів Groq API без додаткових запитів -->
+        <div class="menu-section">
+            <label id="label-api-status">Estado API Groq</label>
+            <div id="api-limits-info" style="font-size: 0.8rem; color: #8a91b4; background: #1a1e2e; padding: 6px 10px; border-radius: 6px; border: 1px solid #2f3552;">
+                Req: --- | Tok: ---
+            </div>
+        </div>
+
         <div class="menu-section">
             <label id="label-online-users">Contactos / Usuarios</label>
             <div class="add-contact-box">
@@ -581,7 +587,7 @@
                 <button id="add-contact-btn" class="add-contact-btn">Añadir</button>
             </div>
             <div id="online-users-list" class="online-users-list">
-                <span class="online-user-item" style="color: #8a91b4; justify-content: center;">Cargando...</span>
+                <span class="online-user-item" style="color: #8a91b4; justify-content: center; cursor: default;">Cargando...</span>
             </div>
         </div>
 
@@ -627,7 +633,7 @@
         const socket = io();
 
         let selectedRecipientName = null;
-        let activeContextUser = null; // Зберігає ім'я користувача для контекстного меню
+        let activeContextUser = null;
 
         let username = localStorage.getItem('habla_username');
         if (!username) {
@@ -669,7 +675,8 @@
                 addPlaceholder: "Añadir por apodo...",
                 addBtn: "Añadir",
                 deleteBtn: "Eliminar",
-                noContacts: "Sin contactos"
+                noContacts: "Sin contactos",
+                apiStatus: "Estado API Groq"
             },
             English: {
                 settings: "Settings",
@@ -685,7 +692,8 @@
                 addPlaceholder: "Add by nickname...",
                 addBtn: "Add",
                 deleteBtn: "Delete",
-                noContacts: "No contacts"
+                noContacts: "No contacts",
+                apiStatus: "Groq API Status"
             },
             Ukrainian: {
                 settings: "Налаштування",
@@ -701,7 +709,8 @@
                 addPlaceholder: "Додати за ніком...",
                 addBtn: "Додати",
                 deleteBtn: "Видалити",
-                noContacts: "Немає контактів"
+                noContacts: "Немає контактів",
+                apiStatus: "Статус API Groq"
             },
             German: {
                 settings: "Einstellungen",
@@ -717,7 +726,8 @@
                 addPlaceholder: "Nach Spitzname...",
                 addBtn: "Hinzufügen",
                 deleteBtn: "Löschen",
-                noContacts: "Keine Kontakte"
+                noContacts: "Keine Kontakte",
+                apiStatus: "Groq API-Status"
             },
             French: {
                 settings: "Paramètres",
@@ -733,7 +743,8 @@
                 addPlaceholder: "Ajouter par pseudo...",
                 addBtn: "Ajouter",
                 deleteBtn: "Supprimer",
-                noContacts: "Aucun contact"
+                noContacts: "Aucun contact",
+                apiStatus: "Statut API Groq"
             }
         };
 
@@ -771,6 +782,7 @@
         const labelInterfaceLang = document.getElementById('label-interface-lang');
         const labelVoiceOver = document.getElementById('label-voice-over');
         const labelEnableSound = document.getElementById('label-enable-sound');
+        const labelApiStatus = document.getElementById('label-api-status');
 
         let currentOnlineCount = 1;
 
@@ -788,6 +800,7 @@
             labelVoiceOver.textContent = t.voiceOver;
             labelEnableSound.textContent = t.enableSound;
             labelTranslateTo.textContent = t.translateTo;
+            labelApiStatus.textContent = t.apiStatus;
             messageInput.placeholder = t.placeholder;
             newContactInput.placeholder = t.addPlaceholder;
             addContactBtn.textContent = t.addBtn;
@@ -826,7 +839,6 @@
         closeMenuBtn.addEventListener('click', closeMenu);
         menuOverlay.addEventListener('click', closeMenu);
 
-        // Закриття контекстного меню при кліку в будь-яке інше місце
         document.addEventListener('click', () => {
             customContextMenu.style.display = 'none';
         });
@@ -920,6 +932,14 @@
             }
         });
 
+        // Слухаємо оновлення лімітів Groq API від сервера
+        socket.on('groq-limits', (limits) => {
+            const limitsEl = document.getElementById('api-limits-info');
+            if (limitsEl) {
+                limitsEl.textContent = `Req: ${limits.requests} | Tok: ${limits.tokens}`;
+            }
+        });
+
         socket.on('onlineCount', (count) => {
             currentOnlineCount = count;
             const lang = interfaceLangSelect.value;
@@ -948,7 +968,6 @@
                     statusBadgeText = user.isMutual ? ' ⭐' : (user.myAdd ? ' ⏳' : '');
                 }
 
-                // Компактний елемент без великої кнопки: аватар, ім'я та статус-крапка (зелена або червона)
                 userItem.innerHTML = `
                     <div class="user-info-left">
                         <div class="user-avatar-small">${firstLetter}</div>
@@ -957,7 +976,6 @@
                     <div class="status-dot ${user.isOnline ? 'online' : 'offline'}" title="${user.isOnline ? 'Online' : 'Offline'}"></div>
                 `;
 
-                // Лівий клік — вибір абонента для приватного зв'язку
                 userItem.addEventListener('click', () => {
                     selectedRecipientName = user.name;
                     recipientText.innerHTML = `${t.privateTo}<b>${user.name}</b>`;
@@ -965,7 +983,6 @@
                     closeMenu();
                 });
 
-                // Правий клік (contextmenu) — виклик меню функцій (видалити тощо)
                 userItem.addEventListener('contextmenu', (e) => {
                     e.preventDefault();
                     activeContextUser = user.name;
