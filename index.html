@@ -2,200 +2,285 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Habla Mobile</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Habla Mobile 3.0</title>
+    <script src="/socket.io/socket.io.js"></script>
     <style>
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
+
         body {
-            background-color: #0f172a;
-            color: #f8fafc;
-            height: 100vh;
+            background-color: #0d0e15;
+            color: #e0e0e0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             display: flex;
             flex-direction: column;
+            height: 100vh;
+            height: 100dvh;
             overflow: hidden;
         }
-        /* Неонова шапка додатку */
-        .app-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+
+        header {
+            background: #151823;
+            border-bottom: 1px solid #2a2f45;
             padding: 12px 16px;
-            background-color: #1e293b;
-            border-bottom: 1px solid #334155;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(0, 255, 204, 0.05);
+            z-index: 10;
         }
+
         .header-left {
             display: flex;
             align-items: center;
-            gap: 16px;
-        }
-        .menu-icon {
-            font-size: 20px;
-            cursor: pointer;
-            color: #00ffcc;
-        }
-        .app-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: #00ffcc;
-            text-shadow: 0 0 10px rgba(0, 255, 204, 0.4);
-        }
-        .online-badge {
-            background-color: #334155;
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 12px;
-            color: #94a3b8;
-        }
-
-        /* Верхня панель вибору мови перекладу */
-        .top-translation-bar {
-            display: flex;
-            align-items: center;
             gap: 12px;
-            padding: 10px 16px;
-            background-color: #0f172a;
-            font-size: 14px;
-            color: #94a3b8;
-        }
-        .lang-select {
-            background-color: #1e293b;
-            color: #00ffcc;
-            border: 1px solid #334155;
-            padding: 6px 12px;
-            border-radius: 6px;
-            outline: none;
-            font-size: 14px;
         }
 
-        /* Основний контейнер та сайдбар */
-        .main-container {
-            display: flex;
-            flex: 1;
-            position: relative;
-            overflow: hidden;
-        }
-        .sidebar {
-            width: 300px;
-            background-color: #1e293b;
-            border-right: 1px solid #334155;
-            display: flex;
-            flex-direction: column;
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            left: -300px;
-            transition: left 0.3s ease;
-            z-index: 10;
-        }
-        .sidebar.open {
-            left: 0;
-        }
-        .sidebar-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 16px;
-            border-bottom: 1px solid #334155;
-        }
-        .sidebar-header h3 {
-            font-size: 16px;
-            color: #00ffcc;
-        }
-        #closeSidebar {
+        .menu-btn {
             background: none;
             border: none;
-            color: #94a3b8;
-            font-size: 18px;
+            color: #00ffcc;
+            font-size: 1.5rem;
             cursor: pointer;
-        }
-        
-        .sidebar-section {
-            padding: 14px 16px;
-            border-bottom: 1px solid #334155;
-        }
-        .section-title {
-            font-size: 13px;
-            color: #94a3b8;
-            margin-bottom: 8px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            transition: background 0.2s;
         }
 
-        /* Профіль та список користувачів у сайдбарі */
-        .user-card {
+        .menu-btn:hover {
+            background: rgba(0, 255, 204, 0.1);
+        }
+
+        .logo {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #00ffcc;
+            text-shadow: 0 0 10px rgba(0, 255, 204, 0.4);
+            letter-spacing: 0.5px;
+        }
+
+        .online-status {
+            font-size: 0.85rem;
+            color: #a0a5c0;
+            background: #1e2233;
+            padding: 4px 10px;
+            border-radius: 12px;
+            border: 1px solid #2f3552;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        .online-status:hover {
+            border-color: #00ffcc;
+        }
+
+        .lang-panel {
+            background: #121520;
+            padding: 8px 16px;
             display: flex;
             align-items: center;
             gap: 10px;
-            background-color: #0f172a;
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid #334155;
+            border-bottom: 1px solid #1f2438;
+            font-size: 0.9rem;
         }
-        .avatar-circle {
-            width: 32px;
-            height: 32px;
-            background-color: #00ffcc;
+
+        .lang-panel label {
+            color: #8a91b4;
+        }
+
+        .lang-select {
+            background: #1a1e2e;
+            color: #00ffcc;
+            border: 1px solid #2f3552;
+            padding: 6px 12px;
+            border-radius: 8px;
+            outline: none;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .side-menu {
+            position: fixed;
+            top: 0;
+            left: -280px;
+            width: 280px;
+            height: 100%;
+            background: #121520;
+            border-right: 1px solid #2a2f45;
+            box-shadow: 5px 0 25px rgba(0, 0, 0, 0.5);
+            z-index: 100;
+            transition: left 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            gap: 20px;
+            overflow-y: auto;
+        }
+
+        .side-menu.open {
+            left: 0;
+        }
+
+        .menu-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #1f2438;
+            padding-bottom: 15px;
+        }
+
+        .menu-title {
+            color: #00ffcc;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+
+        .close-menu-btn {
+            background: none;
+            border: none;
+            color: #a0a5c0;
+            font-size: 1.3rem;
+            cursor: pointer;
+        }
+
+        .menu-section {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .menu-section label {
+            font-size: 0.85rem;
+            color: #8a91b4;
+        }
+
+        .user-badge-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #1a1e2e;
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid #2f3552;
+        }
+
+        .user-avatar-large {
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
+            background: linear-gradient(135deg, #00ffcc 0%, #7928ca 100%);
+            color: #0d0e15;
+            font-weight: bold;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: bold;
-            color: #0f172a;
-            font-size: 14px;
-            box-shadow: 0 0 8px rgba(0, 255, 204, 0.4);
-        }
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            background-color: #00ffcc;
-            border-radius: 50%;
-            margin-left: auto;
-            box-shadow: 0 0 6px #00ffcc;
+            font-size: 1.1rem;
         }
 
-        /* Налаштування мови та звуку */
-        .settings-select {
-            width: 100%;
-            background-color: #0f172a;
+        .user-badge {
             color: #00ffcc;
-            border: 1px solid #334155;
-            padding: 8px;
-            border-radius: 6px;
-            outline: none;
+            font-weight: 600;
+            font-size: 0.95rem;
         }
-        .toggle-row {
+
+        .online-users-list {
+            background: #1a1e2e;
+            padding: 6px;
+            border-radius: 8px;
+            border: 1px solid #2f3552;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            max-height: 180px;
+            overflow-y: auto;
+        }
+
+        .online-user-item {
+            color: #e0e0e0;
+            background: #151823;
+            padding: 8px 10px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
-        .toggle-row span {
-            font-size: 13px;
-            color: #f8fafc;
+
+        .online-user-item:hover {
+            background: rgba(0, 255, 204, 0.1);
+            color: #00ffcc;
         }
 
-        /* Неоновий тумблер */
+        .user-info-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-avatar-small {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #0056b3 0%, #00ffcc 100%);
+            color: #fff;
+            font-weight: bold;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+        .status-dot.online {
+            background-color: #00ffcc;
+            box-shadow: 0 0 6px #00ffcc;
+        }
+        .status-dot.offline {
+            background-color: #555;
+        }
+
+        .toggle-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #1a1e2e;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid #2f3552;
+        }
+
         .switch {
             position: relative;
             display: inline-block;
-            width: 44px;
+            width: 46px;
             height: 24px;
         }
-        .switch input { 
+
+        .switch input {
             opacity: 0;
             width: 0;
             height: 0;
         }
+
         .slider {
             position: absolute;
             cursor: pointer;
             top: 0; left: 0; right: 0; bottom: 0;
-            background-color: #334155;
+            background-color: #2f3552;
             transition: .3s;
             border-radius: 24px;
         }
+
         .slider:before {
             position: absolute;
             content: "";
@@ -203,293 +288,617 @@
             width: 18px;
             left: 3px;
             bottom: 3px;
-            background-color: white;
+            background-color: #fff;
             transition: .3s;
             border-radius: 50%;
         }
+
         input:checked + .slider {
             background-color: #00ffcc;
-            box-shadow: 0 0 8px #00ffcc;
-        }
-        input:checked + .slider:before {
-            transform: translateX(20px);
-            background-color: #0f172a;
+            box-shadow: 0 0 8px rgba(0, 255, 204, 0.4);
         }
 
-        /* Зона чату */
-        .chat-area {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            background-color: #0f172a;
-            height: 100%;
+        input:checked + .slider:before {
+            transform: translateX(22px);
+            background-color: #0d0e15;
         }
-        .chat-messages {
+
+        .menu-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 99;
+            display: none;
+        }
+
+        .menu-overlay.active {
+            display: block;
+        }
+
+        .recipient-banner {
+            background: #1a1e2e;
+            border-top: 1px solid #2f3552;
+            padding: 6px 16px;
+            font-size: 0.85rem;
+            color: #00ffcc;
+            display: none;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .recipient-banner.active {
+            display: flex;
+        }
+
+        .cancel-recipient {
+            background: none;
+            border: none;
+            color: #ff3b30;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        #chat-messages {
             flex: 1;
-            padding: 16px;
             overflow-y: auto;
+            padding: 16px;
             display: flex;
             flex-direction: column;
             gap: 12px;
-        }
-        .message {
-            background-color: #1e293b;
-            padding: 12px;
-            border-radius: 12px;
-            max-width: 80%;
-            border: 1px solid #334155;
+            background: radial-gradient(circle at center, #111422 0%, #0d0e15 100%);
         }
 
-        /* Нижня панель введення */
-        .chat-input-area {
-            display: flex;
+        .message {
+            max-width: 80%;
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            line-height: 1.4;
+            word-break: break-word;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.incoming {
+            background: #1a1e2e;
+            color: #e0e0e0;
+            align-self: flex-start;
+            border-left: 3px solid #7928ca;
+        }
+
+        .message.outgoing {
+            background: #0056b3;
+            color: #fff;
+            align-self: flex-end;
+            border-right: 3px solid #00ffcc;
+        }
+
+        .message.private {
+            border: 1px dashed #00ffcc;
+        }
+
+        .message .author {
+            font-size: 0.75rem;
+            color: #a0a5c0;
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+
+        .input-container {
+            background: #151823;
             padding: 12px 16px;
-            background-color: #1e293b;
-            gap: 10px;
+            border-top: 1px solid #2a2f45;
+            display: flex;
             align-items: center;
-            border-top: 1px solid #334155;
+            gap: 10px;
         }
-        .chat-input-area input {
+
+        .input-wrapper {
             flex: 1;
-            background-color: #0f172a;
-            border: 1px solid #334155;
-            border-radius: 24px;
-            padding: 12px 18px;
-            color: white;
-            outline: none;
-            font-size: 14px;
+            position: relative;
+            display: flex;
+            align-items: center;
         }
-        .btn-icon {
+
+        #message-input {
+            width: 100%;
+            background: #1a1e2e;
+            border: 1px solid #2f3552;
+            color: #fff;
+            padding: 12px 45px 12px 16px;
+            border-radius: 24px;
+            outline: none;
+            font-size: 0.95rem;
+            transition: border-color 0.2s;
+        }
+
+        #message-input:focus {
+            border-color: #00ffcc;
+            box-shadow: 0 0 8px rgba(0, 255, 204, 0.2);
+        }
+
+        .mic-button {
+            position: absolute;
+            right: 10px;
             background: none;
             border: none;
-            color: #94a3b8;
-            font-size: 20px;
+            font-size: 1.2rem;
             cursor: pointer;
-            padding: 4px;
-        }
-        .btn-action {
-            background-color: #00ffcc;
-            border: none;
-            width: 42px;
-            height: 42px;
+            padding: 6px;
             border-radius: 50%;
-            color: #0f172a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s, background 0.2s;
+        }
+
+        .mic-button:hover {
+            background: rgba(255, 255, 255, 0.05);
+            transform: scale(1.1);
+        }
+
+        .mic-button.listening {
+            background-color: rgba(255, 59, 48, 0.2) !important;
+            box-shadow: 0 0 12px #ff3b30;
+            animation: pulseMic 1.5s infinite;
+        }
+
+        @keyframes pulseMic {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+            100% { transform: scale(1); }
+        }
+
+        .send-button {
+            background: linear-gradient(135deg, #00ffcc 0%, #00b894 100%);
+            color: #0d0e15;
+            border: none;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            font-weight: bold;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: bold;
-            box-shadow: 0 0 10px rgba(0, 255, 204, 0.5);
+            box-shadow: 0 0 10px rgba(0, 255, 204, 0.3);
+            transition: transform 0.2s, opacity 0.2s;
+            flex-shrink: 0;
+        }
+
+        .send-button:active {
+            transform: scale(0.95);
         }
     </style>
 </head>
 <body>
 
-    <!-- Шапка додатку -->
-    <div class="app-header">
+    <header>
         <div class="header-left">
-            <div class="menu-icon" id="menuToggle">☰</div>
-            <h1 class="app-title">Habla Mobile</h1>
+            <button id="menu-btn" class="menu-btn" title="Меню">☰</button>
+            <div class="logo">Habla Mobile 3.0</div>
         </div>
-        <div class="online-badge" id="onlineCounter">Онлайн: 1</div>
-    </div>
+        <div id="online-count" class="online-status" title="Натисніть для перегляду списку">Онлайн: 1</div>
+    </header>
 
-    <!-- Верхня панель вибору мови перекладу -->
-    <div class="top-translation-bar">
-        <span>Перекладати на:</span>
-        <select id="targetLang" class="lang-select">
+    <div class="lang-panel">
+        <label for="target-lang" id="label-translate-to">Перекладати на:</label>
+        <select id="target-lang" class="lang-select">
             <option value="English">English</option>
-            <option value="Spanish" selected>Spanish</option>
-            <option value="French">French</option>
+            <option value="Spanish">Spanish</option>
             <option value="Ukrainian">Ukrainian</option>
+            <option value="German">German</option>
+            <option value="French">French</option>
         </select>
     </div>
 
-    <div class="main-container">
-        <!-- Сайдбар налаштувань -->
-        <div class="sidebar" id="sidebar">
-            <div class="sidebar-header">
-                <h3>Configuración</h3>
-                <button id="closeSidebar">✕</button>
-            </div>
+    <div id="menu-overlay" class="menu-overlay"></div>
 
-            <!-- Ваш профіль -->
-            <div class="sidebar-section">
-                <div class="section-title">Ваш профіль</div>
-                <div class="user-card">
-                    <div class="avatar-circle" id="myAvatar">T</div>
-                    <span id="myName" style="font-weight: 500;">Tester</span>
-                </div>
-            </div>
+    <div id="side-menu" class="side-menu">
+        <div class="menu-header">
+            <span class="menu-title" id="menu-title-text">Налаштування</span>
+            <button id="close-menu-btn" class="close-menu-btn">✕</button>
+        </div>
 
-            <!-- Користувачі -->
-            <div class="sidebar-section">
-                <div class="section-title">Користувачі</div>
-                <div class="user-card" style="margin-bottom: 6px;">
-                    <div class="avatar-circle" id="userSelfAvatar">T</div>
-                    <span id="userSelfName">Tester (ви)</span>
-                    <div class="status-dot"></div>
-                </div>
-                <div id="otherUsersContainer"></div>
+        <div class="menu-section">
+            <label id="label-profile">Ваш профіль</label>
+            <div class="user-badge-container">
+                <div id="user-avatar-large" class="user-avatar-large">Г</div>
+                <div id="user-display" class="user-badge">Гість</div>
             </div>
+        </div>
 
-            <!-- Мова інтерфейсу (Spanish за замовчуванням) -->
-            <div class="sidebar-section">
-                <label class="section-title">Мова інтерфейсу:</label>
-                <select class="settings-select" id="interfaceLang">
-                    <option value="Spanish" selected>Spanish</option>
-                    <option value="English">English</option>
-                    <option value="Ukrainian">Ukrainian</option>
-                </select>
+        <div class="menu-section">
+            <label id="label-online-users">Користувачі</label>
+            <div id="online-users-list" class="online-users-list">
+                <span class="online-user-item" style="color: #8a91b4; justify-content: center;">Завантаження...</span>
             </div>
+        </div>
 
-            <!-- Озвучування перекладу (вимкнено за замовчуванням) -->
-            <div class="sidebar-section toggle-row">
-                <span>Озвучування перекладу</span>
+        <div class="menu-section">
+            <label for="interface-lang" id="label-interface-lang">Мова інтерфейсу:</label>
+            <select id="interface-lang" class="lang-select">
+                <option value="Ukrainian">Ukrainian</option>
+                <option value="English">English</option>
+                <option value="Spanish">Spanish</option>
+                <option value="German">German</option>
+                <option value="French">French</option>
+            </select>
+        </div>
+
+        <div class="menu-section">
+            <label id="label-voice-over">Озвучування перекладу</label>
+            <div class="toggle-container">
+                <span id="label-enable-sound" style="font-size: 0.9rem; color: #e0e0e0;">Увімкнути звук</span>
                 <label class="switch">
-                    <input type="checkbox" id="soundToggle">
+                    <input type="checkbox" id="sound-toggle" checked>
                     <span class="slider"></span>
                 </label>
             </div>
         </div>
-
-        <!-- Зона чату -->
-        <div class="chat-area">
-            <div class="chat-messages" id="chatMessages">
-                <!-- Повідомлення чату -->
-            </div>
-            <div class="chat-input-area">
-                <input type="text" id="messageInput" placeholder="Введіть повідомлення або скажіть...">
-                <button class="btn-icon" id="micBtn" title="Голосовий ввід">🎤</button>
-                <button class="btn-action" id="sendBtn">➤</button>
-            </div>
-        </div>
     </div>
 
-    <!-- Підключення Socket.io -->
-    <script src="/socket.io/socket.io.js"></script>
+    <div id="recipient-banner" class="recipient-banner">
+        <span id="recipient-text">Особисте повідомлення для: <b></b></span>
+        <button id="cancel-recipient" class="cancel-recipient">✕ Скасувати</button>
+    </div>
+
+    <div id="chat-messages"></div>
+
+    <div class="input-container">
+        <div class="input-wrapper">
+            <input type="text" id="message-input" placeholder="Введіть повідомлення або скажіть..." autocomplete="off">
+            <button id="mic-btn" class="mic-button" title="Голосовий ввід">🎤</button>
+        </div>
+        <button id="send-btn" class="send-button" title="Відправити">➤</button>
+    </div>
+
     <script>
         const socket = io();
 
-        // Запит ім'я при вході
-        const currentUsername = prompt("Введіть ваше ім'я:", "Tester") || "Tester";
-        document.getElementById('myName').textContent = currentUsername;
-        document.getElementById('myAvatar').textContent = currentUsername.charAt(0).toUpperCase();
-        document.getElementById('userSelfName').textContent = `${currentUsername} (ви)`;
-        document.getElementById('userSelfAvatar').textContent = currentUsername.charAt(0).toUpperCase();
+        let selectedRecipientName = null;
 
-        // Реєстрація на сервері
-        socket.emit('register_user', { name: currentUsername });
+        let username = localStorage.getItem('habla_username');
+        if (!username) {
+            username = prompt("Введіть ваш нікнейм:") || "Гість";
+            username = username.trim();
+            localStorage.setItem('habla_username', username);
+        }
 
-        // Перевірка адмін-прав для StasAn
-        socket.emit('check_admin');
-        socket.on('admin_status', (data) => {
-            if (data.isAdmin) {
-                console.log("Адмін-доступ активовано для StasAn");
+        let availableVoices = [];
+        function populateVoiceList() {
+            if (typeof speechSynthesis === 'undefined') return;
+            availableVoices = speechSynthesis.getVoices();
+        }
+        populateVoiceList();
+        if (typeof speechSynthesis !== 'undefined' && speechSynthesis.onvoiceschanged !== undefined) {
+            speechSynthesis.onvoiceschanged = populateVoiceList;
+        }
+
+        const ttsLangMap = {
+            'Ukrainian': 'uk-UA',
+            'English': 'en-US',
+            'Spanish': 'es-ES',
+            'German': 'de-DE',
+            'French': 'fr-FR'
+        };
+
+        const translations = {
+            Ukrainian: {
+                settings: "Налаштування",
+                profile: "Ваш профіль",
+                onlineUsersTitle: "Користувачі",
+                interfaceLang: "Мова інтерфейсу",
+                voiceOver: "Озвучування перекладу",
+                enableSound: "Увімкнути звук",
+                translateTo: "Перекладати на:",
+                online: "Онлайн",
+                placeholder: "Введіть повідомлення або скажіть...",
+                privateTo: "Особисте повідомлення для: "
+            },
+            English: {
+                settings: "Settings",
+                profile: "Your profile",
+                onlineUsersTitle: "Users",
+                interfaceLang: "Interface language",
+                voiceOver: "Translation voiceover",
+                enableSound: "Enable sound",
+                translateTo: "Translate to:",
+                online: "Online",
+                placeholder: "Type a message or speak...",
+                privateTo: "Private message to: "
+            },
+            Spanish: {
+                settings: "Configuración",
+                profile: "Tu perfil",
+                onlineUsersTitle: "Usuarios",
+                interfaceLang: "Idioma de la interfaz",
+                voiceOver: "Locución de traducción",
+                enableSound: "Activar sonido",
+                translateTo: "Traducir a:",
+                online: "En línea",
+                placeholder: "Escribe un mensaje o habla...",
+                privateTo: "Mensaje privado para: "
+            },
+            German: {
+                settings: "Einstellungen",
+                profile: "Ihr Profil",
+                onlineUsersTitle: "Benutzer",
+                interfaceLang: "Benutzeroberflächensprache",
+                voiceOver: "Übersetzungs-Sprachausgabe",
+                enableSound: "Ton einschalten",
+                translateTo: "Übersetzen in:",
+                online: "Online",
+                placeholder: "Nachricht eingeben oder sprechen...",
+                privateTo: "Private Nachricht an: "
+            },
+            French: {
+                settings: "Paramètres",
+                profile: "Votre profil",
+                onlineUsersTitle: "Utilisateurs",
+                interfaceLang: "Langue de l'interface",
+                voiceOver: "Voix de traduction",
+                enableSound: "Activer le son",
+                translateTo: "Traduire vers :",
+                online: "En ligne",
+                placeholder: "Tapez un message ou parlez...",
+                privateTo: "Message privé à : "
             }
-        });
+        };
 
-        // Керування сайдбаром
-        const menuToggle = document.getElementById('menuToggle');
-        const closeSidebar = document.getElementById('closeSidebar');
-        const sidebar = document.getElementById('sidebar');
+        const messageInput = document.getElementById('message-input');
+        const sendBtn = document.getElementById('send-btn');
+        const chatMessages = document.getElementById('chat-messages');
+        const targetLangSelect = document.getElementById('target-lang');
+        const interfaceLangSelect = document.getElementById('interface-lang');
+        const onlineCount = document.getElementById('online-count');
+        const micBtn = document.getElementById('mic-btn');
+        
+        const menuBtn = document.getElementById('menu-btn');
+        const closeMenuBtn = document.getElementById('close-menu-btn');
+        const sideMenu = document.getElementById('side-menu');
+        const menuOverlay = document.getElementById('menu-overlay');
+        const userDisplay = document.getElementById('user-display');
+        const userAvatarLarge = document.getElementById('user-avatar-large');
+        const onlineUsersList = document.getElementById('online-users-list');
+        const soundToggle = document.getElementById('sound-toggle');
 
-        menuToggle.addEventListener('click', () => {
-            sidebar.classList.add('open');
-        });
+        const recipientBanner = document.getElementById('recipient-banner');
+        const recipientText = document.getElementById('recipient-text');
+        const cancelRecipientBtn = document.getElementById('cancel-recipient');
 
-        closeSidebar.addEventListener('click', () => {
-            sidebar.classList.remove('open');
-        });
+        const labelTranslateTo = document.getElementById('label-translate-to');
+        const menuTitleText = document.getElementById('menu-title-text');
+        const labelProfile = document.getElementById('label-profile');
+        const labelOnlineUsers = document.getElementById('label-online-users');
+        const labelInterfaceLang = document.getElementById('label-interface-lang');
+        const labelVoiceOver = document.getElementById('label-voice-over');
+        const labelEnableSound = document.getElementById('label-enable-sound');
 
-        // Оновлення списку онлайн користувачів та лічильника
-        socket.on('users_update', (users) => {
-            document.getElementById('onlineCounter').textContent = `Онлайн: ${users.length}`;
-            
-            const container = document.getElementById('otherUsersContainer');
-            container.innerHTML = '';
+        let currentOnlineCount = 1;
 
-            users.forEach(user => {
-                if (user.name !== currentUsername) {
-                    const item = document.createElement('div');
-                    item.className = 'user-card';
-                    item.style.marginBottom = '6px';
-                    item.innerHTML = `
-                        <div class="avatar-circle" style="background-color: #334155; color: #00ffcc; box-shadow: none;">${user.name.charAt(0).toUpperCase()}</div>
-                        <span>${user.name}</span>
-                        <div class="status-dot"></div>
-                    `;
-                    container.appendChild(item);
-                }
-            });
-        });
+        function updateInterfaceTexts() {
+            const lang = interfaceLangSelect.value;
+            const t = translations[lang] || translations.Ukrainian;
 
-        // Відправка повідомлень
-        const sendBtn = document.getElementById('sendBtn');
-        const messageInput = document.getElementById('messageInput');
-        const chatMessages = document.getElementById('chatMessages');
+            menuTitleText.textContent = t.settings;
+            labelProfile.textContent = t.profile;
+            labelOnlineUsers.textContent = t.onlineUsersTitle;
+            labelInterfaceLang.textContent = t.interfaceLang;
+            labelVoiceOver.textContent = t.voiceOver;
+            labelEnableSound.textContent = t.enableSound;
+            labelTranslateTo.textContent = t.translateTo;
+            messageInput.placeholder = t.placeholder;
+            onlineCount.textContent = `${t.online}: ${currentOnlineCount}`;
 
-        sendBtn.addEventListener('click', sendMessage);
-        messageInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') sendMessage();
+            if (selectedRecipientName) {
+                recipientText.innerHTML = `${t.privateTo}<b>${selectedRecipientName}</b>`;
+            }
+        }
+
+        interfaceLangSelect.addEventListener('change', updateInterfaceTexts);
+
+        userDisplay.textContent = username;
+        userAvatarLarge.textContent = username.charAt(0).toUpperCase();
+        socket.emit('join', username);
+
+        function openMenu() {
+            sideMenu.classList.add('open');
+            menuOverlay.classList.add('active');
+        }
+
+        function closeMenu() {
+            sideMenu.classList.remove('open');
+            menuOverlay.classList.remove('active');
+        }
+
+        menuBtn.addEventListener('click', openMenu);
+        onlineCount.addEventListener('click', openMenu);
+        closeMenuBtn.addEventListener('click', closeMenu);
+        menuOverlay.addEventListener('click', closeMenu);
+
+        cancelRecipientBtn.addEventListener('click', () => {
+            selectedRecipientName = null;
+            recipientBanner.classList.remove('active');
         });
 
         function sendMessage() {
             const text = messageInput.value.trim();
             if (!text) return;
 
-            const targetLang = document.getElementById('targetLang').value;
-            socket.emit('chat_message', { 
-                text: text, 
-                targetLanguage: targetLang 
+            const targetLang = targetLangSelect.value;
+
+            socket.emit('chatMessage', {
+                text: text,
+                targetLang: targetLang,
+                user: username,
+                recipientName: selectedRecipientName
             });
+
             messageInput.value = '';
+            // Прибрано автоматичний виклик .focus(), щоб клавіатура не з'являлася сама
         }
 
-        socket.on('chat_message', (data) => {
-            const msgDiv = document.createElement('div');
-            msgDiv.className = 'message';
-            msgDiv.innerHTML = `<strong>${data.senderName}:</strong> ${data.text}`;
-            chatMessages.appendChild(msgDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
+        sendBtn.addEventListener('click', sendMessage);
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
         });
 
-        // Голосовий ввід з червоним підсвічуванням мікрофона під час запису
-        const micBtn = document.getElementById('micBtn');
-        let isListening = false;
-        
-        micBtn.addEventListener('click', () => {
-            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-                alert("Ваш браузер не підтримує голосовий ввід.");
-                return;
+        socket.on('chatMessage', (data) => {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message');
+            
+            const isSelf = data.user === username;
+            messageDiv.classList.add(isSelf ? 'outgoing' : 'incoming');
+            if (data.isPrivate) {
+                messageDiv.classList.add('private');
             }
 
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            let authorLabel = escapeHtml(data.user);
+            if (data.isPrivate) {
+                authorLabel += ` 🔒 (Особисте)`;
+            }
+
+            let htmlContent = `<div class="author"><span>${authorLabel}</span></div>`;
+            htmlContent += `<div>${escapeHtml(data.text)}</div>`;
+
+            messageDiv.innerHTML = htmlContent;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            if (soundToggle.checked && 'speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(data.text);
+                const selectedLangCode = ttsLangMap[targetLangSelect.value] || 'uk-UA';
+                utterance.lang = selectedLangCode;
+                
+                if (availableVoices.length > 0) {
+                    const langVoices = availableVoices.filter(v => v.lang.startsWith(selectedLangCode.split('-')[0]));
+                    if (langVoices.length > 0) {
+                        const bestVoice = langVoices.find(v => v.name.includes('Google') || v.name.includes('Microsoft') || v.name.includes('Natural')) || langVoices[0];
+                        utterance.voice = bestVoice;
+                    }
+                }
+                
+                window.speechSynthesis.speak(utterance);
+            }
+        });
+
+        socket.on('onlineCount', (count) => {
+            currentOnlineCount = count;
+            const lang = interfaceLangSelect.value;
+            const t = translations[lang] || translations.Ukrainian;
+            onlineCount.textContent = `${t.online}: ${count}`;
+        });
+
+        socket.on('update-users', (users) => {
+            onlineUsersList.innerHTML = '';
+            users.forEach(user => {
+                const userItem = document.createElement('div');
+                userItem.classList.add('online-user-item');
+                
+                const isMe = user.name === username;
+                const firstLetter = user.name.charAt(0).toUpperCase();
+
+                userItem.innerHTML = `
+                    <div class="user-info-left">
+                        <div class="user-avatar-small">${firstLetter}</div>
+                        <span>${escapeHtml(user.name)}${isMe ? ' (ви)' : ''}</span>
+                    </div>
+                    <div class="status-dot ${user.isOnline ? 'online' : 'offline'}" title="${user.isOnline ? 'Онлайн' : 'Офлайн'}"></div>
+                `;
+
+                if (!isMe) {
+                    userItem.title = "Натисніть, щоб писати приватно";
+                    userItem.addEventListener('click', () => {
+                        selectedRecipientName = user.name;
+                        
+                        const lang = interfaceLangSelect.value;
+                        const t = translations[lang] || translations.Ukrainian;
+                        recipientText.innerHTML = `${t.privateTo}<b>${user.name}</b>`;
+                        recipientBanner.classList.add('active');
+
+                        closeMenu();
+                    });
+                } else {
+                    userItem.style.cursor = 'default';
+                }
+
+                onlineUsersList.appendChild(userItem);
+            });
+        });
+
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+        }
+
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+        if (!SpeechRecognition) {
+            console.warn("Speech Recognition API не підтримується цим браузером.");
+            micBtn.style.display = 'none';
+        } else {
             const recognition = new SpeechRecognition();
-            recognition.lang = 'uk-UA';
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+            let isListening = false;
 
-            if (!isListening) {
-                recognition.start();
+            micBtn.addEventListener('click', () => {
+                if (isListening) {
+                    recognition.stop();
+                    return;
+                }
+
+                recognition.lang = 'uk-UA'; 
+
+                try {
+                    recognition.start();
+                } catch (e) {
+                    console.error("Помилка запуску розпізнавання:", e);
+                }
+            });
+
+            recognition.onstart = () => {
                 isListening = true;
-                micBtn.style.color = '#ef4444'; // Червоне підсвічування під час запису
-            } else {
-                recognition.stop();
-                isListening = false;
-                micBtn.style.color = '#94a3b8';
-            }
+                micBtn.classList.add('listening');
+                micBtn.textContent = "🔴";
+            };
 
             recognition.onresult = (event) => {
-                const speechResult = event.results[0][0].transcript;
-                messageInput.value = speechResult;
-                isListening = false;
-                micBtn.style.color = '#94a3b8';
+                const speechText = event.results[0][0].transcript;
+                messageInput.value += (messageInput.value ? ' ' : '') + speechText;
+                // Прибрано автоматичний виклик .focus() після розпізнавання голосу
             };
 
-            recognition.onerror = () => {
-                isListening = false;
-                micBtn.style.color = '#94a3b8';
+            recognition.onerror = (event) => {
+                console.error("Помилка мікрофона:", event.error);
+                stopListeningState();
             };
-        });
+
+            recognition.onend = () => {
+                stopListeningState();
+            };
+
+            function stopListeningState() {
+                isListening = false;
+                micBtn.classList.remove('listening');
+                micBtn.textContent = "🎤";
+            }
+        }
     </script>
 </body>
 </html>
