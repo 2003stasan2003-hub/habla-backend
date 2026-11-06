@@ -115,10 +115,10 @@
             gap: 10px;
             overflow-x: auto;
             white-space: nowrap;
-            scrollbar-width: none; /* Firefox */
+            scrollbar-width: none;
         }
         .top-contacts-strip::-webkit-scrollbar {
-            display: none; /* Chrome, Safari */
+            display: none;
         }
 
         .contact-pill {
@@ -168,41 +168,6 @@
         }
         .pill-dot.online { background-color: #00ffcc; box-shadow: 0 0 5px #00ffcc; }
         .pill-dot.offline { background-color: #ff3b30; }
-
-        /* Постійний великий індикатор активного чату */
-        .active-chat-banner {
-            background: #121520;
-            border-bottom: 1px solid #2f3552;
-            padding: 8px 16px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .active-chat-text {
-            color: #00ffcc;
-            font-weight: bold;
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .exit-recipient-btn {
-            background: rgba(255, 59, 48, 0.15);
-            border: 1px solid #ff3b30;
-            color: #ff3b30;
-            cursor: pointer;
-            font-size: 0.75rem;
-            font-weight: bold;
-            padding: 3px 8px;
-            border-radius: 6px;
-            display: none;
-            transition: background 0.2s;
-        }
-
-        .exit-recipient-btn:hover {
-            background: rgba(255, 59, 48, 0.3);
-        }
 
         .side-menu {
             position: fixed;
@@ -313,84 +278,6 @@
             font-weight: bold;
             cursor: pointer;
             font-size: 0.85rem;
-        }
-
-        #custom-context-menu {
-            display: none;
-            position: fixed;
-            background: #1a1e2e;
-            border: 1px solid #2f3552;
-            border-radius: 8px;
-            padding: 6px;
-            z-index: 1000;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.6);
-        }
-
-        .context-menu-item {
-            padding: 8px 12px;
-            font-size: 0.85rem;
-            color: #ff3b30;
-            cursor: pointer;
-            border-radius: 4px;
-            transition: background 0.2s;
-        }
-
-        .context-menu-item:hover {
-            background: rgba(255, 59, 48, 0.15);
-        }
-
-        .toggle-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #1a1e2e;
-            padding: 10px 12px;
-            border-radius: 8px;
-            border: 1px solid #2f3552;
-        }
-
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 46px;
-            height: 24px;
-        }
-
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-color: #2f3552;
-            transition: .3s;
-            border-radius: 24px;
-        }
-
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 18px;
-            width: 18px;
-            left: 3px;
-            bottom: 3px;
-            background-color: #fff;
-            transition: .3s;
-            border-radius: 50%;
-        }
-
-        input:checked + .slider {
-            background-color: #00ffcc;
-            box-shadow: 0 0 8px rgba(0, 255, 204, 0.4);
-        }
-
-        input:checked + .slider:before {
-            transform: translateX(22px);
-            background-color: #0d0e15;
         }
 
         .menu-overlay {
@@ -591,17 +478,7 @@
         <span style="color: #8a91b4; font-size: 0.85rem; padding: 4px;">Cargando...</span>
     </div>
 
-    <!-- Постійний великий індикатор активного чату -->
-    <div class="active-chat-banner">
-        <span id="active-chat-text" class="active-chat-text">🌐 Загальний чат (Public)</span>
-        <button id="exit-recipient-btn" class="exit-recipient-btn">✕ Вийти в загальний</button>
-    </div>
-
     <div id="menu-overlay" class="menu-overlay"></div>
-
-    <div id="custom-context-menu">
-        <div id="ctx-delete-btn" class="context-menu-item">Видалити</div>
-    </div>
 
     <div id="side-menu" class="side-menu">
         <div class="menu-header">
@@ -632,14 +509,14 @@
             </div>
         </div>
 
-        <!-- БЛОК ПОШИРЕННЯ: Системне меню + QR-код -->
+        <!-- БЛОК ПОШИРЕННЯ: Кнопка «Поділитися» без дужок + QR-код -->
         <div class="menu-section">
             <label id="label-share-app">Instalar / Compartir App</label>
             <div style="background: #1a1e2e; padding: 10px; border-radius: 8px; border: 1px solid #2f3552; display: flex; flex-direction: column; gap: 8px; align-items: center; text-align: center;">
                 <img id="qr-code-img" src="" alt="QR Code" style="width: 110px; height: 110px; background: #fff; padding: 4px; border-radius: 6px;">
                 <div id="app-url-text" style="font-size: 0.75rem; color: #8a91b4; word-break: break-all;">---</div>
                 <button id="native-share-btn" style="background: linear-gradient(135deg, #00ffcc 0%, #00b894 100%); color: #0d0e15; border: none; padding: 8px 10px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.8rem; width: 100%;">
-                    📤 Поділитися (WhatsApp, Viber...)
+                    📤 Поділитися
                 </button>
                 <button id="copy-link-btn" style="background: #2f3552; color: #00ffcc; border: none; padding: 6px 10px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.8rem; width: 100%;">
                     📋 Копіювати посилання
@@ -693,10 +570,9 @@
         const socket = io();
 
         let selectedRecipientName = null;
-        let activeContextUser = null;
-
-        // Зберігаємо порядок нещодавніх контактів локально, щоб останній вибраний завжди був першим
         let recentContactsOrder = JSON.parse(localStorage.getItem('habla_recent_contacts') || '[]');
+        // Зберігаємо додані локально користувачі, щоб вони одразу відображалися у стрічці
+        let localAddedContacts = JSON.parse(localStorage.getItem('habla_local_contacts') || '[]');
 
         let username = localStorage.getItem('habla_username');
         if (!username) {
@@ -780,16 +656,12 @@
                 translateTo: "Traducir a:",
                 online: "En línea",
                 placeholder: "Escribe un mensaje o habla...",
-                privateTo: "Privado con: ",
-                publicChat: "🌐 Загальний чат (Public)",
-                exitPublic: "✕ Вийти в загальний",
                 addPlaceholder: "Añadir por apodo...",
                 addBtn: "Añadir",
-                deleteBtn: "Eliminar",
                 noContacts: "Sin contactos",
                 apiStatus: "Estado API Groq",
                 shareApp: "Instalar / Compartir App",
-                nativeShare: "📤 Compartir (WhatsApp, Viber...)",
+                nativeShare: "📤 Compartir",
                 copyLink: "📋 Copiar enlace"
             },
             English: {
@@ -802,16 +674,12 @@
                 translateTo: "Translate to:",
                 online: "Online",
                 placeholder: "Type a message or speak...",
-                privateTo: "Private with: ",
-                publicChat: "🌐 General Chat (Public)",
-                exitPublic: "✕ Exit to General",
                 addPlaceholder: "Add by nickname...",
                 addBtn: "Add",
-                deleteBtn: "Delete",
                 noContacts: "No contacts",
                 apiStatus: "Groq API Status",
                 shareApp: "Install / Share App",
-                nativeShare: "📤 Share (WhatsApp, Viber...)",
+                nativeShare: "📤 Share",
                 copyLink: "📋 Copy Link"
             },
             Ukrainian: {
@@ -824,16 +692,12 @@
                 translateTo: "Перекладати на:",
                 online: "Онлайн",
                 placeholder: "Введіть повідомлення або скажіть...",
-                privateTo: "Приватно з: ",
-                publicChat: "🌐 Загальний чат (Public)",
-                exitPublic: "✕ Вийти в загальний",
                 addPlaceholder: "Додати за ніком...",
                 addBtn: "Додати",
-                deleteBtn: "Видалити",
                 noContacts: "Немає контактів",
                 apiStatus: "Статус API Groq",
                 shareApp: "Встановити / Поділитися додатком",
-                nativeShare: "📤 Поділитися (WhatsApp, Viber...)",
+                nativeShare: "📤 Поділитися",
                 copyLink: "📋 Копіювати посилання"
             },
             German: {
@@ -846,16 +710,12 @@
                 translateTo: "Übersetzen in:",
                 online: "Online",
                 placeholder: "Nachricht eingeben oder sprechen...",
-                privateTo: "Privat mit: ",
-                publicChat: "🌐 Allgemeiner Chat",
-                exitPublic: "✕ Allgemein",
                 addPlaceholder: "Nach Spitzname...",
                 addBtn: "Hinzufügen",
-                deleteBtn: "Löschen",
                 noContacts: "Keine Kontakte",
                 apiStatus: "Groq API-Status",
                 shareApp: "App installieren / teilen",
-                nativeShare: "📤 Teilen (WhatsApp, Viber...)",
+                nativeShare: "📤 Teilen",
                 copyLink: "📋 Link kopieren"
             },
             French: {
@@ -868,16 +728,12 @@
                 translateTo: "Traduire vers :",
                 online: "En línea",
                 placeholder: "Tapez un message ou parlez...",
-                privateTo: "Privé avec : ",
-                publicChat: "🌐 Chat général",
-                exitPublic: "✕ Quitter",
                 addPlaceholder: "Ajouter par pseudo...",
                 addBtn: "Ajouter",
-                deleteBtn: "Supprimer",
                 noContacts: "Aucun contact",
                 apiStatus: "Statut API Groq",
                 shareApp: "Installer / Partager",
-                nativeShare: "📤 Partager (WhatsApp, Viber...)",
+                nativeShare: "📤 Partager",
                 copyLink: "📋 Copier le lien"
             }
         };
@@ -901,9 +757,6 @@
 
         const newContactInput = document.getElementById('new-contact-input');
         const addContactBtn = document.getElementById('add-contact-btn');
-
-        const activeChatText = document.getElementById('active-chat-text');
-        const exitRecipientBtn = document.getElementById('exit-recipient-btn');
 
         const labelTranslateTo = document.getElementById('label-translate-to');
         const menuTitleText = document.getElementById('menu-title-text');
@@ -943,13 +796,6 @@
             newContactInput.placeholder = t.addPlaceholder;
             addContactBtn.textContent = t.addBtn;
             onlineCount.textContent = `${t.online}: ${currentOnlineCount}`;
-            exitRecipientBtn.textContent = t.exitPublic;
-
-            if (!selectedRecipientName) {
-                activeChatText.textContent = t.publicChat;
-            } else {
-                activeChatText.textContent = `${t.privateTo}${selectedRecipientName}`;
-            }
 
             renderTopContacts(lastUsersData, lastIsAdmin);
         }
@@ -980,20 +826,20 @@
         closeMenuBtn.addEventListener('click', closeMenu);
         menuOverlay.addEventListener('click', closeMenu);
 
-        exitRecipientBtn.addEventListener('click', () => {
-            selectedRecipientName = null;
-            const lang = interfaceLangSelect.value;
-            const t = translations[lang] || translations.Spanish;
-            activeChatText.textContent = t.publicChat;
-            exitRecipientBtn.style.display = 'none';
-            renderTopContacts(lastUsersData, lastIsAdmin);
-        });
-
+        // Додавання контакту вручну з миттєвим відображенням у стрічці зверху
         addContactBtn.addEventListener('click', () => {
             const targetName = newContactInput.value.trim();
             if (targetName && targetName !== username) {
                 socket.emit('add-contact', targetName);
+                
+                // Зберігаємо локально, щоб одразу бачити у верхній стрічці
+                if (!localAddedContacts.includes(targetName)) {
+                    localAddedContacts.push(targetName);
+                    localStorage.setItem('habla_local_contacts', JSON.stringify(localAddedContacts));
+                }
+
                 newContactInput.value = '';
+                renderTopContacts(lastUsersData, lastIsAdmin);
             }
         });
 
@@ -1115,7 +961,6 @@
             onlineCount.textContent = `${t.online}: ${count}`;
         });
 
-        // Оновлення списку контактів та сортування згідно з історією взаємодії
         socket.on('update-users', ({ users, isAdmin }) => {
             lastUsersData = users;
             lastIsAdmin = isAdmin;
@@ -1127,13 +972,24 @@
             const lang = interfaceLangSelect.value;
             const t = translations[lang] || translations.Spanish;
 
-            if (users.length === 0) {
+            // Об'єднуємо список із сервера та локально додані контакти
+            let allNamesMap = new Map();
+            users.forEach(u => allNamesMap.set(u.name, u));
+            localAddedContacts.forEach(name => {
+                if (!allNamesMap.has(name)) {
+                    allNamesMap.set(name, { name: name, isOnline: false, myAdd: true, theirAdd: false, isMutual: false });
+                }
+            });
+
+            let combinedUsers = Array.from(allNamesMap.values());
+
+            if (combinedUsers.length === 0) {
                 topContactsStrip.innerHTML = `<span style="color: #8a91b4; font-size: 0.85rem; padding: 4px;">${t.noContacts}</span>`;
                 return;
             }
 
-            // Сортуємо контакти: обраний або нещодавній автоматично йде на перше місце
-            users.sort((a, b) => {
+            // Сортування: вибраний або останній нещодавній іде на перше місце
+            combinedUsers.sort((a, b) => {
                 const indexA = recentContactsOrder.indexOf(a.name);
                 const indexB = recentContactsOrder.indexOf(b.name);
                 if (indexA !== -1 && indexB !== -1) return indexA - indexB;
@@ -1142,7 +998,7 @@
                 return 0;
             });
 
-            users.forEach(user => {
+            combinedUsers.forEach(user => {
                 const pill = document.createElement('div');
                 pill.classList.add('contact-pill');
                 if (selectedRecipientName === user.name) {
@@ -1161,13 +1017,10 @@
                     <div class="pill-dot ${user.isOnline ? 'online' : 'offline'}"></div>
                 `;
 
-                // Клік по контакту: обираємо людину і вона автоматично переміщується на перше місце в списку
+                // Клік по контакту: обираємо людину для приватної розмови та підіймаємо на перше місце
                 pill.addEventListener('click', () => {
                     selectedRecipientName = user.name;
-                    activeChatText.textContent = `${t.privateTo}${user.name}`;
-                    exitRecipientBtn.style.display = 'block';
 
-                    // Переміщуємо у масиві нещодавніх на початок
                     recentContactsOrder = recentContactsOrder.filter(n => n !== user.name);
                     recentContactsOrder.unshift(user.name);
                     localStorage.setItem('habla_recent_contacts', JSON.stringify(recentContactsOrder));
@@ -1236,7 +1089,7 @@
             };
 
             function stopListeningState() {
-                isNames = false;
+                isListening = false;
                 micBtn.classList.remove('listening');
                 micBtn.textContent = "🎤";
             }
