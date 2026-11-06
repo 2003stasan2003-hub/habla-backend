@@ -572,11 +572,18 @@
             </div>
         </div>
 
-        <!-- Індикатор лімітів Groq API без додаткових запитів -->
+        <!-- Двостовпчиковий індикатор лімітів Groq API з кольоровою підсвіткою -->
         <div class="menu-section">
             <label id="label-api-status">Estado API Groq</label>
-            <div id="api-limits-info" style="font-size: 0.8rem; color: #8a91b4; background: #1a1e2e; padding: 6px 10px; border-radius: 6px; border: 1px solid #2f3552;">
-                Req: --- | Tok: ---
+            <div style="display: flex; gap: 8px;">
+                <div id="req-box" style="flex: 1; background: #1a1e2e; padding: 8px; border-radius: 8px; border: 1px solid #2f3552; text-align: center; transition: border-color 0.3s, box-shadow 0.3s;">
+                    <div style="font-size: 0.7rem; color: #8a91b4; margin-bottom: 2px;">REQS</div>
+                    <div id="req-value" style="font-size: 0.95rem; font-weight: bold; color: #00ffcc;">---</div>
+                </div>
+                <div id="tok-box" style="flex: 1; background: #1a1e2e; padding: 8px; border-radius: 8px; border: 1px solid #2f3552; text-align: center; transition: border-color 0.3s, box-shadow 0.3s;">
+                    <div style="font-size: 0.7rem; color: #8a91b4; margin-bottom: 2px;">TOKENS</div>
+                    <div id="tok-value" style="font-size: 0.95rem; font-weight: bold; color: #00ffcc;">---</div>
+                </div>
             </div>
         </div>
 
@@ -932,11 +939,48 @@
             }
         });
 
-        // Слухаємо оновлення лімітів Groq API від сервера
+        // Двостовпчиковий світлофор для лімітів Groq API
         socket.on('groq-limits', (limits) => {
-            const limitsEl = document.getElementById('api-limits-info');
-            if (limitsEl) {
-                limitsEl.textContent = `Req: ${limits.requests} | Tok: ${limits.tokens}`;
+            const reqVal = parseInt(limits.requests, 10);
+            const tokVal = parseInt(limits.tokens, 10);
+
+            const reqBox = document.getElementById('req-box');
+            const reqElem = document.getElementById('req-value');
+            const tokBox = document.getElementById('tok-box');
+            const tokElem = document.getElementById('tok-value');
+
+            if (reqElem && !isNaN(reqVal)) {
+                reqElem.textContent = reqVal;
+                if (reqVal > 300) {
+                    reqBox.style.borderColor = '#00ffcc';
+                    reqBox.style.boxShadow = '0 0 8px rgba(0, 255, 204, 0.2)';
+                    reqElem.style.color = '#00ffcc';
+                } else if (reqVal >= 100) {
+                    reqBox.style.borderColor = '#ffcc00';
+                    reqBox.style.boxShadow = '0 0 8px rgba(255, 204, 0, 0.2)';
+                    reqElem.style.color = '#ffcc00';
+                } else {
+                    reqBox.style.borderColor = '#ff3b30';
+                    reqBox.style.boxShadow = '0 0 8px rgba(255, 59, 48, 0.3)';
+                    reqElem.style.color = '#ff3b30';
+                }
+            }
+
+            if (tokElem && !isNaN(tokVal)) {
+                tokElem.textContent = tokVal;
+                if (tokVal > 20000) {
+                    tokBox.style.borderColor = '#00ffcc';
+                    tokBox.style.boxShadow = '0 0 8px rgba(0, 255, 204, 0.2)';
+                    tokElem.style.color = '#00ffcc';
+                } else if (tokVal >= 5000) {
+                    tokBox.style.borderColor = '#ffcc00';
+                    tokBox.style.boxShadow = '0 0 8px rgba(255, 204, 0, 0.2)';
+                    tokElem.style.color = '#ffcc00';
+                } else {
+                    tokBox.style.borderColor = '#ff3b30';
+                    tokBox.style.boxShadow = '0 0 8px rgba(255, 59, 48, 0.3)';
+                    tokElem.style.color = '#ff3b30';
+                }
             }
         });
 
