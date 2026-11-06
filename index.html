@@ -106,11 +106,74 @@
             cursor: pointer;
         }
 
-        /* Постійний великий індикатор активного чату */
-        .active-chat-banner {
+        /* ГОРИЗОНТАЛЬНА СТРІЧКА КОНТАКТІВ ЗВЕРХУ */
+        .top-contacts-strip {
             background: #151823;
             border-bottom: 1px solid #2f3552;
-            padding: 10px 16px;
+            padding: 8px 12px;
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            white-space: nowrap;
+            scrollbar-width: none; /* Firefox */
+        }
+        .top-contacts-strip::-webkit-scrollbar {
+            display: none; /* Chrome, Safari */
+        }
+
+        .contact-pill {
+            background: #1a1e2e;
+            border: 1px solid #2f3552;
+            color: #e0e0e0;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+
+        .contact-pill:hover {
+            border-color: #00ffcc;
+            background: rgba(0, 255, 204, 0.05);
+        }
+
+        .contact-pill.active {
+            border-color: #00ffcc;
+            background: rgba(0, 255, 204, 0.15);
+            color: #00ffcc;
+            font-weight: bold;
+        }
+
+        .pill-avatar {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #0056b3 0%, #00ffcc 100%);
+            color: #fff;
+            font-weight: bold;
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pill-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+        }
+        .pill-dot.online { background-color: #00ffcc; box-shadow: 0 0 5px #00ffcc; }
+        .pill-dot.offline { background-color: #ff3b30; }
+
+        /* Постійний великий індикатор активного чату */
+        .active-chat-banner {
+            background: #121520;
+            border-bottom: 1px solid #2f3552;
+            padding: 8px 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -119,7 +182,7 @@
         .active-chat-text {
             color: #00ffcc;
             font-weight: bold;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
@@ -131,7 +194,7 @@
             cursor: pointer;
             font-size: 0.75rem;
             font-weight: bold;
-            padding: 4px 8px;
+            padding: 3px 8px;
             border-radius: 6px;
             display: none;
             transition: background 0.2s;
@@ -250,71 +313,6 @@
             font-weight: bold;
             cursor: pointer;
             font-size: 0.85rem;
-        }
-
-        .online-users-list {
-            background: #1a1e2e;
-            padding: 6px;
-            border-radius: 8px;
-            border: 1px solid #2f3552;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            max-height: 150px;
-            overflow-y: auto;
-        }
-
-        .online-user-item {
-            color: #e0e0e0;
-            background: #151823;
-            padding: 8px 10px;
-            border-radius: 6px;
-            font-size: 0.9rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            transition: background 0.2s, color 0.2s;
-        }
-
-        .online-user-item:hover {
-            background: rgba(0, 255, 204, 0.1);
-            color: #00ffcc;
-        }
-
-        .user-info-left {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex: 1;
-        }
-
-        .user-avatar-small {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #0056b3 0%, #00ffcc 100%);
-            color: #fff;
-            font-weight: bold;
-            font-size: 0.8rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            flex-shrink: 0;
-        }
-        .status-dot.online {
-            background-color: #00ffcc;
-            box-shadow: 0 0 6px #00ffcc;
-        }
-        .status-dot.offline {
-            background-color: #ff3b30;
-            box-shadow: 0 0 6px #ff3b30;
         }
 
         #custom-context-menu {
@@ -588,6 +586,11 @@
         </select>
     </div>
 
+    <!-- ГОРИЗОНТАЛЬНА СТРІЧКА КОНТАКТІВ ЗВЕРХУ -->
+    <div id="top-contacts-strip" class="top-contacts-strip">
+        <span style="color: #8a91b4; font-size: 0.85rem; padding: 4px;">Cargando...</span>
+    </div>
+
     <!-- Постійний великий індикатор активного чату -->
     <div class="active-chat-banner">
         <span id="active-chat-text" class="active-chat-text">🌐 Загальний чат (Public)</span>
@@ -629,33 +632,27 @@
             </div>
         </div>
 
-        <!-- БЛОК ПОШИРЕННЯ: Системне меню (WhatsApp, Viber...) + QR-код -->
+        <!-- БЛОК ПОШИРЕННЯ: Системне меню + QR-код -->
         <div class="menu-section">
             <label id="label-share-app">Instalar / Compartir App</label>
             <div style="background: #1a1e2e; padding: 10px; border-radius: 8px; border: 1px solid #2f3552; display: flex; flex-direction: column; gap: 8px; align-items: center; text-align: center;">
                 <img id="qr-code-img" src="" alt="QR Code" style="width: 110px; height: 110px; background: #fff; padding: 4px; border-radius: 6px;">
                 <div id="app-url-text" style="font-size: 0.75rem; color: #8a91b4; word-break: break-all;">---</div>
-                
-                <!-- Кнопка системного поширення (відкриває WhatsApp, Viber, Telegram тощо на смартфоні) -->
                 <button id="native-share-btn" style="background: linear-gradient(135deg, #00ffcc 0%, #00b894 100%); color: #0d0e15; border: none; padding: 8px 10px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.8rem; width: 100%;">
                     📤 Поділитися (WhatsApp, Viber...)
                 </button>
-
-                <!-- Кнопка копіювання посилання -->
                 <button id="copy-link-btn" style="background: #2f3552; color: #00ffcc; border: none; padding: 6px 10px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.8rem; width: 100%;">
                     📋 Копіювати посилання
                 </button>
             </div>
         </div>
 
+        <!-- ДОДАВАННЯ НОВОГО КОНТАКТУ -->
         <div class="menu-section">
             <label id="label-online-users">Contactos / Usuarios</label>
             <div class="add-contact-box">
                 <input type="text" id="new-contact-input" class="add-contact-input" placeholder="Añadir por apodo...">
                 <button id="add-contact-btn" class="add-contact-btn">Añadir</button>
-            </div>
-            <div id="online-users-list" class="online-users-list">
-                <span class="online-user-item" style="color: #8a91b4; justify-content: center; cursor: default;">Cargando...</span>
             </div>
         </div>
 
@@ -698,6 +695,9 @@
         let selectedRecipientName = null;
         let activeContextUser = null;
 
+        // Зберігаємо порядок нещодавніх контактів локально, щоб останній вибраний завжди був першим
+        let recentContactsOrder = JSON.parse(localStorage.getItem('habla_recent_contacts') || '[]');
+
         let username = localStorage.getItem('habla_username');
         if (!username) {
             username = prompt("Introduce tu apodo / Introduce your nickname:") || "Invitado";
@@ -705,12 +705,10 @@
             localStorage.setItem('habla_username', username);
         }
 
-        // Генерація QR-коду та посилання в сайдбарі
         const currentAppUrl = window.location.origin;
         document.getElementById('app-url-text').textContent = currentAppUrl;
         document.getElementById('qr-code-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(currentAppUrl)}`;
 
-        // Кнопка системного поширення (викликає меню смартфона з усіма месенджерами)
         document.getElementById('native-share-btn').addEventListener('click', async () => {
             if (navigator.share) {
                 try {
@@ -720,16 +718,14 @@
                         url: currentAppUrl
                     });
                 } catch (err) {
-                    console.log('Поширення скасовано користувачем', err);
+                    console.log('Поширення скасовано', err);
                 }
             } else {
-                // Якщо браузер не підтримує (наприклад, старий ПК) — копіюємо в буфер
                 navigator.clipboard.writeText(currentAppUrl);
                 alert('Посилання скопійовано в буфер обміну!');
             }
         });
 
-        // Кнопка простого копіювання посилання
         document.getElementById('copy-link-btn').addEventListener('click', () => {
             navigator.clipboard.writeText(currentAppUrl).then(() => {
                 alert('¡Enlace copiado / Посилання скопійовано!');
@@ -777,7 +773,7 @@
             Spanish: {
                 settings: "Configuración",
                 profile: "Tu perfil",
-                onlineUsersTitle: "Contactos / Usuarios",
+                onlineUsersTitle: "Añadir contacto",
                 interfaceLang: "Idioma de la interfaz",
                 voiceOver: "Locución de traducción",
                 enableSound: "Activar sonido",
@@ -799,7 +795,7 @@
             English: {
                 settings: "Settings",
                 profile: "Your profile",
-                onlineUsersTitle: "Contacts / Users",
+                onlineUsersTitle: "Add contact",
                 interfaceLang: "Interface language",
                 voiceOver: "Translation voiceover",
                 enableSound: "Enable sound",
@@ -821,7 +817,7 @@
             Ukrainian: {
                 settings: "Налаштування",
                 profile: "Ваш профіль",
-                onlineUsersTitle: "Контакти / Користувачі",
+                onlineUsersTitle: "Додати контакт",
                 interfaceLang: "Мова інтерфейсу",
                 voiceOver: "Озвучування перекладу",
                 enableSound: "Увімкнути звук",
@@ -843,7 +839,7 @@
             German: {
                 settings: "Einstellungen",
                 profile: "Ihr Profil",
-                onlineUsersTitle: "Kontakte / Benutzer",
+                onlineUsersTitle: "Kontakt hinzufügen",
                 interfaceLang: "Benutzeroberflächensprache",
                 voiceOver: "Übersetzungs-Sprachausgabe",
                 enableSound: "Ton einschalten",
@@ -865,7 +861,7 @@
             French: {
                 settings: "Paramètres",
                 profile: "Votre profil",
-                onlineUsersTitle: "Contacts / Utilisateurs",
+                onlineUsersTitle: "Ajouter un contact",
                 interfaceLang: "Langue de l'interface",
                 voiceOver: "Voix de traduction",
                 enableSound: "Activer le son",
@@ -900,14 +896,11 @@
         const menuOverlay = document.getElementById('menu-overlay');
         const userDisplay = document.getElementById('user-display');
         const userAvatarLarge = document.getElementById('user-avatar-large');
-        const onlineUsersList = document.getElementById('online-users-list');
+        const topContactsStrip = document.getElementById('top-contacts-strip');
         const soundToggle = document.getElementById('sound-toggle');
 
         const newContactInput = document.getElementById('new-contact-input');
         const addContactBtn = document.getElementById('add-contact-btn');
-
-        const customContextMenu = document.getElementById('custom-context-menu');
-        const ctxDeleteBtn = document.getElementById('ctx-delete-btn');
 
         const activeChatText = document.getElementById('active-chat-text');
         const exitRecipientBtn = document.getElementById('exit-recipient-btn');
@@ -925,6 +918,8 @@
         const copyLinkBtn = document.getElementById('copy-link-btn');
 
         let currentOnlineCount = 1;
+        let lastUsersData = [];
+        let lastIsAdmin = false;
 
         let savedInterfaceLang = localStorage.getItem('habla_interface_lang') || 'Spanish';
         interfaceLangSelect.value = savedInterfaceLang;
@@ -947,7 +942,6 @@
             messageInput.placeholder = t.placeholder;
             newContactInput.placeholder = t.addPlaceholder;
             addContactBtn.textContent = t.addBtn;
-            ctxDeleteBtn.textContent = t.deleteBtn;
             onlineCount.textContent = `${t.online}: ${currentOnlineCount}`;
             exitRecipientBtn.textContent = t.exitPublic;
 
@@ -956,6 +950,8 @@
             } else {
                 activeChatText.textContent = `${t.privateTo}${selectedRecipientName}`;
             }
+
+            renderTopContacts(lastUsersData, lastIsAdmin);
         }
 
         interfaceLangSelect.addEventListener('change', () => {
@@ -977,7 +973,6 @@
         function closeMenu() {
             sideMenu.classList.remove('open');
             menuOverlay.classList.remove('active');
-            customContextMenu.style.display = 'none';
         }
 
         menuBtn.addEventListener('click', openMenu);
@@ -985,24 +980,13 @@
         closeMenuBtn.addEventListener('click', closeMenu);
         menuOverlay.addEventListener('click', closeMenu);
 
-        document.addEventListener('click', () => {
-            customContextMenu.style.display = 'none';
-        });
-
-        ctxDeleteBtn.addEventListener('click', () => {
-            if (activeContextUser) {
-                socket.emit('remove-contact', activeContextUser);
-                customContextMenu.style.display = 'none';
-                activeContextUser = null;
-            }
-        });
-
         exitRecipientBtn.addEventListener('click', () => {
             selectedRecipientName = null;
             const lang = interfaceLangSelect.value;
             const t = translations[lang] || translations.Spanish;
             activeChatText.textContent = t.publicChat;
             exitRecipientBtn.style.display = 'none';
+            renderTopContacts(lastUsersData, lastIsAdmin);
         });
 
         addContactBtn.addEventListener('click', () => {
@@ -1131,53 +1115,69 @@
             onlineCount.textContent = `${t.online}: ${count}`;
         });
 
+        // Оновлення списку контактів та сортування згідно з історією взаємодії
         socket.on('update-users', ({ users, isAdmin }) => {
-            onlineUsersList.innerHTML = '';
+            lastUsersData = users;
+            lastIsAdmin = isAdmin;
+            renderTopContacts(users, isAdmin);
+        });
+
+        function renderTopContacts(users, isAdmin) {
+            topContactsStrip.innerHTML = '';
             const lang = interfaceLangSelect.value;
             const t = translations[lang] || translations.Spanish;
 
             if (users.length === 0) {
-                onlineUsersList.innerHTML = `<span class="online-user-item" style="color: #8a91b4; justify-content: center; cursor: default;">${t.noContacts}</span>`;
+                topContactsStrip.innerHTML = `<span style="color: #8a91b4; font-size: 0.85rem; padding: 4px;">${t.noContacts}</span>`;
                 return;
             }
 
-            users.forEach(user => {
-                const userItem = document.createElement('div');
-                userItem.classList.add('online-user-item');
-                
-                const firstLetter = user.name.charAt(0).toUpperCase();
+            // Сортуємо контакти: обраний або нещодавній автоматично йде на перше місце
+            users.sort((a, b) => {
+                const indexA = recentContactsOrder.indexOf(a.name);
+                const indexB = recentContactsOrder.indexOf(b.name);
+                if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+                if (indexA !== -1) return -1;
+                if (indexB !== -1) return 1;
+                return 0;
+            });
 
+            users.forEach(user => {
+                const pill = document.createElement('div');
+                pill.classList.add('contact-pill');
+                if (selectedRecipientName === user.name) {
+                    pill.classList.add('active');
+                }
+
+                const firstLetter = user.name.charAt(0).toUpperCase();
                 let statusBadgeText = '';
                 if (isAdmin) {
                     statusBadgeText = user.isMutual ? ' ⭐' : (user.myAdd ? ' ⏳' : '');
                 }
 
-                userItem.innerHTML = `
-                    <div class="user-info-left">
-                        <div class="user-avatar-small">${firstLetter}</div>
-                        <span>${escapeHtml(user.name)}${statusBadgeText}</span>
-                    </div>
-                    <div class="status-dot ${user.isOnline ? 'online' : 'offline'}" title="${user.isOnline ? 'Online' : 'Offline'}"></div>
+                pill.innerHTML = `
+                    <div class="pill-avatar">${firstLetter}</div>
+                    <span>${escapeHtml(user.name)}${statusBadgeText}</span>
+                    <div class="pill-dot ${user.isOnline ? 'online' : 'offline'}"></div>
                 `;
 
-                userItem.addEventListener('click', () => {
+                // Клік по контакту: обираємо людину і вона автоматично переміщується на перше місце в списку
+                pill.addEventListener('click', () => {
                     selectedRecipientName = user.name;
                     activeChatText.textContent = `${t.privateTo}${user.name}`;
                     exitRecipientBtn.style.display = 'block';
-                    closeMenu();
+
+                    // Переміщуємо у масиві нещодавніх на початок
+                    recentContactsOrder = recentContactsOrder.filter(n => n !== user.name);
+                    recentContactsOrder.unshift(user.name);
+                    localStorage.setItem('habla_recent_contacts', JSON.stringify(recentContactsOrder));
+
+                    renderTopContacts(lastUsersData, lastIsAdmin);
                 });
 
-                userItem.addEventListener('contextmenu', (e) => {
-                    e.preventDefault();
-                    activeContextUser = user.name;
-                    customContextMenu.style.display = 'block';
-                    customContextMenu.style.left = `${e.clientX}px`;
-                    customContextMenu.style.top = `${e.clientY}px`;
-                });
-
-                onlineUsersList.appendChild(userItem);
+                topContactsStrip.appendChild(pill);
             });
-        });
+        }
 
         function escapeHtml(text) {
             const map = {
@@ -1236,7 +1236,7 @@
             };
 
             function stopListeningState() {
-                isListening = false;
+                isNames = false;
                 micBtn.classList.remove('listening');
                 micBtn.textContent = "🎤";
             }
