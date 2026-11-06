@@ -1,16 +1,15 @@
 {
-  "name": "Habla",
+  "name": "Habla Mobile 3.0",
   "short_name": "Habla",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0f172a",
-  "theme_color": "#1e293b",
+  "background_color": "#0d0e15",
+  "theme_color": "#00ffcc",
   "icons": [
     {
-      "src": "https://habla-backend-ipqk.onrender.com/icon.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "src": "icon.png",
+      "sizes": "192x192",
+      "type": "image/png"
     }
   ]
 }
