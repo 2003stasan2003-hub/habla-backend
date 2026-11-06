@@ -568,7 +568,7 @@
         <div class="menu-section">
             <label for="interface-lang" id="label-interface-lang">Idioma de la interfaz:</label>
             <select id="interface-lang" class="lang-select">
-                <option value="Spanish" selected>Spanish</option>
+                <option value="Spanish">Spanish</option>
                 <option value="English">English</option>
                 <option value="Ukrainian">Ukrainian</option>
                 <option value="German">German</option>
@@ -581,7 +581,6 @@
             <div class="toggle-container">
                 <span id="label-enable-sound" style="font-size: 0.9rem; color: #e0e0e0;">Activar sonido</span>
                 <label class="switch">
-                    <!-- За замовчуванням вимкнено (прибрано атрибут checked) -->
                     <input type="checkbox" id="sound-toggle">
                     <span class="slider"></span>
                 </label>
@@ -746,8 +745,9 @@
 
         let currentOnlineCount = 1;
 
-        // Встановлюємо іспанську мову інтерфейсу за замовчуванням
-        interfaceLangSelect.value = 'Spanish';
+        // Зберігаємо та завантажуємо мову інтерфейсу з localStorage (Spanish за замовчуванням)
+        let savedInterfaceLang = localStorage.getItem('habla_interface_lang') || 'Spanish';
+        interfaceLangSelect.value = savedInterfaceLang;
 
         function updateInterfaceTexts() {
             const lang = interfaceLangSelect.value;
@@ -770,7 +770,11 @@
             }
         }
 
-        interfaceLangSelect.addEventListener('change', updateInterfaceTexts);
+        interfaceLangSelect.addEventListener('change', () => {
+            localStorage.setItem('habla_interface_lang', interfaceLangSelect.value);
+            updateInterfaceTexts();
+        });
+
         updateInterfaceTexts(); // Оновлюємо текст одразу при завантаженні
 
         userDisplay.textContent = username;
@@ -856,7 +860,6 @@
             chatMessages.appendChild(messageDiv);
             chatMessages.scrollTop = chatMessages.scrollHeight;
 
-            // Озвучування працюватиме лише якщо користувач увімкнув тумблер звуку
             if (soundToggle.checked && 'speechSynthesis' in window) {
                 const utterance = new SpeechSynthesisUtterance(data.text);
                 const selectedLangCode = ttsLangMap[targetLangSelect.value] || 'es-ES';
@@ -913,7 +916,6 @@
                     </div>
                 `;
 
-                // Клік на ім'я — вибір отримувача для приватного чату
                 userItem.querySelector('.user-info-left').addEventListener('click', () => {
                     selectedRecipientName = user.name;
                     recipientText.innerHTML = `${t.privateTo}<b>${user.name}</b>`;
@@ -921,7 +923,6 @@
                     closeMenu();
                 });
 
-                // Клік на кнопку Додати/Видалити контакт
                 const actionBtn = userItem.querySelector('.contact-action-btn');
                 actionBtn.addEventListener('click', () => {
                     if (user.myAdd) {
@@ -961,7 +962,10 @@
                     recognition.stop();
                     return;
                 }
-                recognition.lang = 'es-ES'; // за замовчуванням для розпізнавання іспанська
+                
+                // Автоматично беремо мову розпізнавання відповідно до обраної мови інтерфейсу
+                const currentInterfaceLang = interfaceLangSelect.value;
+                recognition.lang = ttsLangMap[currentInterfaceLang] || 'es-ES';
 
                 try {
                     recognition.start();
