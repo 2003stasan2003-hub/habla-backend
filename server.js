@@ -25,67 +25,11 @@ app.use(express.static(__dirname));
 
 let currentGroqLimits = { requests: '---', tokens: '---' };
 
-app.post('/api/translate', async (req, res) => {
-    try {
-        const { text, targetLanguage } = req.body;
-        if (!text) return res.status(400).json({ error: 'Текст відсутній' });
-
-        const apiKey = process.env.GROQ_API_KEY;
-        if (!apiKey) {
-            return res.status(500).json({ error: 'API ключ Groq не знайдено на сервері' });
-        }
-
-        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-            model: "qwen/qwen3.8-27b",
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
-            },
-            body: JSON.stringify({
-                model: "qwen/qwen3.8-27b",
-                messages: [
-                    {
-                        role: "system",
-                        content: `You are a professional translator. Translate the given text accurately and naturally into ${targetLanguage}. Return ONLY the translated text without any extra notes or formatting.`
-                    },
-                    { role: "user", content: text }
-                ],
-                max_tokens: 250
-            })
-        });
-
-        const remReq = response.headers.get('x-ratelimit-remaining-requests');
-        const remTok = response.headers.get('x-ratelimit-remaining-tokens');
-        if (remReq) {
-            currentGroqLimits = { requests: remReq, tokens: remTok };
-            io.emit('groq-limits', currentGroqLimits);
-        }
-
-        const data = await response.json();
-        
-        if (!response.ok) {
-            console.error('Помилка Groq API:', data);
-            return res.status(500).json({ error: 'Помилка мовної моделі Groq' });
-        }
-
-        const translatedText = data.choices && data.choices[0] && data.choices[0].message 
-            ? data.choices[0].message.content.trim() 
-            : text;
-
-        res.json({ translatedText });
-
-    } catch (error) {
-        console.error('Помилка сервера:', error);
-        res.status(500).json({ error: 'Помилка сервера при перекладі.' });
-    }
-});
-
 const activeSockets = {}; 
 const allKnownUsers = new Set(); 
 const userContacts = {}; 
+const userLanguages = {}; // Зберігаємо мову кожного користувача
 
-// Перевірка адміністратора незалежно від регістру та мови
 function checkIsAdmin(username) {
     if (!username) return false;
     const lower = username.toLowerCase().trim();
@@ -128,17 +72,69 @@ function updateUsers() {
     io.emit('onlineCount', onlineNames.size);
 }
 
+// Функція перекладу через Groq API на конкретну мову
+async function translateText(text, targetLanguage) {
+    const apiKey = process.env.GROQ_API_KEY;
+    if (!apiKey || !text || !targetLanguage) return text;
+
+    try {
+        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+                model: "qwen/qwen3.8-27b",
+                messages: [
+                    {
+                        role: "system",
+                        content: `You are a professional translator. Translate the given text accurately and naturally into ${targetLanguage}. Return ONLY the translated text without any extra notes or formatting.`
+                    },
+                    { role: "user", content: text }
+                ],
+                max_tokens: 250
+            })
+        });
+
+        const remReq = response.headers.get('x-ratelimit-remaining-requests');
+        const remTok = response.headers.get('x-ratelimit-remaining-tokens');
+        if (remReq) {
+            currentGroqLimits = { requests: remReq, tokens: remTok };
+            io.emit('groq-limits', currentGroqLimits);
+        }
+
+        const data = await response.json();
+        if (data.choices && data.choices[0] && data.choices[0].message) {
+            return data.choices[0].message.content.trim();
+        }
+    } catch (error) {
+        console.error('Помилка перекладу Groq:', error);
+    }
+    return text;
+}
+
 io.on('connection', (socket) => {
     console.log(`Користувач підключився: ${socket.id}`);
-
     socket.emit('groq-limits', currentGroqLimits);
 
-    socket.on('join', (nickname) => {
-        if (!nickname) return;
-        activeSockets[socket.id] = nickname;
-        allKnownUsers.add(nickname);
-        if (!userContacts[nickname]) {
-            userContacts[nickname] = new Set();
+    socket.on('join', (data) => {
+        let username, lang;
+        if (typeof data === 'object' && data !== null) {
+            username = data.username;
+            lang = data.lang || 'Spanish';
+        } else {
+            username = data;
+            lang = 'Spanish';
+        }
+
+        if (!username) return;
+        activeSockets[socket.id] = username;
+        allKnownUsers.add(username);
+        userLanguages[username] = lang;
+
+        if (!userContacts[username]) {
+            userContacts[username] = new Set();
         }
         updateUsers();
     });
@@ -155,80 +151,52 @@ io.on('connection', (socket) => {
         updateUsers();
     });
 
-    socket.on('remove-contact', (targetName) => {
-        const username = activeSockets[socket.id];
-        if (!username || !targetName) return;
-
-        if (userContacts[username]) {
-            userContacts[username].delete(targetName);
-        }
-        updateUsers();
-    });
-
     socket.on('chatMessage', async (data) => {
         try {
-            const apiKey = process.env.GROQ_API_KEY;
-            let translatedText = data.text;
+            const sender = data.user;
+            const recipient = data.recipientName;
+            const originalText = data.text;
 
-            if (apiKey && data.text) {
-                const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${apiKey}`
-                    },
-                    body: JSON.stringify({
-                        model: "qwen/qwen3.8-27b",
-                        messages: [
-                            {
-                                role: "system",
-                                content: `You are a professional translator. Translate the given text accurately and naturally into ${data.targetLang}. Return ONLY the translated text without any extra notes or formatting.`
-                            },
-                            { role: "user", content: data.text }
-                        ],
-                        max_tokens: 250
-                    })
-                });
+            if (!originalText) return;
 
-                const remReq = response.headers.get('x-ratelimit-remaining-requests');
-                const remTok = response.headers.get('x-ratelimit-remaining-tokens');
-                if (remReq) {
-                    currentGroqLimits = { requests: remReq, tokens: remTok };
-                    io.emit('groq-limits', currentGroqLimits);
-                }
+            // Відправник бачить свій оригінальний текст
+            socket.emit('chatMessage', {
+                user: sender,
+                text: originalText,
+                recipientName: recipient,
+                isPrivate: !!recipient
+            });
 
-                const result = await response.json();
-                if (result.choices && result.choices[0] && result.choices[0].message) {
-                    translatedText = result.choices[0].message.content.trim();
-                }
-            }
-
-            const messagePayload = {
-                user: data.user,
-                text: translatedText,
-                recipientName: data.recipientName || null,
-                isPrivate: !!data.recipientName
-            };
-
-            if (data.recipientName) {
-                socket.emit('chatMessage', messagePayload);
-                
-                let recipientSocketId = Object.keys(activeSockets).find(
-                    id => activeSockets[id] === data.recipientName
+            if (recipient) {
+                // Знаходимо сокет одержувача
+                const recipientSocketId = Object.keys(activeSockets).find(
+                    id => activeSockets[id] === recipient
                 );
+
                 if (recipientSocketId && recipientSocketId !== socket.id) {
-                    io.to(recipientSocketId).emit('chatMessage', messagePayload);
+                    // Визначаємо рідну мову одержувача
+                    const recipientLang = userLanguages[recipient] || 'Spanish';
+                    
+                    // Автоматично перекладаємо на мову одержувача
+                    const translatedText = await translateText(originalText, recipientLang);
+
+                    io.to(recipientSocketId).emit('chatMessage', {
+                        user: sender,
+                        text: translatedText,
+                        recipientName: sender,
+                        isPrivate: true
+                    });
                 }
             } else {
-                io.emit('chatMessage', messagePayload);
+                // Якщо загальний чат (або без адресата) — розсилаємо всім у їхніх мовах або оригінал
+                socket.broadcast.emit('chatMessage', {
+                    user: sender,
+                    text: originalText,
+                    isPrivate: false
+                });
             }
         } catch (e) {
-            console.error("Помилка сокет-перекладу:", e);
-            io.emit('chatMessage', {
-                user: data.user,
-                text: data.text,
-                isPrivate: false
-            });
+            console.error("Помилка обробки повідомлення:", e);
         }
     });
 
