@@ -153,7 +153,6 @@
             text-align: center;
         }
 
-        /* БОКОВЕ МЕНЮ (САЙДБАР) */
         .side-menu {
             position: fixed;
             top: 0;
@@ -198,7 +197,6 @@
             cursor: pointer;
         }
 
-        /* ПАНЕЛІ САЙДБАРА (ДВОСТУПЕНЕВА НАВІГАЦІЯ) */
         .sidebar-panel {
             display: none;
             flex-direction: column;
@@ -256,7 +254,7 @@
         .user-badge-container {
             display: flex;
             align-items: center;
-            gap: 12px;
+            justify-content: space-between;
             background: #242f3d;
             padding: 10px 14px;
             border-radius: 10px;
@@ -278,12 +276,32 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            overflow: hidden;
+        }
+
+        .user-avatar-large img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
         }
 
         .user-badge {
             color: #00ffcc;
             font-weight: 600;
             font-size: 1rem;
+        }
+
+        .reset-nick-link {
+            font-size: 0.75rem;
+            color: #89a1b2;
+            text-decoration: underline;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+        .reset-nick-link:hover {
+            color: #ff3b30;
         }
 
         .add-contact-box {
@@ -334,7 +352,7 @@
         }
         .menu-overlay.active { display: block; }
 
-        /* МОДАЛЬНЕ ВІКНО КОНТАКТУ */
+        /* МОДАЛЬНЕ ВІКНО НАЛАШТУВАНЬ КОНТАКТУ / ПРОФІЛЮ */
         #contact-modal {
             position: fixed;
             top: 50%;
@@ -576,6 +594,7 @@
 
     <div id="menu-overlay" class="menu-overlay"></div>
 
+    <!-- МОДАЛЬНЕ ВІКНО НАЛАШТУВАНЬ КОНТАКТУ / ПРОФІЛЮ -->
     <div id="contact-modal">
         <div class="modal-header">
             <span id="modal-contact-title" class="modal-title">Контакт</span>
@@ -596,7 +615,7 @@
         <button id="modal-delete-btn" class="modal-btn-delete">🗑 Видалити контакт</button>
     </div>
 
-    <!-- БОКОВЕ МЕНЮ (САЙДБАР З ДВОМА ЕКРАНАМИ) -->
+    <!-- БОКОВЕ МЕНЮ (САЙДБАР) -->
     <div id="side-menu" class="side-menu">
         
         <!-- ГОЛОВНИЙ ЕКРАН САЙДБАРА -->
@@ -606,12 +625,15 @@
                 <button id="close-menu-btn" class="close-menu-btn">✕</button>
             </div>
 
-            <!-- Профіль (Клік на ім'я змінює нік) -->
+            <!-- Профіль (Клік відкриває налаштування, є кнопка скидання ніку) -->
             <div class="menu-section">
                 <label id="label-profile">Ваш профіль</label>
-                <div id="change-nick-trigger" class="user-badge-container" title="Натисніть, щоб змінити нік">
-                    <div id="user-avatar-large" class="user-avatar-large">G</div>
-                    <div id="user-display" class="user-badge">Invitado</div>
+                <div id="profile-settings-trigger" class="user-badge-container" title="Натисніть або клацніть правою кнопкою, щоб змінити стиль">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div id="user-avatar-large" class="user-avatar-large">G</div>
+                        <div id="user-display" class="user-badge">Invitado</div>
+                    </div>
+                    <button id="reset-user-btn" class="reset-nick-link">Змінити нік</button>
                 </div>
             </div>
 
@@ -639,7 +661,6 @@
                 </div>
             </div>
 
-            <!-- Кнопки переходів у підменю -->
             <button id="btn-open-settings" class="sidebar-nav-btn">
                 <span>⚙️</span> Налаштування
             </button>
@@ -687,7 +708,7 @@
             </div>
         </div>
 
-        <!-- ПІДМЕНЮ АДМІНІСТРАТОРА (GROQ API) -->
+        <!-- ПІДМЕНЮ АДМІНІСТРАТОРА -->
         <div id="panel-admin" class="sidebar-panel">
             <div class="menu-header">
                 <button id="btn-back-from-admin" class="back-btn">← Назад</button>
@@ -741,6 +762,7 @@
             }
             localStorage.setItem('habla_contact_colors', JSON.stringify(contactColors));
             localStorage.setItem('habla_contact_avatars', JSON.stringify(contactAvatars));
+            updateProfileDisplay();
             renderStories(lastUsersData, lastIsAdmin);
         });
 
@@ -793,8 +815,28 @@
             }
         });
 
-        // Зміна нікнейму по кліку на профіль
-        document.getElementById('change-nick-trigger').addEventListener('click', () => {
+        // Оновлення відображення власного профілю у сайдбарі
+        const userDisplay = document.getElementById('user-display');
+        const userAvatarLarge = document.getElementById('user-avatar-large');
+
+        function updateProfileDisplay() {
+            userDisplay.textContent = username;
+            const customColor = contactColors[username] || '#00ffcc';
+            const customAvatarUrl = contactAvatars[username];
+            
+            if (customAvatarUrl) {
+                userAvatarLarge.innerHTML = `<img src="${escapeHtml(customAvatarUrl)}" alt="">`;
+                userAvatarLarge.style.background = 'none';
+            } else {
+                userAvatarLarge.innerHTML = username.charAt(0).toUpperCase();
+                userAvatarLarge.style.background = customColor;
+                userAvatarLarge.style.color = '#0e1621';
+            }
+        }
+
+        // Кнопка скидання ніку
+        document.getElementById('reset-user-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
             localStorage.removeItem('habla_username');
             location.reload();
         });
@@ -859,14 +901,11 @@
         const closeMenuBtn3 = document.getElementById('close-menu-btn-3');
         const sideMenu = document.getElementById('side-menu');
         const menuOverlay = document.getElementById('menu-overlay');
-        const userDisplay = document.getElementById('user-display');
-        const userAvatarLarge = document.getElementById('user-avatar-large');
         const topStoriesStrip = document.getElementById('top-stories-strip');
         const soundToggle = document.getElementById('sound-toggle');
         const newContactInput = document.getElementById('new-contact-input');
         const addContactBtn = document.getElementById('add-contact-btn');
 
-        // Елементи панелей сайдбара
         const panelMain = document.getElementById('panel-main');
         const panelSettings = document.getElementById('panel-settings');
         const panelAdmin = document.getElementById('panel-admin');
@@ -918,12 +957,9 @@
         });
 
         updateInterfaceTexts();
-
-        userDisplay.textContent = username;
-        userAvatarLarge.textContent = username.charAt(0).toUpperCase();
+        updateProfileDisplay();
         joinWithLanguage();
 
-        // Навігація в сайдбарі
         function openMenu() { 
             sideMenu.classList.add('open'); 
             menuOverlay.classList.add('active'); 
@@ -970,6 +1006,44 @@
             menuOverlay.classList.remove('active');
         });
 
+        // Відкриття модального вікна налаштувань для свого профілю або контакту
+        function triggerSettings(targetName, e) {
+            e.preventDefault();
+            activeContactForModal = targetName;
+            modalContactTitle.textContent = targetName === username ? `⚙️ Мій профіль (${targetName})` : `⚙️ ${targetName}`;
+            
+            // Приховуємо кнопку видалення для себе, показуємо для інших
+            if (targetName === username) {
+                modalDeleteBtn.style.display = 'none';
+            } else {
+                modalDeleteBtn.style.display = 'block';
+            }
+
+            selectedModalColor = contactColors[targetName] || '#00ffcc';
+            colorCircles.forEach(c => {
+                if (c.getAttribute('data-color') === selectedModalColor) {
+                    c.classList.add('selected');
+                } else {
+                    c.classList.remove('selected');
+                }
+            });
+
+            modalAvatarInput.value = contactAvatars[targetName] || '';
+
+            contactModal.classList.add('active');
+            menuOverlay.classList.add('active');
+        }
+
+        // Обробка кліку / правої кнопки на власний профіль у сайдбарі
+        const profileSettingsTrigger = document.getElementById('profile-settings-trigger');
+        profileSettingsTrigger.addEventListener('click', (e) => {
+            // Якщо клікнули не по кнопці "Змінити нік", відкриваємо налаштування профілю
+            if (e.target.id !== 'reset-user-btn') {
+                triggerSettings(username, e);
+            }
+        });
+        profileSettingsTrigger.addEventListener('contextmenu', (e) => triggerSettings(username, e));
+
         colorCircles.forEach(circle => {
             circle.addEventListener('click', () => {
                 colorCircles.forEach(c => c.classList.remove('selected'));
@@ -999,11 +1073,12 @@
 
             contactModal.classList.remove('active');
             menuOverlay.classList.remove('active');
+            updateProfileDisplay();
             renderStories(lastUsersData, lastIsAdmin);
         });
 
         modalDeleteBtn.addEventListener('click', () => {
-            if (!activeContactForModal) return;
+            if (!activeContactForModal || activeContactForModal === username) return;
             if (confirm(`Видалити контакт ${activeContactForModal}?`)) {
                 localAddedContacts = localAddedContacts.filter(n => n !== activeContactForModal);
                 localStorage.setItem('habla_local_contacts', JSON.stringify(localAddedContacts));
@@ -1098,7 +1173,6 @@
             lastUsersData = users;
             lastIsAdmin = isAdmin;
             
-            // Показуємо кнопку адміна в сайдбарі лише для адміністратора
             if (isAdmin) {
                 btnOpenAdmin.style.display = 'flex';
             } else {
@@ -1164,29 +1238,9 @@
 
                 let pressTimer = null;
 
-                const triggerSettings = (e) => {
-                    e.preventDefault();
-                    activeContactForModal = user.name;
-                    modalContactTitle.textContent = `⚙️ ${user.name}`;
-                    
-                    selectedModalColor = contactColors[user.name] || '#00ffcc';
-                    colorCircles.forEach(c => {
-                        if (c.getAttribute('data-color') === selectedModalColor) {
-                            c.classList.add('selected');
-                        } else {
-                            c.classList.remove('selected');
-                        }
-                    });
-
-                    modalAvatarInput.value = contactAvatars[user.name] || '';
-
-                    contactModal.classList.add('active');
-                    menuOverlay.classList.add('active');
-                };
-
                 story.addEventListener('touchstart', (e) => {
                     pressTimer = setTimeout(() => {
-                        triggerSettings(e);
+                        triggerSettings(user.name, e);
                     }, 500);
                 });
 
@@ -1194,7 +1248,7 @@
                 story.addEventListener('touchmove', () => { clearTimeout(pressTimer); });
 
                 story.addEventListener('contextmenu', (e) => {
-                    triggerSettings(e);
+                    triggerSettings(user.name, e);
                 });
 
                 story.addEventListener('click', () => {
