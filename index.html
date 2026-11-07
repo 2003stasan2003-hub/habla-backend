@@ -26,7 +26,6 @@
             -webkit-touch-callout: none;
         }
 
-        /* Шапка у стилі Telegram */
         header {
             background: #17212b;
             border-bottom: 1px solid #0f1621;
@@ -74,7 +73,6 @@
             cursor: pointer;
         }
 
-        /* Стрічка історій/контактів зверху */
         .top-stories-strip {
             background: #17212b;
             border-bottom: 1px solid #0f1621;
@@ -155,7 +153,6 @@
             text-align: center;
         }
 
-        /* Бокове меню */
         .side-menu {
             position: fixed;
             top: 0;
@@ -397,7 +394,6 @@
             background: rgba(255, 59, 48, 0.4);
         }
 
-        /* Повідомлення */
         #chat-messages {
             flex: 1;
             overflow-y: auto;
@@ -461,7 +457,6 @@
         }
         .speak-btn:hover { opacity: 1; }
 
-        /* Поле введення */
         .input-container {
             background: #17212b;
             padding: 12px 16px;
@@ -534,14 +529,12 @@
         <div id="online-count" class="online-status" title="Online">Online: 1</div>
     </header>
 
-    <!-- ВЕРХНЯ СТРІЧКА ІСТОРІЙ З КОНТАКТАМИ -->
     <div id="top-stories-strip" class="top-stories-strip">
         <span style="color: #89a1b2; font-size: 0.85rem; padding: 4px;">Cargando...</span>
     </div>
 
     <div id="menu-overlay" class="menu-overlay"></div>
 
-    <!-- МОДАЛЬНЕ ВІКНО НАЛАШТУВАНЬ КОНТАКТУ -->
     <div id="contact-modal">
         <div class="modal-header">
             <span id="modal-contact-title" class="modal-title">Контакт</span>
@@ -656,7 +649,19 @@
         let activeContactForModal = null;
         let selectedModalColor = '#00ffcc';
 
-        // Автовизначення мови пристрою за замовчуванням
+        // Синхронізація кастомізацій із сервером для всіх пристроїв
+        socket.on('sync-customizations', (customizations) => {
+            contactColors = {};
+            contactAvatars = {};
+            for (let [name, data] of Object.entries(customizations)) {
+                if (data.color) contactColors[name] = data.color;
+                if (data.avatar) contactAvatars[name] = data.avatar;
+            }
+            localStorage.setItem('habla_contact_colors', JSON.stringify(contactColors));
+            localStorage.setItem('habla_contact_avatars', JSON.stringify(contactAvatars));
+            renderStories(lastUsersData, lastIsAdmin);
+        });
+
         function getDeviceLanguage() {
             const navLang = (navigator.language || navigator.userLanguage || 'es').toLowerCase();
             if (navLang.startsWith('uk')) return 'Ukrainian';
@@ -767,7 +772,6 @@
         const newContactInput = document.getElementById('new-contact-input');
         const addContactBtn = document.getElementById('add-contact-btn');
 
-        // Елементи модального вікна контакту
         const contactModal = document.getElementById('contact-modal');
         const modalContactTitle = document.getElementById('modal-contact-title');
         const closeContactModal = document.getElementById('close-contact-modal');
@@ -833,7 +837,6 @@
             menuOverlay.classList.remove('active');
         });
 
-        // Вибір кольору в палітрі модального вікна
         colorCircles.forEach(circle => {
             circle.addEventListener('click', () => {
                 colorCircles.forEach(c => c.classList.remove('selected'));
@@ -842,27 +845,32 @@
             });
         });
 
-        // Збереження налаштувань контакту (колір та аватарка)
+        // Збереження і надсилання кастомізацій на сервер для синхронізації
         modalSaveBtn.addEventListener('click', () => {
             if (!activeContactForModal) return;
             
-            contactColors[activeContactForModal] = selectedModalColor;
-            localStorage.setItem('habla_contact_colors', JSON.stringify(contactColors));
+            const color = selectedModalColor;
+            const avatar = modalAvatarInput.value.trim();
 
-            const avatarUrl = modalAvatarInput.value.trim();
-            if (avatarUrl) {
-                contactAvatars[activeContactForModal] = avatarUrl;
+            contactColors[activeContactForModal] = color;
+            if (avatar) {
+                contactAvatars[activeContactForModal] = avatar;
             } else {
                 delete contactAvatars[activeContactForModal];
             }
-            localStorage.setItem('habla_contact_avatars', JSON.stringify(contactAvatars));
+
+            // Відправляємо на сервер для синхронізації між пристроями
+            socket.emit('update-customization', {
+                targetName: activeContactForModal,
+                color: color,
+                avatar: avatar
+            });
 
             contactModal.classList.remove('active');
             menuOverlay.classList.remove('active');
             renderStories(lastUsersData, lastIsAdmin);
         });
 
-        // Дія видалення контакту з модального вікна
         modalDeleteBtn.addEventListener('click', () => {
             if (!activeContactForModal) return;
             if (confirm(`Видалити контакт ${activeContactForModal}?`)) {
@@ -871,9 +879,13 @@
                 recentContactsOrder = recentContactsOrder.filter(n => n !== activeContactForModal);
                 localStorage.setItem('habla_recent_contacts', JSON.stringify(recentContactsOrder));
                 delete contactColors[activeContactForModal];
-                localStorage.setItem('habla_contact_colors', JSON.stringify(contactColors));
                 delete contactAvatars[activeContactForModal];
-                localStorage.setItem('habla_contact_avatars', JSON.stringify(contactAvatars));
+                
+                socket.emit('update-customization', {
+                    targetName: activeContactForModal,
+                    color: '#00ffcc',
+                    avatar: ''
+                });
                 
                 if (selectedRecipientName === activeContactForModal) {
                     selectedRecipientName = null;
@@ -1011,7 +1023,6 @@
                     <span class="story-name">${escapeHtml(user.name)}${statusBadgeText}</span>
                 `;
 
-                // ЛОГІКА КЛИКУ ТА ДОВГОГО НАТИСКАННЯ / ПРАВОЇ КНОПКИ МИШІ
                 let pressTimer = null;
 
                 const triggerSettings = (e) => {
@@ -1019,7 +1030,6 @@
                     activeContactForModal = user.name;
                     modalContactTitle.textContent = `⚙️ ${user.name}`;
                     
-                    // Підтягуємо поточні налаштування в модалку
                     selectedModalColor = contactColors[user.name] || '#00ffcc';
                     colorCircles.forEach(c => {
                         if (c.getAttribute('data-color') === selectedModalColor) {
@@ -1035,7 +1045,6 @@
                     menuOverlay.classList.add('active');
                 };
 
-                // Для мобільних (довгий тап)
                 story.addEventListener('touchstart', (e) => {
                     pressTimer = setTimeout(() => {
                         triggerSettings(e);
@@ -1045,12 +1054,10 @@
                 story.addEventListener('touchend', () => { clearTimeout(pressTimer); });
                 story.addEventListener('touchmove', () => { clearTimeout(pressTimer); });
 
-                // Для комп'ютера (права кнопка миші)
                 story.addEventListener('contextmenu', (e) => {
                     triggerSettings(e);
                 });
 
-                // Звичайний клік (вибір контакту для чату)
                 story.addEventListener('click', () => {
                     selectedRecipientName = user.name;
                     recentContactsOrder = recentContactsOrder.filter(n => n !== user.name);
@@ -1068,7 +1075,6 @@
             return text.replace(/[&<>"']/g, function(m) { return map[m]; });
         }
 
-        // Автоматична прив'язка мікрофона до встановленої мови пристрою/додатку
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (!SpeechRecognition) {
             micBtn.style.display = 'none';
