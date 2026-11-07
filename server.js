@@ -20,6 +20,11 @@ const io = new Server(server, {
 app.use(cors());
 app.use(express.json());
 
+// Маршрут для запобігання засинанню сервера на Render
+app.get('/ping', (req, res) => {
+    res.status(200).send('pong');
+});
+
 app.use('/.well-known', express.static('.well-known'));
 app.use(express.static(__dirname));
 
@@ -29,7 +34,7 @@ const activeSockets = {};
 const allKnownUsers = new Set(); 
 const userContacts = {}; 
 const userLanguages = {}; 
-const userCustomizations = {}; // Сховище кастомізацій (кольорі/аватарки) для кожного користувача
+const userCustomizations = {}; 
 
 function checkIsAdmin(username) {
     if (!username) return false;
@@ -137,7 +142,6 @@ io.on('connection', (socket) => {
             userContacts[username] = new Set();
         }
 
-        // Надсилаємо користувачу його збережені кастомізації (якщо є)
         if (userCustomizations[username]) {
             socket.emit('sync-customizations', userCustomizations[username]);
         }
@@ -145,7 +149,6 @@ io.on('connection', (socket) => {
         updateUsers();
     });
 
-    // Синхронізація налаштувань контакту (колір/аватарка) між пристроями
     socket.on('update-customization', ({ targetName, color, avatar }) => {
         const username = activeSockets[socket.id];
         if (!username || !targetName) return;
@@ -155,7 +158,6 @@ io.on('connection', (socket) => {
         }
         userCustomizations[username][targetName] = { color, avatar };
 
-        // Розсилаємо оновлення на всі пристрої цього ж користувача
         for (let [id, name] of Object.entries(activeSockets)) {
             if (name === username) {
                 io.to(id).emit('sync-customizations', userCustomizations[username]);
@@ -191,12 +193,13 @@ io.on('connection', (socket) => {
             });
 
             if (recipient) {
+                const cleanRecipient = recipient.toLowerCase().trim();
                 const recipientSocketId = Object.keys(activeSockets).find(
-                    id => activeSockets[id] === recipient
+                    id => activeSockets[id] && activeSockets[id].toLowerCase().trim() === cleanRecipient
                 );
 
                 if (recipientSocketId && recipientSocketId !== socket.id) {
-                    const recipientLang = userLanguages[recipient] || 'Spanish';
+                    const recipientLang = userLanguages[recipient] || 'Ukrainian';
                     const translatedText = await translateText(originalText, recipientLang);
 
                     io.to(recipientSocketId).emit('chatMessage', {
