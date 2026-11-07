@@ -144,6 +144,17 @@
         .story-dot.online { background-color: #3acc6e; }
         .story-dot.offline { background-color: #89a1b2; }
 
+        /* Анімація пульсуючої червоної цяточки непрочитаних повідомлень */
+        @keyframes redPulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(255, 59, 48, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 48, 0); }
+        }
+        .story-dot.unread {
+            background-color: #ff3b30 !important;
+            animation: redPulse 1.5s infinite;
+        }
+
         .story-name {
             font-size: 0.75rem;
             color: #b1c3d1;
@@ -352,7 +363,6 @@
         }
         .menu-overlay.active { display: block; }
 
-        /* МОДАЛЬНЕ ВІКНО НАЛАШТУВАНЬ КОНТАКТУ / ПРОФІЛЮ */
         #contact-modal {
             position: fixed;
             top: 50%;
@@ -594,7 +604,6 @@
 
     <div id="menu-overlay" class="menu-overlay"></div>
 
-    <!-- МОДАЛЬНЕ ВІКНО НАЛАШТУВАНЬ КОНТАКТУ / ПРОФІЛЮ -->
     <div id="contact-modal">
         <div class="modal-header">
             <span id="modal-contact-title" class="modal-title">Контакт</span>
@@ -615,17 +624,14 @@
         <button id="modal-delete-btn" class="modal-btn-delete">🗑 Видалити контакт</button>
     </div>
 
-    <!-- БОКОВЕ МЕНЮ (САЙДБАР) -->
     <div id="side-menu" class="side-menu">
         
-        <!-- ГОЛОВНИЙ ЕКРАН САЙДБАРА -->
         <div id="panel-main" class="sidebar-panel active">
             <div class="menu-header">
                 <span class="menu-title" id="menu-title-text">Habla Menu</span>
                 <button id="close-menu-btn" class="close-menu-btn">✕</button>
             </div>
 
-            <!-- Профіль (Клік відкриває налаштування, є кнопка скидання ніку) -->
             <div class="menu-section">
                 <label id="label-profile">Ваш профіль</label>
                 <div id="profile-settings-trigger" class="user-badge-container" title="Натисніть або клацніть правою кнопкою, щоб змінити стиль">
@@ -637,7 +643,6 @@
                 </div>
             </div>
 
-            <!-- Блок поділитися додатком -->
             <div class="menu-section">
                 <label id="label-share-app">Поділитися додатком</label>
                 <div style="background: #242f3d; padding: 10px; border-radius: 8px; border: 1px solid #2b5278; display: flex; flex-direction: column; gap: 8px; align-items: center; text-align: center;">
@@ -652,7 +657,6 @@
                 </div>
             </div>
 
-            <!-- Додати контакт -->
             <div class="menu-section">
                 <label id="label-online-users">Контакти</label>
                 <div class="add-contact-box">
@@ -670,7 +674,6 @@
             </button>
         </div>
 
-        <!-- ПІДМЕНЮ НАЛАШТУВАНЬ -->
         <div id="panel-settings" class="sidebar-panel">
             <div class="menu-header">
                 <button id="btn-back-from-settings" class="back-btn">← Назад</button>
@@ -708,7 +711,6 @@
             </div>
         </div>
 
-        <!-- ПІДМЕНЮ АДМІНІСТРАТОРА -->
         <div id="panel-admin" class="sidebar-panel">
             <div class="menu-header">
                 <button id="btn-back-from-admin" class="back-btn">← Назад</button>
@@ -750,6 +752,7 @@
         let localAddedContacts = JSON.parse(localStorage.getItem('habla_local_contacts') || '[]');
         let contactColors = JSON.parse(localStorage.getItem('habla_contact_colors') || '{}');
         let contactAvatars = JSON.parse(localStorage.getItem('habla_contact_avatars') || '{}');
+        let unreadSenders = new Set(); // Список відправників із непрочитаними повідомленнями
         let activeContactForModal = null;
         let selectedModalColor = '#00ffcc';
 
@@ -815,7 +818,6 @@
             }
         });
 
-        // Оновлення відображення власного профілю у сайдбарі
         const userDisplay = document.getElementById('user-display');
         const userAvatarLarge = document.getElementById('user-avatar-large');
 
@@ -834,7 +836,6 @@
             }
         }
 
-        // Кнопка скидання ніку
         document.getElementById('reset-user-btn').addEventListener('click', (e) => {
             e.stopPropagation();
             localStorage.removeItem('habla_username');
@@ -879,6 +880,26 @@
             utterance.lang = selectedLangCode;
             window.speechSynthesis.cancel();
             window.speechSynthesis.speak(utterance);
+        }
+
+        // Функція відтворення м'якого звуку сповіщення через Web Audio API
+        function playNotificationSound() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // Нота D5
+                osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.15); // Нота A5
+                gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
+            } catch (e) {
+                console.log('Audio context blocked until user interaction', e);
+            }
         }
 
         const translations = {
@@ -1006,13 +1027,11 @@
             menuOverlay.classList.remove('active');
         });
 
-        // Відкриття модального вікна налаштувань для свого профілю або контакту
         function triggerSettings(targetName, e) {
             e.preventDefault();
             activeContactForModal = targetName;
             modalContactTitle.textContent = targetName === username ? `⚙️ Мій профіль (${targetName})` : `⚙️ ${targetName}`;
             
-            // Приховуємо кнопку видалення для себе, показуємо для інших
             if (targetName === username) {
                 modalDeleteBtn.style.display = 'none';
             } else {
@@ -1034,10 +1053,8 @@
             menuOverlay.classList.add('active');
         }
 
-        // Обробка кліку / правої кнопки на власний профіль у сайдбарі
         const profileSettingsTrigger = document.getElementById('profile-settings-trigger');
         profileSettingsTrigger.addEventListener('click', (e) => {
-            // Якщо клікнули не по кнопці "Змінити нік", відкриваємо налаштування профілю
             if (e.target.id !== 'reset-user-btn') {
                 triggerSettings(username, e);
             }
@@ -1153,6 +1170,16 @@
             chatMessages.scrollTop = chatMessages.scrollHeight;
 
             if (soundToggle.checked) speakText(data.text);
+
+            // Якщо повідомлення вхідне і не від нас
+            if (!isSelf) {
+                playNotificationSound();
+                // Якщо чат із цим відправником зараз НЕ відкритий — увімкнути червону пульсуючу цяточку
+                if (selectedRecipientName !== data.user) {
+                    unreadSenders.add(data.user);
+                    renderStories(lastUsersData, lastIsAdmin);
+                }
+            }
         });
 
         socket.on('groq-limits', (limits) => {
@@ -1221,6 +1248,13 @@
                 const customColor = contactColors[user.name] || '#00ffcc';
                 const customAvatarUrl = contactAvatars[user.name];
 
+                // Визначаємо клас для цяточки (якщо є непрочитані — червона пульсуюча, інакше онлайн/офлайн)
+                const isUnread = unreadSenders.has(user.name);
+                let dotClass = user.isOnline ? 'online' : 'offline';
+                if (isUnread) {
+                    dotClass = 'unread';
+                }
+
                 let avatarInnerHtml = '';
                 if (customAvatarUrl) {
                     avatarInnerHtml = `<img src="${escapeHtml(customAvatarUrl)}" alt="">`;
@@ -1231,7 +1265,7 @@
                 story.innerHTML = `
                     <div class="story-avatar-wrapper" style="${selectedRecipientName === user.name ? `border: 2px solid ${customColor};` : ''}">
                         <div class="story-avatar">${avatarInnerHtml}</div>
-                        <div class="story-dot ${user.isOnline ? 'online' : 'offline'}"></div>
+                        <div class="story-dot ${dotClass}"></div>
                     </div>
                     <span class="story-name">${escapeHtml(user.name)}${statusBadgeText}</span>
                 `;
@@ -1251,8 +1285,10 @@
                     triggerSettings(user.name, e);
                 });
 
+                // Клік на контакт відкриває чат і знімає статуси непрочитаних (червону цяточку)
                 story.addEventListener('click', () => {
                     selectedRecipientName = user.name;
+                    unreadSenders.delete(user.name); // Очищаємо статус непрочитаних для цього контакту
                     recentContactsOrder = recentContactsOrder.filter(n => n !== user.name);
                     recentContactsOrder.unshift(user.name);
                     localStorage.setItem('habla_recent_contacts', JSON.stringify(recentContactsOrder));
