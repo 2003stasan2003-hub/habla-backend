@@ -153,11 +153,12 @@
             text-align: center;
         }
 
+        /* БОКОВЕ МЕНЮ (САЙДБАР) */
         .side-menu {
             position: fixed;
             top: 0;
-            left: -280px;
-            width: 280px;
+            left: -300px;
+            width: 300px;
             height: 100%;
             background: #17212b;
             border-right: 1px solid #2b5278;
@@ -197,6 +198,50 @@
             cursor: pointer;
         }
 
+        /* ПАНЕЛІ САЙДБАРА (ДВОСТУПЕНЕВА НАВІГАЦІЯ) */
+        .sidebar-panel {
+            display: none;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .sidebar-panel.active {
+            display: flex;
+        }
+
+        .sidebar-nav-btn {
+            background: #242f3d;
+            border: 1px solid #2b5278;
+            color: #f5f5f5;
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: background 0.2s, border-color 0.2s, color 0.2s;
+        }
+        .sidebar-nav-btn:hover {
+            background: #2b5278;
+            border-color: #00ffcc;
+            color: #00ffcc;
+        }
+
+        .back-btn {
+            background: none;
+            border: none;
+            color: #00ffcc;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 2px 0;
+            margin-bottom: 4px;
+        }
+
         .menu-section {
             display: flex;
             flex-direction: column;
@@ -211,15 +256,21 @@
         .user-badge-container {
             display: flex;
             align-items: center;
-            justify-content: space-between;
+            gap: 12px;
             background: #242f3d;
-            padding: 8px 12px;
-            border-radius: 8px;
+            padding: 10px 14px;
+            border-radius: 10px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: border-color 0.2s;
+        }
+        .user-badge-container:hover {
+            border-color: #00ffcc;
         }
 
         .user-avatar-large {
-            width: 36px;
-            height: 36px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             background: linear-gradient(135deg, #00ffcc 0%, #2b5278 100%);
             color: #0e1621;
@@ -232,18 +283,7 @@
         .user-badge {
             color: #00ffcc;
             font-weight: 600;
-            font-size: 0.95rem;
-        }
-
-        .reset-user-btn {
-            background: rgba(255, 59, 48, 0.2);
-            border: 1px solid #ff3b30;
-            color: #ff3b30;
-            padding: 4px 8px;
-            border-radius: 6px;
-            font-size: 0.75rem;
-            cursor: pointer;
-            font-weight: bold;
+            font-size: 1rem;
         }
 
         .add-contact-box {
@@ -256,8 +296,8 @@
             background: #242f3d;
             border: 1px solid #2b5278;
             color: #fff;
-            padding: 6px 10px;
-            border-radius: 6px;
+            padding: 8px 12px;
+            border-radius: 8px;
             font-size: 0.85rem;
             outline: none;
         }
@@ -266,8 +306,8 @@
             background: #00ffcc;
             color: #0e1621;
             border: none;
-            padding: 6px 10px;
-            border-radius: 6px;
+            padding: 8px 12px;
+            border-radius: 8px;
             font-weight: bold;
             cursor: pointer;
             font-size: 0.85rem;
@@ -277,11 +317,12 @@
             background: #242f3d;
             color: #00ffcc;
             border: 1px solid #2b5278;
-            padding: 6px 10px;
-            border-radius: 6px;
+            padding: 8px 12px;
+            border-radius: 8px;
             outline: none;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             cursor: pointer;
+            width: 100%;
         }
 
         .menu-overlay {
@@ -293,7 +334,7 @@
         }
         .menu-overlay.active { display: block; }
 
-        /* МОДАЛЬНЕ ВІКНО НАЛАШТУВАНЬ КОНТАКТУ */
+        /* МОДАЛЬНЕ ВІКНО КОНТАКТУ */
         #contact-modal {
             position: fixed;
             top: 50%;
@@ -555,77 +596,119 @@
         <button id="modal-delete-btn" class="modal-btn-delete">🗑 Видалити контакт</button>
     </div>
 
+    <!-- БОКОВЕ МЕНЮ (САЙДБАР З ДВОМА ЕКРАНАМИ) -->
     <div id="side-menu" class="side-menu">
-        <div class="menu-header">
-            <span class="menu-title" id="menu-title-text">Configuración</span>
-            <button id="close-menu-btn" class="close-menu-btn">✕</button>
-        </div>
+        
+        <!-- ГОЛОВНИЙ ЕКРАН САЙДБАРА -->
+        <div id="panel-main" class="sidebar-panel active">
+            <div class="menu-header">
+                <span class="menu-title" id="menu-title-text">Habla Menu</span>
+                <button id="close-menu-btn" class="close-menu-btn">✕</button>
+            </div>
 
-        <div class="menu-section">
-            <label id="label-profile">Tu perfil</label>
-            <div class="user-badge-container">
-                <div style="display: flex; align-items: center; gap: 10px;">
+            <!-- Профіль (Клік на ім'я змінює нік) -->
+            <div class="menu-section">
+                <label id="label-profile">Ваш профіль</label>
+                <div id="change-nick-trigger" class="user-badge-container" title="Натисніть, щоб змінити нік">
                     <div id="user-avatar-large" class="user-avatar-large">G</div>
                     <div id="user-display" class="user-badge">Invitado</div>
                 </div>
-                <button id="reset-user-btn" class="reset-user-btn">Змінити нік</button>
             </div>
-        </div>
 
-        <div class="menu-section">
-            <label id="label-api-status">Estado API Groq</label>
-            <div style="display: flex; gap: 8px;">
-                <div id="req-box" style="flex: 1; background: #242f3d; padding: 8px; border-radius: 8px; border: 1px solid #2b5278; text-align: center;">
-                    <div style="font-size: 0.7rem; color: #89a1b2; margin-bottom: 2px;">REQS</div>
-                    <div id="req-value" style="font-size: 0.95rem; font-weight: bold; color: #00ffcc;">---</div>
+            <!-- Блок поділитися додатком -->
+            <div class="menu-section">
+                <label id="label-share-app">Поділитися додатком</label>
+                <div style="background: #242f3d; padding: 10px; border-radius: 8px; border: 1px solid #2b5278; display: flex; flex-direction: column; gap: 8px; align-items: center; text-align: center;">
+                    <img id="qr-code-img" src="" alt="QR Code" style="width: 90px; height: 90px; background: #fff; padding: 4px; border-radius: 6px;">
+                    <div id="app-url-text" style="font-size: 0.75rem; color: #89a1b2; word-break: break-all;">---</div>
+                    <button id="native-share-btn" style="background: #00ffcc; color: #0e1621; border: none; padding: 7px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.8rem; width: 100%;">
+                        📤 Поділитися
+                    </button>
+                    <button id="copy-link-btn" style="background: #17212b; color: #00ffcc; border: 1px solid #2b5278; padding: 5px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.8rem; width: 100%;">
+                        📋 Копіювати посилання
+                    </button>
                 </div>
-                <div id="tok-box" style="flex: 1; background: #242f3d; padding: 8px; border-radius: 8px; border: 1px solid #2b5278; text-align: center;">
-                    <div style="font-size: 0.7rem; color: #89a1b2; margin-bottom: 2px;">TOKENS</div>
-                    <div id="tok-value" style="font-size: 0.95rem; font-weight: bold; color: #00ffcc;">---</div>
+            </div>
+
+            <!-- Додати контакт -->
+            <div class="menu-section">
+                <label id="label-online-users">Контакти</label>
+                <div class="add-contact-box">
+                    <input type="text" id="new-contact-input" class="add-contact-input" placeholder="Додати за ніком...">
+                    <button id="add-contact-btn" class="add-contact-btn">Додати</button>
+                </div>
+            </div>
+
+            <!-- Кнопки переходів у підменю -->
+            <button id="btn-open-settings" class="sidebar-nav-btn">
+                <span>⚙️</span> Налаштування
+            </button>
+
+            <button id="btn-open-admin" class="sidebar-nav-btn" style="display: none;">
+                <span>🔑</span> Панель Адміна (Groq)
+            </button>
+        </div>
+
+        <!-- ПІДМЕНЮ НАЛАШТУВАНЬ -->
+        <div id="panel-settings" class="sidebar-panel">
+            <div class="menu-header">
+                <button id="btn-back-from-settings" class="back-btn">← Назад</button>
+                <button id="close-menu-btn-2" class="close-menu-btn">✕</button>
+            </div>
+
+            <div class="menu-section">
+                <label for="interface-lang" id="label-interface-lang">Мова інтерфейсу:</label>
+                <select id="interface-lang" class="lang-select">
+                    <option value="Spanish">Spanish</option>
+                    <option value="English">English</option>
+                    <option value="Ukrainian">Ukrainian</option>
+                    <option value="German">German</option>
+                    <option value="French">French</option>
+                </select>
+            </div>
+
+            <div class="menu-section">
+                <label for="target-lang" id="label-translate-to">Примусовий переклад на:</label>
+                <select id="target-lang" class="lang-select">
+                    <option value="Ukrainian">Ukrainian</option>
+                    <option value="Spanish">Spanish</option>
+                    <option value="English">English</option>
+                    <option value="German">German</option>
+                    <option value="French">French</option>
+                </select>
+            </div>
+
+            <div class="menu-section">
+                <label id="label-voice-over">Озвучування перекладу</label>
+                <div style="display: flex; justify-content: space-between; align-items: center; background: #242f3d; padding: 10px; border-radius: 8px; border: 1px solid #2b5278;">
+                    <span id="label-enable-sound" style="font-size: 0.85rem; color: #f5f5f5;">Увімкнути звук</span>
+                    <input type="checkbox" id="sound-toggle" style="width: 18px; height: 18px; accent-color: #00ffcc;">
                 </div>
             </div>
         </div>
 
-        <div class="menu-section">
-            <label id="label-share-app">Instalar / Compartir App</label>
-            <div style="background: #242f3d; padding: 10px; border-radius: 8px; border: 1px solid #2b5278; display: flex; flex-direction: column; gap: 8px; align-items: center; text-align: center;">
-                <img id="qr-code-img" src="" alt="QR Code" style="width: 100px; height: 100px; background: #fff; padding: 4px; border-radius: 6px;">
-                <div id="app-url-text" style="font-size: 0.75rem; color: #89a1b2; word-break: break-all;">---</div>
-                <button id="native-share-btn" style="background: #00ffcc; color: #0e1621; border: none; padding: 8px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.8rem; width: 100%;">
-                    📤 Поділитися
-                </button>
-                <button id="copy-link-btn" style="background: #17212b; color: #00ffcc; border: 1px solid #2b5278; padding: 6px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.8rem; width: 100%;">
-                    📋 Копіювати посилання
-                </button>
+        <!-- ПІДМЕНЮ АДМІНІСТРАТОРА (GROQ API) -->
+        <div id="panel-admin" class="sidebar-panel">
+            <div class="menu-header">
+                <button id="btn-back-from-admin" class="back-btn">← Назад</button>
+                <button id="close-menu-btn-3" class="close-menu-btn">✕</button>
+            </div>
+
+            <div class="menu-section">
+                <label id="label-api-status">Статус API Groq</label>
+                <div style="display: flex; gap: 8px;">
+                    <div id="req-box" style="flex: 1; background: #242f3d; padding: 10px; border-radius: 8px; border: 1px solid #2b5278; text-align: center;">
+                        <div style="font-size: 0.7rem; color: #89a1b2; margin-bottom: 2px;">REQS</div>
+                        <div id="req-value" style="font-size: 1rem; font-weight: bold; color: #00ffcc;">---</div>
+                    </div>
+                    <div id="tok-box" style="flex: 1; background: #242f3d; padding: 10px; border-radius: 8px; border: 1px solid #2b5278; text-align: center;">
+                        <div style="font-size: 0.7rem; color: #89a1b2; margin-bottom: 2px;">TOKENS</div>
+                        <div id="tok-value" style="font-size: 1rem; font-weight: bold; color: #00ffcc;">---</div>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div class="menu-section">
-            <label id="label-online-users">Contactos / Usuarios</label>
-            <div class="add-contact-box">
-                <input type="text" id="new-contact-input" class="add-contact-input" placeholder="Añadir por apodo...">
-                <button id="add-contact-btn" class="add-contact-btn">Añadir</button>
-            </div>
-        </div>
-
-        <div class="menu-section">
-            <label for="interface-lang" id="label-interface-lang">Idioma de la interfaz:</label>
-            <select id="interface-lang" class="lang-select">
-                <option value="Spanish">Spanish</option>
-                <option value="English">English</option>
-                <option value="Ukrainian">Ukrainian</option>
-                <option value="German">German</option>
-                <option value="French">French</option>
-            </select>
-        </div>
-
-        <div class="menu-section">
-            <label id="label-voice-over">Locución de traducción</label>
-            <div style="display: flex; justify-content: space-between; align-items: center; background: #242f3d; padding: 10px; border-radius: 8px; border: 1px solid #2b5278;">
-                <span id="label-enable-sound" style="font-size: 0.85rem; color: #f5f5f5;">Activar sonido</span>
-                <input type="checkbox" id="sound-toggle" style="width: 18px; height: 18px; accent-color: #00ffcc;">
-            </div>
-        </div>
     </div>
 
     <div id="chat-messages"></div>
@@ -649,7 +732,6 @@
         let activeContactForModal = null;
         let selectedModalColor = '#00ffcc';
 
-        // Синхронізація кастомізацій із сервером для всіх пристроїв
         socket.on('sync-customizations', (customizations) => {
             contactColors = {};
             contactAvatars = {};
@@ -679,14 +761,23 @@
         }
 
         const interfaceLangSelect = document.getElementById('interface-lang');
+        const targetLangSelect = document.getElementById('target-lang');
+        
         let savedInterfaceLang = localStorage.getItem('habla_interface_lang') || getDeviceLanguage();
         interfaceLangSelect.value = savedInterfaceLang;
+        
+        let savedTargetLang = localStorage.getItem('habla_target_lang') || 'Spanish';
+        targetLangSelect.value = savedTargetLang;
+
+        targetLangSelect.addEventListener('change', () => {
+            localStorage.setItem('habla_target_lang', targetLangSelect.value);
+        });
 
         function joinWithLanguage() {
             if (username) {
                 socket.emit('join', {
                     username: username,
-                    lang: interfaceLangSelect.value
+                    lang: targetLangSelect.value
                 });
             }
         }
@@ -702,7 +793,8 @@
             }
         });
 
-        document.getElementById('reset-user-btn').addEventListener('click', () => {
+        // Зміна нікнейму по кліку на профіль
+        document.getElementById('change-nick-trigger').addEventListener('click', () => {
             localStorage.removeItem('habla_username');
             location.reload();
         });
@@ -741,18 +833,18 @@
         function speakText(textToSpeech) {
             if (!('speechSynthesis' in window)) return;
             const utterance = new SpeechSynthesisUtterance(textToSpeech);
-            const selectedLangCode = ttsLangMap[interfaceLangSelect.value] || 'es-ES';
+            const selectedLangCode = ttsLangMap[targetLangSelect.value] || 'es-ES';
             utterance.lang = selectedLangCode;
             window.speechSynthesis.cancel();
             window.speechSynthesis.speak(utterance);
         }
 
         const translations = {
-            Spanish: { settings: "Configuración", profile: "Tu perfil", onlineUsersTitle: "Añadir contacto", interfaceLang: "Idioma de la interfaz", voiceOver: "Locución de traducción", enableSound: "Activar sonido", apiStatus: "Estado API Groq", shareApp: "Compartir App", nativeShare: "📤 Поділитися", copyLink: "📋 Copiar enlace", resetUser: "Змінити нік", placeholder: "Escribe un mensaje...", addPlaceholder: "Añadir por apodo...", addBtn: "Añadir", noContacts: "Sin contactos", online: "En línea" },
-            English: { settings: "Settings", profile: "Your profile", onlineUsersTitle: "Add contact", interfaceLang: "Interface language", voiceOver: "Translation voiceover", enableSound: "Enable sound", apiStatus: "Groq API Status", shareApp: "Share App", nativeShare: "📤 Поділитися", copyLink: "📋 Copy Link", resetUser: "Змінити нік", placeholder: "Type a message...", addPlaceholder: "Add by nickname...", addBtn: "Add", noContacts: "No contacts", online: "Online" },
-            Ukrainian: { settings: "Налаштування", profile: "Ваш профіль", onlineUsersTitle: "Додати контакт", interfaceLang: "Мова інтерфейсу", voiceOver: "Озвучування перекладу", enableSound: "Увімкнути звук", apiStatus: "Статус API Groq", shareApp: "Поділитися додатком", nativeShare: "📤 Поділитися", copyLink: "📋 Копіювати посилання", resetUser: "Змінити нік", placeholder: "Введіть повідомлення...", addPlaceholder: "Додати за ніком...", addBtn: "Додати", noContacts: "Немає контактів", online: "Онлайн" },
-            German: { settings: "Einstellungen", profile: "Ihr Profil", onlineUsersTitle: "Kontakt hinzufügen", interfaceLang: "Sprache", voiceOver: "Sprachausgabe", enableSound: "Ton", apiStatus: "API-Status", shareApp: "App teilen", nativeShare: "📤 Поділитися", copyLink: "📋 Link kopieren", resetUser: "Змінити нік", placeholder: "Nachricht...", addPlaceholder: "Spitzname...", addBtn: "Hinzufügen", noContacts: "Keine", online: "Online" },
-            French: { settings: "Paramètres", profile: "Profil", onlineUsersTitle: "Ajouter", interfaceLang: "Langue", voiceOver: "Voix", enableSound: "Son", apiStatus: "Statut API", shareApp: "Partager", nativeShare: "📤 Поділитися", copyLink: "📋 Copier", resetUser: "Змінити нік", placeholder: "Message...", addPlaceholder: "Pseudo...", addBtn: "Ajouter", noContacts: "Aucun", online: "En ligne" }
+            Spanish: { settings: "Configuración", profile: "Tu perfil", onlineUsersTitle: "Contactos", interfaceLang: "Idioma de la interfaz", voiceOver: "Locución de traducción", enableSound: "Activar sonido", apiStatus: "Estado API Groq", shareApp: "Compartir App", nativeShare: "📤 Поділитися", copyLink: "📋 Copiar enlace", placeholder: "Escribe un mensaje...", addPlaceholder: "Додати за ніком...", addBtn: "Додати", noContacts: "Sin contactos", online: "En línea", adminPanel: "Панель Адміна (Groq)" },
+            English: { settings: "Settings", profile: "Your profile", onlineUsersTitle: "Contacts", interfaceLang: "Interface language", voiceOver: "Translation voiceover", enableSound: "Enable sound", apiStatus: "Groq API Status", shareApp: "Share App", nativeShare: "📤 Поділитися", copyLink: "📋 Copy Link", placeholder: "Type a message...", addPlaceholder: "Додати за ніком...", addBtn: "Додати", noContacts: "No contacts", online: "Online", adminPanel: "Admin Panel (Groq)" },
+            Ukrainian: { settings: "Налаштування", profile: "Ваш профіль", onlineUsersTitle: "Контакти", interfaceLang: "Мова інтерфейсу", voiceOver: "Озвучування перекладу", enableSound: "Увімкнути звук", apiStatus: "Статус API Groq", shareApp: "Поділитися додатком", nativeShare: "📤 Поділитися", copyLink: "📋 Копіювати посилання", placeholder: "Введіть повідомлення...", addPlaceholder: "Додати за ніком...", addBtn: "Додати", noContacts: "Немає контактів", online: "Онлайн", adminPanel: "Панель Адміна (Groq)" },
+            German: { settings: "Einstellungen", profile: "Ihr Profil", onlineUsersTitle: "Kontakte", interfaceLang: "Sprache", voiceOver: "Sprachausgabe", enableSound: "Ton", apiStatus: "API-Status", shareApp: "App teilen", nativeShare: "📤 Поділитися", copyLink: "📋 Link kopieren", placeholder: "Nachricht...", addPlaceholder: "Додати за ніком...", addBtn: "Додати", noContacts: "Keine", online: "Online", adminPanel: "Admin-Panel (Groq)" },
+            French: { settings: "Paramètres", profile: "Profil", onlineUsersTitle: "Contacts", interfaceLang: "Langue", voiceOver: "Voix", enableSound: "Son", apiStatus: "Statut API", shareApp: "Partager", nativeShare: "📤 Поділитися", copyLink: "📋 Copier", placeholder: "Message...", addPlaceholder: "Додати за ніком...", addBtn: "Додати", noContacts: "Aucun", online: "En ligne", adminPanel: "Panneau Admin (Groq)" }
         };
 
         const messageInput = document.getElementById('message-input');
@@ -763,6 +855,8 @@
         
         const menuBtn = document.getElementById('menu-btn');
         const closeMenuBtn = document.getElementById('close-menu-btn');
+        const closeMenuBtn2 = document.getElementById('close-menu-btn-2');
+        const closeMenuBtn3 = document.getElementById('close-menu-btn-3');
         const sideMenu = document.getElementById('side-menu');
         const menuOverlay = document.getElementById('menu-overlay');
         const userDisplay = document.getElementById('user-display');
@@ -771,6 +865,15 @@
         const soundToggle = document.getElementById('sound-toggle');
         const newContactInput = document.getElementById('new-contact-input');
         const addContactBtn = document.getElementById('add-contact-btn');
+
+        // Елементи панелей сайдбара
+        const panelMain = document.getElementById('panel-main');
+        const panelSettings = document.getElementById('panel-settings');
+        const panelAdmin = document.getElementById('panel-admin');
+        const btnOpenSettings = document.getElementById('btn-open-settings');
+        const btnOpenAdmin = document.getElementById('btn-open-admin');
+        const btnBackFromSettings = document.getElementById('btn-back-from-settings');
+        const btnBackFromAdmin = document.getElementById('btn-back-from-admin');
 
         const contactModal = document.getElementById('contact-modal');
         const modalContactTitle = document.getElementById('modal-contact-title');
@@ -788,7 +891,6 @@
             const lang = interfaceLangSelect.value;
             const t = translations[lang] || translations.Spanish;
 
-            document.getElementById('menu-title-text').textContent = t.settings;
             document.getElementById('label-profile').textContent = t.profile;
             document.getElementById('label-online-users').textContent = t.onlineUsersTitle;
             document.getElementById('label-interface-lang').textContent = t.interfaceLang;
@@ -798,11 +900,13 @@
             document.getElementById('label-share-app').textContent = t.shareApp;
             document.getElementById('native-share-btn').textContent = t.nativeShare;
             document.getElementById('copy-link-btn').textContent = t.copyLink;
-            document.getElementById('reset-user-btn').textContent = t.resetUser;
             messageInput.placeholder = t.placeholder;
             newContactInput.placeholder = t.addPlaceholder;
             addContactBtn.textContent = t.addBtn;
             onlineCount.textContent = `${t.online}: ${currentOnlineCount}`;
+
+            btnOpenAdmin.innerHTML = `<span>🔑</span> ${t.adminPanel}`;
+            btnOpenSettings.innerHTML = `<span>⚙️</span> ${t.settings}`;
 
             renderStories(lastUsersData, lastIsAdmin);
         }
@@ -811,7 +915,6 @@
             const newLang = interfaceLangSelect.value;
             localStorage.setItem('habla_interface_lang', newLang);
             updateInterfaceTexts();
-            joinWithLanguage();
         });
 
         updateInterfaceTexts();
@@ -820,12 +923,42 @@
         userAvatarLarge.textContent = username.charAt(0).toUpperCase();
         joinWithLanguage();
 
-        function openMenu() { sideMenu.classList.add('open'); menuOverlay.classList.add('active'); }
-        function closeMenu() { sideMenu.classList.remove('open'); menuOverlay.classList.remove('active'); }
+        // Навігація в сайдбарі
+        function openMenu() { 
+            sideMenu.classList.add('open'); 
+            menuOverlay.classList.add('active'); 
+            showMainPanel();
+        }
+        function closeMenu() { 
+            sideMenu.classList.remove('open'); 
+            menuOverlay.classList.remove('active'); 
+        }
+
+        function showMainPanel() {
+            panelMain.classList.add('active');
+            panelSettings.classList.remove('active');
+            panelAdmin.classList.remove('active');
+        }
+
+        btnOpenSettings.addEventListener('click', () => {
+            panelMain.classList.remove('active');
+            panelSettings.classList.add('active');
+        });
+
+        btnOpenAdmin.addEventListener('click', () => {
+            panelMain.classList.remove('active');
+            panelAdmin.classList.add('active');
+        });
+
+        btnBackFromSettings.addEventListener('click', showMainPanel);
+        btnBackFromAdmin.addEventListener('click', showMainPanel);
 
         menuBtn.addEventListener('click', openMenu);
         onlineCount.addEventListener('click', openMenu);
         closeMenuBtn.addEventListener('click', closeMenu);
+        closeMenuBtn2.addEventListener('click', closeMenu);
+        closeMenuBtn3.addEventListener('click', closeMenu);
+        
         menuOverlay.addEventListener('click', () => {
             closeMenu();
             contactModal.classList.remove('active');
@@ -845,7 +978,6 @@
             });
         });
 
-        // Збереження і надсилання кастомізацій на сервер для синхронізації
         modalSaveBtn.addEventListener('click', () => {
             if (!activeContactForModal) return;
             
@@ -859,7 +991,6 @@
                 delete contactAvatars[activeContactForModal];
             }
 
-            // Відправляємо на сервер для синхронізації між пристроями
             socket.emit('update-customization', {
                 targetName: activeContactForModal,
                 color: color,
@@ -966,6 +1097,14 @@
         socket.on('update-users', ({ users, isAdmin }) => {
             lastUsersData = users;
             lastIsAdmin = isAdmin;
+            
+            // Показуємо кнопку адміна в сайдбарі лише для адміністратора
+            if (isAdmin) {
+                btnOpenAdmin.style.display = 'flex';
+            } else {
+                btnOpenAdmin.style.display = 'none';
+            }
+
             renderStories(users, isAdmin);
         });
 
@@ -1085,7 +1224,7 @@
 
             micBtn.addEventListener('click', () => {
                 if (isListening) { recognition.stop(); return; }
-                recognition.lang = ttsLangMap[interfaceLangSelect.value] || 'es-ES';
+                recognition.lang = ttsLangMap[targetLangSelect.value] || 'es-ES';
                 try { recognition.start(); } catch (e) { console.error(e); }
             });
 
