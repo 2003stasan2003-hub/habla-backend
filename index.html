@@ -787,6 +787,15 @@
     </div>
 
     <script>
+        // Реєстрація Service Worker для PWA та фонових процесів
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then((reg) => console.log('Service Worker зареєстровано:', reg))
+                    .catch((err) => console.log('Помилка реєстрації Service Worker:', err));
+            });
+        }
+
         const socket = io();
 
         let selectedRecipientName = null;
@@ -795,7 +804,7 @@
         let contactColors = JSON.parse(localStorage.getItem('habla_contact_colors') || '{}');
         let contactAvatars = JSON.parse(localStorage.getItem('habla_contact_avatars') || '{}');
         let unreadSenders = new Set();
-        let unreadCounts = {}; // Зберігає кількість непрочитаних повідомлень по кожному відправнику
+        let unreadCounts = {};
         let activeContactForModal = null;
         let selectedModalColor = '#00ffcc';
 
@@ -886,7 +895,6 @@
             }
         });
 
-        // Функція оновлення значка (бейджа з цифрою) на ярлику додатка
         function updateAppBadge() {
             const totalUnread = Object.values(unreadCounts).reduce((a, b) => a + b, 0);
             if ('setAppBadge' in navigator) {
@@ -988,7 +996,7 @@
             English: { settings: "Settings", profile: "Your profile", onlineUsersTitle: "Contacts", interfaceLang: "Interface language", voiceOver: "Translation voiceover", enableSound: "Enable sound", apiStatus: "Groq API Status", shareApp: "Share App", nativeShare: "📤 Поділитися", copyLink: "📋 Copy Link", placeholder: "Type a message...", addPlaceholder: "Додати за ніком...", addBtn: "Додати", noContacts: "No contacts", online: "Online", adminPanel: "Admin Panel", forceTranslate: "Forced translation", enableForce: "Enable translation" },
             Ukrainian: { settings: "Налаштування", profile: "Ваш профіль", onlineUsersTitle: "Контакти", interfaceLang: "Мова інтерфейсу", voiceOver: "Озвучування перекладу", enableSound: "Увімкнути звук", apiStatus: "Статус API Groq", shareApp: "Поділитися додатком", nativeShare: "📤 Поділитися", copyLink: "📋 Копіювати посилання", placeholder: "Введіть повідомлення...", addPlaceholder: "Додати за ніком...", addBtn: "Додати", noContacts: "Немає контактів", online: "Онлайн", adminPanel: "Панель Адміністратора", forceTranslate: "Примусовий переклад", enableForce: "Увімкнути переклад" },
             German: { settings: "Einstellungen", profile: "Ihr Profil", onlineUsersTitle: "Kontakte", interfaceLang: "Sprache", voiceOver: "Sprachausgabe", enableSound: "Ton", apiStatus: "API-Status", shareApp: "App teilen", nativeShare: "📤 Поділитися", copyLink: "📋 Link kopieren", placeholder: "Nachricht...", addPlaceholder: "Додати за ніком...", addBtn: "Додати", noContacts: "Keine", online: "Online", adminPanel: "Admin-Panel", forceTranslate: "Erzwungene Übersetzung", enableForce: "Übersetzung aktivieren" },
-            French: { settings: "Paramètres", profile: "Profil", onlineUsersTitle: "Contacts", interfaceLang: "Langue", voiceOver: "Voix", enableSound: "Statut API", shareApp: "Partager", nativeShare: "📤 Поділитися", copyLink: "📋 Copier", placeholder: "Message...", addPlaceholder: "Додати за ніком...", addBtn: "Додати", noContacts: "Aucun", online: "En ligne", adminPanel: "Panneau Admin", forceTranslate: "Traduction forcée", enableForce: "Activer la traduction" }
+            French: { settings: "Paramètres", profile: "Profil", onlineUsersTitle: "Contacts", interfaceLang: "Langue", voiceOver: "Voix", enableSound: "Son", apiStatus: "Statut API", shareApp: "Partager", nativeShare: "📤 Поділитися", copyLink: "📋 Copier", placeholder: "Message...", addPlaceholder: "Додати за ніком...", addBtn: "Додати", noContacts: "Aucun", online: "En ligne", adminPanel: "Panneau Admin", forceTranslate: "Traduction forcée", enableForce: "Activer la traduction" }
         };
 
         const messageInput = document.getElementById('message-input');
@@ -1258,7 +1266,7 @@
                 if (selectedRecipientName !== data.user) {
                     unreadSenders.add(data.user);
                     unreadCounts[data.user] = (unreadCounts[data.user] || 0) + 1;
-                    updateAppBadge(); // Оновлюємо бейдж на ярлику з кількістю повідомлень
+                    updateAppBadge();
                     renderStories(lastUsersData, lastIsAdmin);
                 }
             }
@@ -1366,12 +1374,11 @@
                     triggerSettings(user.name, e);
                 });
 
-                // Клік на контакт відкриває чат і повністю очищає непрочитані для нього
                 story.addEventListener('click', () => {
                     selectedRecipientName = user.name;
                     unreadSenders.delete(user.name);
                     delete unreadCounts[user.name];
-                    updateAppBadge(); // Очищуємо бейдж на ярлику, коли чат відкрито
+                    updateAppBadge();
                     recentContactsOrder = recentContactsOrder.filter(n => n !== user.name);
                     recentContactsOrder.unshift(user.name);
                     localStorage.setItem('habla_recent_contacts', JSON.stringify(recentContactsOrder));
