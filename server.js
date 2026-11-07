@@ -28,7 +28,8 @@ let currentGroqLimits = { requests: '---', tokens: '---' };
 const activeSockets = {}; 
 const allKnownUsers = new Set(); 
 const userContacts = {}; 
-const userLanguages = {}; // Зберігаємо мову кожного користувача
+const userLanguages = {}; 
+const userCustomizations = {}; // Сховище кастомізацій (кольорі/аватарки) для кожного користувача
 
 function checkIsAdmin(username) {
     if (!username) return false;
@@ -72,7 +73,6 @@ function updateUsers() {
     io.emit('onlineCount', onlineNames.size);
 }
 
-// Функція перекладу через Groq API на конкретну мову
 async function translateText(text, targetLanguage) {
     const apiKey = process.env.GROQ_API_KEY;
     if (!apiKey || !text || !targetLanguage) return text;
@@ -136,7 +136,31 @@ io.on('connection', (socket) => {
         if (!userContacts[username]) {
             userContacts[username] = new Set();
         }
+
+        // Надсилаємо користувачу його збережені кастомізації (якщо є)
+        if (userCustomizations[username]) {
+            socket.emit('sync-customizations', userCustomizations[username]);
+        }
+
         updateUsers();
+    });
+
+    // Синхронізація налаштувань контакту (колір/аватарка) між пристроями
+    socket.on('update-customization', ({ targetName, color, avatar }) => {
+        const username = activeSockets[socket.id];
+        if (!username || !targetName) return;
+
+        if (!userCustomizations[username]) {
+            userCustomizations[username] = {};
+        }
+        userCustomizations[username][targetName] = { color, avatar };
+
+        // Розсилаємо оновлення на всі пристрої цього ж користувача
+        for (let [id, name] of Object.entries(activeSockets)) {
+            if (name === username) {
+                io.to(id).emit('sync-customizations', userCustomizations[username]);
+            }
+        }
     });
 
     socket.on('add-contact', (targetName) => {
@@ -159,7 +183,6 @@ io.on('connection', (socket) => {
 
             if (!originalText) return;
 
-            // Відправник бачить свій оригінальний текст
             socket.emit('chatMessage', {
                 user: sender,
                 text: originalText,
@@ -168,16 +191,12 @@ io.on('connection', (socket) => {
             });
 
             if (recipient) {
-                // Знаходимо сокет одержувача
                 const recipientSocketId = Object.keys(activeSockets).find(
                     id => activeSockets[id] === recipient
                 );
 
                 if (recipientSocketId && recipientSocketId !== socket.id) {
-                    // Визначаємо рідну мову одержувача
                     const recipientLang = userLanguages[recipient] || 'Spanish';
-                    
-                    // Автоматично перекладаємо на мову одержувача
                     const translatedText = await translateText(originalText, recipientLang);
 
                     io.to(recipientSocketId).emit('chatMessage', {
@@ -188,7 +207,6 @@ io.on('connection', (socket) => {
                     });
                 }
             } else {
-                // Якщо загальний чат (або без адресата) — розсилаємо всім у їхніх мовах або оригінал
                 socket.broadcast.emit('chatMessage', {
                     user: sender,
                     text: originalText,
