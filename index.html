@@ -144,7 +144,6 @@
         .story-dot.online { background-color: #3acc6e; }
         .story-dot.offline { background-color: #89a1b2; }
 
-        /* Анімація пульсуючої червоної цяточки непрочитаних повідомлень */
         @keyframes redPulse {
             0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.7); }
             70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(255, 59, 48, 0); }
@@ -265,7 +264,7 @@
         .user-badge-container {
             display: flex;
             align-items: center;
-            justify-content: space-between;
+            gap: 12px;
             background: #242f3d;
             padding: 10px 14px;
             border-radius: 10px;
@@ -301,18 +300,6 @@
             color: #00ffcc;
             font-weight: 600;
             font-size: 1rem;
-        }
-
-        .reset-nick-link {
-            font-size: 0.75rem;
-            color: #89a1b2;
-            text-decoration: underline;
-            background: none;
-            border: none;
-            cursor: pointer;
-        }
-        .reset-nick-link:hover {
-            color: #ff3b30;
         }
 
         .add-contact-box {
@@ -626,6 +613,7 @@
 
     <div id="side-menu" class="side-menu">
         
+        <!-- ГОЛОВНИЙ ЕКРАН САЙДБАРА (очищений від кнопки зміни ніку) -->
         <div id="panel-main" class="sidebar-panel active">
             <div class="menu-header">
                 <span class="menu-title" id="menu-title-text">Habla Menu</span>
@@ -639,7 +627,6 @@
                         <div id="user-avatar-large" class="user-avatar-large">G</div>
                         <div id="user-display" class="user-badge">Invitado</div>
                     </div>
-                    <button id="reset-user-btn" class="reset-nick-link">Змінити нік</button>
                 </div>
             </div>
 
@@ -674,10 +661,18 @@
             </button>
         </div>
 
+        <!-- ПІДМЕНЮ НАЛАШТУВАНЬ (з кнопкою зміни ніку та тумблером примусового перекладу) -->
         <div id="panel-settings" class="sidebar-panel">
             <div class="menu-header">
                 <button id="btn-back-from-settings" class="back-btn">← Назад</button>
                 <button id="close-menu-btn-2" class="close-menu-btn">✕</button>
+            </div>
+
+            <div class="menu-section">
+                <label id="label-profile-settings">Керування профілем</label>
+                <button id="reset-user-btn" class="sidebar-nav-btn" style="background: rgba(255, 59, 48, 0.15); border-color: #ff3b30; color: #ff3b30; width: 100%; justify-content: center;">
+                    🔄 Змінити нікнейм
+                </button>
             </div>
 
             <div class="menu-section">
@@ -692,7 +687,11 @@
             </div>
 
             <div class="menu-section">
-                <label for="target-lang" id="label-translate-to">Примусовий переклад на:</label>
+                <label id="label-force-translate">Примусовий переклад</label>
+                <div style="display: flex; justify-content: space-between; align-items: center; background: #242f3d; padding: 10px; border-radius: 8px; border: 1px solid #2b5278; margin-bottom: 8px;">
+                    <span id="label-enable-force" style="font-size: 0.85rem; color: #f5f5f5;">Увімкнути переклад</span>
+                    <input type="checkbox" id="force-translate-toggle" style="width: 18px; height: 18px; accent-color: #00ffcc;">
+                </div>
                 <select id="target-lang" class="lang-select">
                     <option value="Ukrainian">Ukrainian</option>
                     <option value="Spanish">Spanish</option>
@@ -711,6 +710,7 @@
             </div>
         </div>
 
+        <!-- ПІДМЕНЮ АДМІНІСТРАТОРА -->
         <div id="panel-admin" class="sidebar-panel">
             <div class="menu-header">
                 <button id="btn-back-from-admin" class="back-btn">← Назад</button>
@@ -752,7 +752,7 @@
         let localAddedContacts = JSON.parse(localStorage.getItem('habla_local_contacts') || '[]');
         let contactColors = JSON.parse(localStorage.getItem('habla_contact_colors') || '{}');
         let contactAvatars = JSON.parse(localStorage.getItem('habla_contact_avatars') || '{}');
-        let unreadSenders = new Set(); // Список відправників із непрочитаними повідомленнями
+        let unreadSenders = new Set();
         let activeContactForModal = null;
         let selectedModalColor = '#00ffcc';
 
@@ -787,22 +787,35 @@
 
         const interfaceLangSelect = document.getElementById('interface-lang');
         const targetLangSelect = document.getElementById('target-lang');
+        const forceTranslateToggle = document.getElementById('force-translate-toggle');
         
         let savedInterfaceLang = localStorage.getItem('habla_interface_lang') || getDeviceLanguage();
         interfaceLangSelect.value = savedInterfaceLang;
         
-        let savedTargetLang = localStorage.getItem('habla_target_lang') || 'Spanish';
+        let savedTargetLang = localStorage.getItem('habla_target_lang') || 'Ukrainian';
         targetLangSelect.value = savedTargetLang;
+
+        let savedForceState = localStorage.getItem('habla_force_translate') === 'true';
+        forceTranslateToggle.checked = savedForceState;
+
+        forceTranslateToggle.addEventListener('change', () => {
+            localStorage.setItem('habla_force_translate', forceTranslateToggle.checked);
+            joinWithLanguage();
+        });
 
         targetLangSelect.addEventListener('change', () => {
             localStorage.setItem('habla_target_lang', targetLangSelect.value);
+            if (forceTranslateToggle.checked) {
+                joinWithLanguage();
+            }
         });
 
         function joinWithLanguage() {
             if (username) {
+                const langToUse = forceTranslateToggle.checked ? targetLangSelect.value : interfaceLangSelect.value;
                 socket.emit('join', {
                     username: username,
-                    lang: targetLangSelect.value
+                    lang: langToUse
                 });
             }
         }
@@ -836,8 +849,8 @@
             }
         }
 
-        document.getElementById('reset-user-btn').addEventListener('click', (e) => {
-            e.stopPropagation();
+        // Кнопка зміни ніку тепер у налаштуваннях
+        document.getElementById('reset-user-btn').addEventListener('click', () => {
             localStorage.removeItem('habla_username');
             location.reload();
         });
@@ -876,21 +889,21 @@
         function speakText(textToSpeech) {
             if (!('speechSynthesis' in window)) return;
             const utterance = new SpeechSynthesisUtterance(textToSpeech);
-            const selectedLangCode = ttsLangMap[targetLangSelect.value] || 'es-ES';
+            const activeLang = forceTranslateToggle.checked ? targetLangSelect.value : interfaceLangSelect.value;
+            const selectedLangCode = ttsLangMap[activeLang] || 'es-ES';
             utterance.lang = selectedLangCode;
             window.speechSynthesis.cancel();
             window.speechSynthesis.speak(utterance);
         }
 
-        // Функція відтворення м'якого звуку сповіщення через Web Audio API
         function playNotificationSound() {
             try {
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
                 osc.type = 'sine';
-                osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // Нота D5
-                osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.15); // Нота A5
+                osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.15);
                 gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
                 gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
                 osc.connect(gain);
@@ -898,16 +911,16 @@
                 osc.start();
                 osc.stop(audioCtx.currentTime + 0.3);
             } catch (e) {
-                console.log('Audio context blocked until user interaction', e);
+                console.log('Audio context blocked', e);
             }
         }
 
         const translations = {
-            Spanish: { settings: "Configuración", profile: "Tu perfil", onlineUsersTitle: "Contactos", interfaceLang: "Idioma de la interfaz", voiceOver: "Locución de traducción", enableSound: "Activar sonido", apiStatus: "Estado API Groq", shareApp: "Compartir App", nativeShare: "📤 Поділитися", copyLink: "📋 Copiar enlace", placeholder: "Escribe un mensaje...", addPlaceholder: "Додати за ніком...", addBtn: "Додати", noContacts: "Sin contactos", online: "En línea", adminPanel: "Панель Адміна (Groq)" },
-            English: { settings: "Settings", profile: "Your profile", onlineUsersTitle: "Contacts", interfaceLang: "Interface language", voiceOver: "Translation voiceover", enableSound: "Enable sound", apiStatus: "Groq API Status", shareApp: "Share App", nativeShare: "📤 Поділитися", copyLink: "📋 Copy Link", placeholder: "Type a message...", addPlaceholder: "Додати за ніком...", addBtn: "Додати", noContacts: "No contacts", online: "Online", adminPanel: "Admin Panel (Groq)" },
-            Ukrainian: { settings: "Налаштування", profile: "Ваш профіль", onlineUsersTitle: "Контакти", interfaceLang: "Мова інтерфейсу", voiceOver: "Озвучування перекладу", enableSound: "Увімкнути звук", apiStatus: "Статус API Groq", shareApp: "Поділитися додатком", nativeShare: "📤 Поділитися", copyLink: "📋 Копіювати посилання", placeholder: "Введіть повідомлення...", addPlaceholder: "Додати за ніком...", addBtn: "Додати", noContacts: "Немає контактів", online: "Онлайн", adminPanel: "Панель Адміна (Groq)" },
-            German: { settings: "Einstellungen", profile: "Ihr Profil", onlineUsersTitle: "Kontakte", interfaceLang: "Sprache", voiceOver: "Sprachausgabe", enableSound: "Ton", apiStatus: "API-Status", shareApp: "App teilen", nativeShare: "📤 Поділитися", copyLink: "📋 Link kopieren", placeholder: "Nachricht...", addPlaceholder: "Додати за ніком...", addBtn: "Додати", noContacts: "Keine", online: "Online", adminPanel: "Admin-Panel (Groq)" },
-            French: { settings: "Paramètres", profile: "Profil", onlineUsersTitle: "Contacts", interfaceLang: "Langue", voiceOver: "Voix", enableSound: "Son", apiStatus: "Statut API", shareApp: "Partager", nativeShare: "📤 Поділитися", copyLink: "📋 Copier", placeholder: "Message...", addPlaceholder: "Додати за ніком...", addBtn: "Додати", noContacts: "Aucun", online: "En ligne", adminPanel: "Panneau Admin (Groq)" }
+            Spanish: { settings: "Configuración", profile: "Tu perfil", onlineUsersTitle: "Contactos", interfaceLang: "Idioma de la interfaz", voiceOver: "Locución de traducción", enableSound: "Activar sonido", apiStatus: "Estado API Groq", shareApp: "Compartir App", nativeShare: "📤 Поділитися", copyLink: "📋 Copiar enlace", placeholder: "Escribe un mensaje...", addPlaceholder: "Додати за ніком...", addBtn: "Додати", noContacts: "Sin contactos", online: "En línea", adminPanel: "Панель Адміністратора", forceTranslate: "Примусовий переклад", enableForce: "Увімкнути переклад" },
+            English: { settings: "Settings", profile: "Your profile", onlineUsersTitle: "Contacts", interfaceLang: "Interface language", voiceOver: "Translation voiceover", enableSound: "Enable sound", apiStatus: "Groq API Status", shareApp: "Share App", nativeShare: "📤 Поділитися", copyLink: "📋 Copy Link", placeholder: "Type a message...", addPlaceholder: "Додати за ніком...", addBtn: "Додати", noContacts: "No contacts", online: "Online", adminPanel: "Admin Panel", forceTranslate: "Forced translation", enableForce: "Enable translation" },
+            Ukrainian: { settings: "Налаштування", profile: "Ваш профіль", onlineUsersTitle: "Контакти", interfaceLang: "Мова інтерфейсу", voiceOver: "Озвучування перекладу", enableSound: "Увімкнути звук", apiStatus: "Статус API Groq", shareApp: "Поділитися додатком", nativeShare: "📤 Поділитися", copyLink: "📋 Копіювати посилання", placeholder: "Введіть повідомлення...", addPlaceholder: "Додати за ніком...", addBtn: "Додати", noContacts: "Немає контактів", online: "Онлайн", adminPanel: "Панель Адміністратора", forceTranslate: "Примусовий переклад", enableForce: "Увімкнути переклад" },
+            German: { settings: "Einstellungen", profile: "Ihr Profil", onlineUsersTitle: "Kontakte", interfaceLang: "Sprache", voiceOver: "Sprachausgabe", enableSound: "Ton", apiStatus: "API-Status", shareApp: "App teilen", nativeShare: "📤 Поділитися", copyLink: "📋 Link kopieren", placeholder: "Nachricht...", addPlaceholder: "Додати за ніком...", addBtn: "Додати", noContacts: "Keine", online: "Online", adminPanel: "Admin-Panel", forceTranslate: "Erzwungene Übersetzung", enableForce: "Übersetzung aktivieren" },
+            French: { settings: "Paramètres", profile: "Profil", onlineUsersTitle: "Contacts", interfaceLang: "Langue", voiceOver: "Voix", enableSound: "Son", apiStatus: "Statut API", shareApp: "Partager", nativeShare: "📤 Поділитися", copyLink: "📋 Copier", placeholder: "Message...", addPlaceholder: "Додати за ніком...", addBtn: "Додати", noContacts: "Aucun", online: "En ligne", adminPanel: "Panneau Admin", forceTranslate: "Traduction forcée", enableForce: "Activer la traduction" }
         };
 
         const messageInput = document.getElementById('message-input');
@@ -954,6 +967,8 @@
             document.getElementById('label-profile').textContent = t.profile;
             document.getElementById('label-online-users').textContent = t.onlineUsersTitle;
             document.getElementById('label-interface-lang').textContent = t.interfaceLang;
+            document.getElementById('label-force-translate').textContent = t.forceTranslate;
+            document.getElementById('label-enable-force').textContent = t.enableForce;
             document.getElementById('label-voice-over').textContent = t.voiceOver;
             document.getElementById('label-enable-sound').textContent = t.enableSound;
             document.getElementById('label-api-status').textContent = t.apiStatus;
@@ -975,6 +990,9 @@
             const newLang = interfaceLangSelect.value;
             localStorage.setItem('habla_interface_lang', newLang);
             updateInterfaceTexts();
+            if (!forceTranslateToggle.checked) {
+                joinWithLanguage();
+            }
         });
 
         updateInterfaceTexts();
@@ -1054,11 +1072,7 @@
         }
 
         const profileSettingsTrigger = document.getElementById('profile-settings-trigger');
-        profileSettingsTrigger.addEventListener('click', (e) => {
-            if (e.target.id !== 'reset-user-btn') {
-                triggerSettings(username, e);
-            }
-        });
+        profileSettingsTrigger.addEventListener('click', (e) => triggerSettings(username, e));
         profileSettingsTrigger.addEventListener('contextmenu', (e) => triggerSettings(username, e));
 
         colorCircles.forEach(circle => {
@@ -1171,10 +1185,8 @@
 
             if (soundToggle.checked) speakText(data.text);
 
-            // Якщо повідомлення вхідне і не від нас
             if (!isSelf) {
                 playNotificationSound();
-                // Якщо чат із цим відправником зараз НЕ відкритий — увімкнути червону пульсуючу цяточку
                 if (selectedRecipientName !== data.user) {
                     unreadSenders.add(data.user);
                     renderStories(lastUsersData, lastIsAdmin);
@@ -1248,7 +1260,6 @@
                 const customColor = contactColors[user.name] || '#00ffcc';
                 const customAvatarUrl = contactAvatars[user.name];
 
-                // Визначаємо клас для цяточки (якщо є непрочитані — червона пульсуюча, інакше онлайн/офлайн)
                 const isUnread = unreadSenders.has(user.name);
                 let dotClass = user.isOnline ? 'online' : 'offline';
                 if (isUnread) {
@@ -1285,10 +1296,9 @@
                     triggerSettings(user.name, e);
                 });
 
-                // Клік на контакт відкриває чат і знімає статуси непрочитаних (червону цяточку)
                 story.addEventListener('click', () => {
                     selectedRecipientName = user.name;
-                    unreadSenders.delete(user.name); // Очищаємо статус непрочитаних для цього контакту
+                    unreadSenders.delete(user.name);
                     recentContactsOrder = recentContactsOrder.filter(n => n !== user.name);
                     recentContactsOrder.unshift(user.name);
                     localStorage.setItem('habla_recent_contacts', JSON.stringify(recentContactsOrder));
@@ -1314,7 +1324,8 @@
 
             micBtn.addEventListener('click', () => {
                 if (isListening) { recognition.stop(); return; }
-                recognition.lang = ttsLangMap[targetLangSelect.value] || 'es-ES';
+                const activeLang = forceTranslateToggle.checked ? targetLangSelect.value : interfaceLangSelect.value;
+                recognition.lang = ttsLangMap[activeLang] || 'es-ES';
                 try { recognition.start(); } catch (e) { console.error(e); }
             });
 
