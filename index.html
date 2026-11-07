@@ -1304,15 +1304,18 @@
             const lang = interfaceLangSelect.value;
             const t = translations[lang] || translations.Spanish;
 
-            let allNamesMap = new Map();
-            users.forEach(u => allNamesMap.set(u.name, u));
+            let userMap = new Map();
+            users.forEach(u => userMap.set(u.name, u));
+
+            let combinedUsers = [];
             localAddedContacts.forEach(name => {
-                if (!allNamesMap.has(name)) {
-                    allNamesMap.set(name, { name: name, isOnline: false, myAdd: true, theirAdd: false, isMutual: false });
+                if (userMap.has(name)) {
+                    combinedUsers.push(userMap.get(name));
+                } else {
+                    combinedUsers.push({ name: name, isOnline: false, myAdd: true, theirAdd: false, isMutual: false });
                 }
             });
 
-            let combinedUsers = Array.from(allNamesMap.values());
             if (combinedUsers.length === 0) {
                 topStoriesStrip.innerHTML = `<span style="color: #89a1b2; font-size: 0.85rem; padding: 4px;">${t.noContacts}</span>`;
                 return;
