@@ -163,6 +163,46 @@
             text-align: center;
         }
 
+        /* Стилі для повзунка (тумблера) */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+            flex-shrink: 0;
+        }
+        .switch input { 
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #2b5278;
+            transition: 0.3s;
+            border-radius: 24px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #00ffcc;
+        }
+        input:checked + .slider:before {
+            transform: translateX(20px);
+            background-color: #0e1621;
+        }
+
         .side-menu {
             position: fixed;
             top: 0;
@@ -613,7 +653,6 @@
 
     <div id="side-menu" class="side-menu">
         
-        <!-- ГОЛОВНИЙ ЕКРАН САЙДБАРА (очищений від кнопки зміни ніку) -->
         <div id="panel-main" class="sidebar-panel active">
             <div class="menu-header">
                 <span class="menu-title" id="menu-title-text">Habla Menu</span>
@@ -661,7 +700,6 @@
             </button>
         </div>
 
-        <!-- ПІДМЕНЮ НАЛАШТУВАНЬ (з кнопкою зміни ніку та тумблером примусового перекладу) -->
         <div id="panel-settings" class="sidebar-panel">
             <div class="menu-header">
                 <button id="btn-back-from-settings" class="back-btn">← Назад</button>
@@ -686,19 +724,26 @@
                 </select>
             </div>
 
+            <!-- ПРИМУСОВИЙ ПЕРЕКЛАД З ПОВЗУНКОМ ТА ДИНАМІЧНИМ СПИСКОМ МОВ -->
             <div class="menu-section">
                 <label id="label-force-translate">Примусовий переклад</label>
                 <div style="display: flex; justify-content: space-between; align-items: center; background: #242f3d; padding: 10px; border-radius: 8px; border: 1px solid #2b5278; margin-bottom: 8px;">
                     <span id="label-enable-force" style="font-size: 0.85rem; color: #f5f5f5;">Увімкнути переклад</span>
-                    <input type="checkbox" id="force-translate-toggle" style="width: 18px; height: 18px; accent-color: #00ffcc;">
+                    <label class="switch">
+                        <input type="checkbox" id="force-translate-toggle">
+                        <span class="slider"></span>
+                    </label>
                 </div>
-                <select id="target-lang" class="lang-select">
-                    <option value="Ukrainian">Ukrainian</option>
-                    <option value="Spanish">Spanish</option>
-                    <option value="English">English</option>
-                    <option value="German">German</option>
-                    <option value="French">French</option>
-                </select>
+                <!-- Обгортка випадаючого списку, яка ховається або з'являється -->
+                <div id="target-lang-container" style="display: none; flex-direction: column; gap: 6px;">
+                    <select id="target-lang" class="lang-select">
+                        <option value="Ukrainian">Ukrainian</option>
+                        <option value="Spanish">Spanish</option>
+                        <option value="English">English</option>
+                        <option value="German">German</option>
+                        <option value="French">French</option>
+                    </select>
+                </div>
             </div>
 
             <div class="menu-section">
@@ -710,7 +755,6 @@
             </div>
         </div>
 
-        <!-- ПІДМЕНЮ АДМІНІСТРАТОРА -->
         <div id="panel-admin" class="sidebar-panel">
             <div class="menu-header">
                 <button id="btn-back-from-admin" class="back-btn">← Назад</button>
@@ -788,6 +832,7 @@
         const interfaceLangSelect = document.getElementById('interface-lang');
         const targetLangSelect = document.getElementById('target-lang');
         const forceTranslateToggle = document.getElementById('force-translate-toggle');
+        const targetLangContainer = document.getElementById('target-lang-container');
         
         let savedInterfaceLang = localStorage.getItem('habla_interface_lang') || getDeviceLanguage();
         interfaceLangSelect.value = savedInterfaceLang;
@@ -798,8 +843,20 @@
         let savedForceState = localStorage.getItem('habla_force_translate') === 'true';
         forceTranslateToggle.checked = savedForceState;
 
+        // Функція керування видимістю випадаючого списку мов
+        function updateForceTranslateUI() {
+            if (forceTranslateToggle.checked) {
+                targetLangContainer.style.display = 'flex';
+            } else {
+                targetLangContainer.style.display = 'none';
+            }
+        }
+
+        updateForceTranslateUI();
+
         forceTranslateToggle.addEventListener('change', () => {
             localStorage.setItem('habla_force_translate', forceTranslateToggle.checked);
+            updateForceTranslateUI();
             joinWithLanguage();
         });
 
@@ -849,7 +906,6 @@
             }
         }
 
-        // Кнопка зміни ніку тепер у налаштуваннях
         document.getElementById('reset-user-btn').addEventListener('click', () => {
             localStorage.removeItem('habla_username');
             location.reload();
