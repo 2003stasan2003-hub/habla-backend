@@ -724,7 +724,6 @@
                 </select>
             </div>
 
-            <!-- ПРИМУСОВИЙ ПЕРЕКЛАД З ПОВЗУНКОМ ТА ДИНАМІЧНИМ СПИСКОМ МОВ -->
             <div class="menu-section">
                 <label id="label-force-translate">Примусовий переклад</label>
                 <div style="display: flex; justify-content: space-between; align-items: center; background: #242f3d; padding: 10px; border-radius: 8px; border: 1px solid #2b5278; margin-bottom: 8px;">
@@ -734,7 +733,6 @@
                         <span class="slider"></span>
                     </label>
                 </div>
-                <!-- Обгортка випадаючого списку, яка ховається або з'являється -->
                 <div id="target-lang-container" style="display: none; flex-direction: column; gap: 6px;">
                     <select id="target-lang" class="lang-select">
                         <option value="Ukrainian">Ukrainian</option>
@@ -797,6 +795,7 @@
         let contactColors = JSON.parse(localStorage.getItem('habla_contact_colors') || '{}');
         let contactAvatars = JSON.parse(localStorage.getItem('habla_contact_avatars') || '{}');
         let unreadSenders = new Set();
+        let unreadCounts = {}; // Зберігає кількість непрочитаних повідомлень по кожному відправнику
         let activeContactForModal = null;
         let selectedModalColor = '#00ffcc';
 
@@ -843,7 +842,6 @@
         let savedForceState = localStorage.getItem('habla_force_translate') === 'true';
         forceTranslateToggle.checked = savedForceState;
 
-        // Функція керування видимістю випадаючого списку мов
         function updateForceTranslateUI() {
             if (forceTranslateToggle.checked) {
                 targetLangContainer.style.display = 'flex';
@@ -887,6 +885,20 @@
                 joinWithLanguage();
             }
         });
+
+        // Функція оновлення значка (бейджа з цифрою) на ярлику додатка
+        function updateAppBadge() {
+            const totalUnread = Object.values(unreadCounts).reduce((a, b) => a + b, 0);
+            if ('setAppBadge' in navigator) {
+                if (totalUnread > 0) {
+                    navigator.setAppBadge(totalUnread).catch(err => console.log('Badge error:', err));
+                } else {
+                    if ('clearAppBadge' in navigator) {
+                        navigator.clearAppBadge().catch(err => console.log('Clear badge error:', err));
+                    }
+                }
+            }
+        }
 
         const userDisplay = document.getElementById('user-display');
         const userAvatarLarge = document.getElementById('user-avatar-large');
@@ -976,7 +988,7 @@
             English: { settings: "Settings", profile: "Your profile", onlineUsersTitle: "Contacts", interfaceLang: "Interface language", voiceOver: "Translation voiceover", enableSound: "Enable sound", apiStatus: "Groq API Status", shareApp: "Share App", nativeShare: "📤 Поділитися", copyLink: "📋 Copy Link", placeholder: "Type a message...", addPlaceholder: "Додати за ніком...", addBtn: "Додати", noContacts: "No contacts", online: "Online", adminPanel: "Admin Panel", forceTranslate: "Forced translation", enableForce: "Enable translation" },
             Ukrainian: { settings: "Налаштування", profile: "Ваш профіль", onlineUsersTitle: "Контакти", interfaceLang: "Мова інтерфейсу", voiceOver: "Озвучування перекладу", enableSound: "Увімкнути звук", apiStatus: "Статус API Groq", shareApp: "Поділитися додатком", nativeShare: "📤 Поділитися", copyLink: "📋 Копіювати посилання", placeholder: "Введіть повідомлення...", addPlaceholder: "Додати за ніком...", addBtn: "Додати", noContacts: "Немає контактів", online: "Онлайн", adminPanel: "Панель Адміністратора", forceTranslate: "Примусовий переклад", enableForce: "Увімкнути переклад" },
             German: { settings: "Einstellungen", profile: "Ihr Profil", onlineUsersTitle: "Kontakte", interfaceLang: "Sprache", voiceOver: "Sprachausgabe", enableSound: "Ton", apiStatus: "API-Status", shareApp: "App teilen", nativeShare: "📤 Поділитися", copyLink: "📋 Link kopieren", placeholder: "Nachricht...", addPlaceholder: "Додати за ніком...", addBtn: "Додати", noContacts: "Keine", online: "Online", adminPanel: "Admin-Panel", forceTranslate: "Erzwungene Übersetzung", enableForce: "Übersetzung aktivieren" },
-            French: { settings: "Paramètres", profile: "Profil", onlineUsersTitle: "Contacts", interfaceLang: "Langue", voiceOver: "Voix", enableSound: "Son", apiStatus: "Statut API", shareApp: "Partager", nativeShare: "📤 Поділитися", copyLink: "📋 Copier", placeholder: "Message...", addPlaceholder: "Додати за ніком...", addBtn: "Додати", noContacts: "Aucun", online: "En ligne", adminPanel: "Panneau Admin", forceTranslate: "Traduction forcée", enableForce: "Activer la traduction" }
+            French: { settings: "Paramètres", profile: "Profil", onlineUsersTitle: "Contacts", interfaceLang: "Langue", voiceOver: "Voix", enableSound: "Statut API", shareApp: "Partager", nativeShare: "📤 Поділитися", copyLink: "📋 Copier", placeholder: "Message...", addPlaceholder: "Додати за ніком...", addBtn: "Додати", noContacts: "Aucun", online: "En ligne", adminPanel: "Panneau Admin", forceTranslate: "Traduction forcée", enableForce: "Activer la traduction" }
         };
 
         const messageInput = document.getElementById('message-input');
@@ -1245,6 +1257,8 @@
                 playNotificationSound();
                 if (selectedRecipientName !== data.user) {
                     unreadSenders.add(data.user);
+                    unreadCounts[data.user] = (unreadCounts[data.user] || 0) + 1;
+                    updateAppBadge(); // Оновлюємо бейдж на ярлику з кількістю повідомлень
                     renderStories(lastUsersData, lastIsAdmin);
                 }
             }
@@ -1352,9 +1366,12 @@
                     triggerSettings(user.name, e);
                 });
 
+                // Клік на контакт відкриває чат і повністю очищає непрочитані для нього
                 story.addEventListener('click', () => {
                     selectedRecipientName = user.name;
                     unreadSenders.delete(user.name);
+                    delete unreadCounts[user.name];
+                    updateAppBadge(); // Очищуємо бейдж на ярлику, коли чат відкрито
                     recentContactsOrder = recentContactsOrder.filter(n => n !== user.name);
                     recentContactsOrder.unshift(user.name);
                     localStorage.setItem('habla_recent_contacts', JSON.stringify(recentContactsOrder));
