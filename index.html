@@ -556,8 +556,17 @@
 
         .msg-footer {
             display: flex;
-            justify-content: flex-end;
-            margin-top: 4px;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 6px;
+            gap: 12px;
+        }
+
+        .msg-time {
+            font-size: 0.7rem;
+            color: #89a1b2;
+            opacity: 0.85;
+            user-select: none;
         }
 
         .speak-btn {
@@ -693,25 +702,21 @@
             <div class="menu-section">
                 <label>Меню керування</label>
                 <div class="menu-grid">
-                    <!-- 1. Налаштування -->
                     <div id="btn-open-settings" class="grid-tile">
                         <span class="tile-icon">⚙️</span>
                         <span class="tile-title" id="lbl-settings-tile">Налаштування</span>
                     </div>
 
-                    <!-- 2. QR-код -->
                     <div id="btn-open-qr" class="grid-tile">
                         <span class="tile-icon">📱</span>
                         <span class="tile-title" id="lbl-qr-tile">QR-код</span>
                     </div>
 
-                    <!-- 3. Контакти -->
                     <div id="btn-open-contacts" class="grid-tile">
                         <span class="tile-icon">📖</span>
                         <span class="tile-title" id="lbl-contacts-tile">Контакти</span>
                     </div>
 
-                    <!-- 4. Розробник -->
                     <div id="btn-open-admin" class="grid-tile" style="display: none;">
                         <span class="tile-icon">🛠️</span>
                         <span class="tile-title" id="lbl-dev-tile">Розробник</span>
@@ -774,7 +779,7 @@
             </div>
         </div>
 
-        <!-- ПАНЕЛЬ 2: QR-КОД ТА ПОШИРЕННЯ (З ЛОГОТИПОМ ПО ЦЕНТРУ) -->
+        <!-- ПАНЕЛЬ 2: QR-КОД ТА ПОШИРЕННЯ -->
         <div id="panel-qr" class="sidebar-panel">
             <div class="menu-header">
                 <button id="btn-back-from-qr" class="back-btn">← Назад</button>
@@ -785,7 +790,6 @@
                 <label id="label-share-app">Поділитися додатком</label>
                 <div style="background: #242f3d; padding: 14px; border-radius: 10px; border: 1px solid #2b5278; display: flex; flex-direction: column; gap: 10px; align-items: center; text-align: center;">
                     
-                    <!-- QR-код з фірмовим знаком H по центру -->
                     <div style="position: relative; width: 142px; height: 142px; background: #fff; padding: 6px; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
                         <img id="qr-code-img" src="" alt="QR Code" style="width: 100%; height: 100%; display: block;">
                         <div style="position: absolute; width: 36px; height: 36px; background: #17212b; border: 2px solid #00ffcc; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #00ffcc; font-weight: bold; font-size: 0.95rem; box-shadow: 0 2px 8px rgba(0,0,0,0.6);">H</div>
@@ -1350,10 +1354,24 @@
             let authorLabel = escapeHtml(data.user);
             if (data.isPrivate) authorLabel += ` 🔒`;
 
+            // Форматування дати та часу (ДД.ММ ГГ:ХХ)
+            let timeString = '';
+            if (data.timestamp) {
+                const d = new Date(data.timestamp);
+                const day = String(d.getDate()).padStart(2, '0');
+                const month = String(d.getMonth() + 1).padStart(2, '0');
+                const hours = String(d.getHours()).padStart(2, '0');
+                const minutes = String(d.getMinutes()).padStart(2, '0');
+                timeString = `${day}.${month} ${hours}:${minutes}`;
+            }
+
             messageDiv.innerHTML = `
                 <div class="author"><span>${authorLabel}</span></div>
                 <div>${escapeHtml(data.text)}</div>
-                <div class="msg-footer"><button class="speak-btn" title="🔊">🔊</button></div>
+                <div class="msg-footer">
+                    <span class="msg-time">${timeString}</span>
+                    <button class="speak-btn" title="🔊">🔊</button>
+                </div>
             `;
 
             messageDiv.querySelector('.speak-btn').addEventListener('click', () => speakText(data.text));
