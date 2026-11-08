@@ -64,51 +64,78 @@
             letter-spacing: 0.3px;
         }
 
-        .online-status {
-            font-size: 0.8rem;
-            color: #89a1b2;
+        /* Виділений активний співрозмовник у шапці головного екрана */
+        .header-active-contact {
+            display: none;
+            align-items: center;
+            gap: 10px;
             background: #242f3d;
             padding: 4px 10px;
-            border-radius: 14px;
+            border-radius: 20px;
+            border: 1px solid #2b5278;
             cursor: pointer;
         }
-
-        .top-stories-strip {
-            background: #17212b;
-            border-bottom: 1px solid #0f1621;
-            padding: 12px 16px;
+        .header-active-contact.active {
             display: flex;
-            gap: 16px;
-            overflow-x: auto;
-            white-space: nowrap;
-            scrollbar-width: none;
-        }
-        .top-stories-strip::-webkit-scrollbar {
-            display: none;
         }
 
-        .story-item {
+        .header-contact-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #00ffcc;
+            color: #0e1621;
+            font-weight: bold;
+            font-size: 0.8rem;
             display: flex;
-            flex-direction: column;
             align-items: center;
-            gap: 6px;
-            cursor: pointer;
-            flex-shrink: 0;
-            transition: transform 0.2s;
-            user-select: none;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .header-contact-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
         }
 
-        .story-item:hover {
-            transform: scale(1.05);
+        .header-contact-name {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #00ffcc;
+            max-width: 120px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        @keyframes activeRingSpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         .story-avatar-wrapper {
             position: relative;
-            width: 56px;
-            height: 56px;
+            width: 46px;
+            height: 46px;
             border-radius: 50%;
             padding: 2px;
-            background: linear-gradient(135deg, #00ffcc 0%, #2b5278 100%);
+            background: #2b5278;
+        }
+
+        .story-avatar-wrapper.active-chat {
+            padding: 3px;
+            background: transparent !important;
+        }
+
+        .story-avatar-wrapper.active-chat::before {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: 50%;
+            background: conic-gradient(from 0deg, #00ffcc, #ffcc00, #ff3b30, #7928ca, #0056b3, #00ffcc);
+            animation: activeRingSpin 3s linear infinite;
+            z-index: -1;
         }
 
         .story-avatar {
@@ -118,7 +145,7 @@
             background: #242f3d;
             color: #ffffff;
             font-weight: bold;
-            font-size: 1.1rem;
+            font-size: 1rem;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -134,12 +161,13 @@
 
         .story-dot {
             position: absolute;
-            bottom: 2px;
-            right: 2px;
-            width: 12px;
-            height: 12px;
+            bottom: 1px;
+            right: 1px;
+            width: 10px;
+            height: 10px;
             border-radius: 50%;
             border: 2px solid #17212b;
+            z-index: 2;
         }
         .story-dot.online { background-color: #3acc6e; }
         .story-dot.offline { background-color: #89a1b2; }
@@ -155,12 +183,13 @@
         }
 
         .story-name {
-            font-size: 0.75rem;
+            font-size: 0.72rem;
             color: #b1c3d1;
-            max-width: 64px;
+            max-width: 56px;
             overflow: hidden;
             text-overflow: ellipsis;
             text-align: center;
+            white-space: nowrap;
         }
 
         .switch {
@@ -170,11 +199,7 @@
             height: 24px;
             flex-shrink: 0;
         }
-        .switch input { 
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
+        .switch input { opacity: 0; width: 0; height: 0; }
         .slider {
             position: absolute;
             cursor: pointer;
@@ -194,14 +219,13 @@
             transition: 0.3s;
             border-radius: 50%;
         }
-        input:checked + .slider {
-            background-color: #00ffcc;
-        }
+        input:checked + .slider { background-color: #00ffcc; }
         input:checked + .slider:before {
             transform: translateX(20px);
             background-color: #0e1621;
         }
 
+        /* Стилізація сайдбару */
         .side-menu {
             position: fixed;
             top: 0;
@@ -215,21 +239,19 @@
             transition: left 0.3s ease;
             display: flex;
             flex-direction: column;
-            padding: 20px;
-            gap: 16px;
+            padding: 20px 16px;
+            gap: 14px;
             overflow-y: auto;
         }
 
-        .side-menu.open {
-            left: 0;
-        }
+        .side-menu.open { left: 0; }
 
         .menu-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid #242f3d;
-            padding-bottom: 12px;
+            padding-bottom: 10px;
         }
 
         .menu-title {
@@ -249,29 +271,28 @@
         .sidebar-panel {
             display: none;
             flex-direction: column;
-            gap: 16px;
+            gap: 14px;
+            flex: 1;
         }
-        .sidebar-panel.active {
-            display: flex;
-        }
+        .sidebar-panel.active { display: flex; }
 
         .menu-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 12px;
-            margin-top: 6px;
+            margin-top: 4px;
         }
 
         .grid-tile {
             background: #242f3d;
             border: 1px solid #2b5278;
-            border-radius: 12px;
-            padding: 16px 10px;
+            border-radius: 14px;
+            padding: 18px 10px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: 10px;
             cursor: pointer;
             transition: background 0.2s, border-color 0.2s, transform 0.2s;
             color: #f5f5f5;
@@ -285,6 +306,10 @@
 
         .tile-icon {
             font-size: 1.6rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #f5f5f5;
         }
 
         .tile-title {
@@ -328,9 +353,7 @@
             border: 1px solid #2b5278;
             transition: border-color 0.2s;
         }
-        .user-badge-container:hover {
-            border-color: #00ffcc;
-        }
+        .user-badge-container:hover { border-color: #00ffcc; }
 
         .user-avatar-large {
             width: 44px;
@@ -346,12 +369,8 @@
             overflow: hidden;
             flex-shrink: 0;
         }
-
         .user-avatar-large img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 50%;
+            width: 100%; height: 100%; object-fit: cover; border-radius: 50%;
         }
 
         .user-badge {
@@ -360,32 +379,40 @@
             font-size: 1rem;
         }
 
-        .add-contact-box {
+        .sidebar-contacts-strip {
             display: flex;
-            gap: 6px;
+            gap: 12px;
+            overflow-x: auto;
+            padding: 6px 0;
+            align-items: center;
+            scrollbar-width: none;
         }
+        .sidebar-contacts-strip::-webkit-scrollbar { display: none; }
 
-        .add-contact-input {
-            flex: 1;
-            background: #242f3d;
-            border: 1px solid #2b5278;
-            color: #fff;
-            padding: 10px 12px;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            outline: none;
-        }
-
-        .add-contact-btn {
-            background: #00ffcc;
-            color: #0e1621;
-            border: none;
-            padding: 10px 14px;
-            border-radius: 8px;
-            font-weight: bold;
+        .sidebar-contact-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
             cursor: pointer;
-            font-size: 0.9rem;
+            flex-shrink: 0;
         }
+
+        .sidebar-add-btn-tile {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            background: #242f3d;
+            border: 1px dashed #00ffcc;
+            color: #00ffcc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .sidebar-add-btn-tile:hover { background: #2b5278; }
 
         .lang-select {
             background: #242f3d;
@@ -408,10 +435,35 @@
         }
         .menu-overlay.active { display: block; }
 
+        #install-modal {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(150px);
+            width: 90%;
+            max-width: 380px;
+            background: #17212b;
+            border: 1px solid #00ffcc;
+            border-radius: 16px;
+            padding: 18px;
+            z-index: 1000;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            opacity: 0;
+            pointer-events: none;
+        }
+        #install-modal.active {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+
         #contact-modal {
             position: fixed;
-            top: 50%;
-            left: 50%;
+            top: 50%; left: 50%;
             transform: translate(-50%, -50%);
             width: 320px;
             background: #17212b;
@@ -424,10 +476,7 @@
             gap: 12px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.7);
         }
-
-        #contact-modal.active {
-            display: flex;
-        }
+        #contact-modal.active { display: flex; }
 
         .modal-header {
             display: flex;
@@ -437,149 +486,56 @@
             padding-bottom: 10px;
         }
 
-        .modal-title {
-            color: #00ffcc;
-            font-weight: bold;
-            font-size: 1.05rem;
-        }
+        .modal-title { color: #00ffcc; font-weight: bold; font-size: 1.05rem; }
+        .modal-close-btn { background: none; border: none; color: #89a1b2; font-size: 1.2rem; cursor: pointer; }
 
-        .modal-close-btn {
-            background: none;
-            border: none;
-            color: #89a1b2;
-            font-size: 1.2rem;
-            cursor: pointer;
-        }
-
-        .color-palette {
-            display: flex;
-            gap: 10px;
-            justify-content: space-between;
-            margin: 4px 0;
-        }
-
+        .color-palette { display: flex; gap: 10px; justify-content: space-between; margin: 4px 0; }
         .color-circle {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            cursor: pointer;
-            border: 2px solid transparent;
-            transition: transform 0.2s, border-color 0.2s;
+            width: 32px; height: 32px; border-radius: 50%; cursor: pointer;
+            border: 2px solid transparent; transition: transform 0.2s, border-color 0.2s;
         }
         .color-circle:hover { transform: scale(1.15); }
         .color-circle.selected { border-color: #ffffff; }
 
         .modal-avatar-input {
-            width: 100%;
-            background: #242f3d;
-            border: 1px solid #2b5278;
-            color: #fff;
-            padding: 8px 10px;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            outline: none;
+            width: 100%; background: #242f3d; border: 1px solid #2b5278;
+            color: #fff; padding: 8px 10px; border-radius: 6px; font-size: 0.85rem; outline: none;
         }
 
         .modal-btn-save {
-            background: #00ffcc;
-            color: #0e1621;
-            border: none;
-            padding: 10px;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            text-align: center;
-            font-size: 0.9rem;
+            background: #00ffcc; color: #0e1621; border: none; padding: 10px;
+            border-radius: 8px; font-weight: bold; cursor: pointer; text-align: center; font-size: 0.9rem;
         }
 
         .modal-btn-delete {
-            background: rgba(255, 59, 48, 0.2);
-            border: 1px solid #ff3b30;
-            color: #ff3b30;
-            padding: 10px;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            text-align: center;
-            font-size: 0.9rem;
+            background: rgba(255, 59, 48, 0.2); border: 1px solid #ff3b30; color: #ff3b30;
+            padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; text-align: center; font-size: 0.9rem;
             transition: background 0.2s;
         }
-        .modal-btn-delete:hover {
-            background: rgba(255, 59, 48, 0.4);
-        }
+        .modal-btn-delete:hover { background: rgba(255, 59, 48, 0.4); }
 
         #chat-messages {
-            flex: 1;
-            overflow-y: auto;
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            background: #0e1621;
+            flex: 1; overflow-y: auto; padding: 16px;
+            display: flex; flex-direction: column; gap: 12px; background: #0e1621;
         }
 
         .message {
-            max-width: 80%;
-            padding: 10px 14px;
-            border-radius: 12px;
-            font-size: 0.95rem;
-            line-height: 1.4;
-            word-break: break-word;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-            position: relative;
+            max-width: 80%; padding: 10px 14px; border-radius: 12px;
+            font-size: 0.95rem; line-height: 1.4; word-break: break-word;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3); position: relative;
         }
+        .message.incoming { background: #182533; color: #f5f5f5; align-self: flex-start; border-left: 3px solid #2b5278; }
+        .message.outgoing { background: #2b5278; color: #fff; align-self: flex-end; border-right: 3px solid #00ffcc; }
+        .message.private { border: 1px dashed #00ffcc; }
+        .message .author { font-size: 0.75rem; color: #6c91b2; margin-bottom: 4px; font-weight: 600; }
 
-        .message.incoming {
-            background: #182533;
-            color: #f5f5f5;
-            align-self: flex-start;
-            border-left: 3px solid #2b5278;
-        }
+        .msg-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; gap: 12px; }
+        .msg-time { font-size: 0.7rem; color: #89a1b2; opacity: 0.85; user-select: none; }
 
-        .message.outgoing {
-            background: #2b5278;
-            color: #fff;
-            align-self: flex-end;
-            border-right: 3px solid #00ffcc;
-        }
-
-        .message.private {
-            border: 1px dashed #00ffcc;
-        }
-
-        .message .author {
-            font-size: 0.75rem;
-            color: #6c91b2;
-            margin-bottom: 4px;
-            font-weight: 600;
-        }
-
-        .msg-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 6px;
-            gap: 12px;
-        }
-
-        .msg-time {
-            font-size: 0.7rem;
-            color: #89a1b2;
-            opacity: 0.85;
-            user-select: none;
-        }
-
-        .speak-btn {
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 0.85rem;
-            opacity: 0.7;
-            transition: opacity 0.2s;
-            padding: 2px 4px;
-        }
+        .speak-btn { background: none; border: none; cursor: pointer; font-size: 0.85rem; opacity: 0.7; transition: opacity 0.2s; padding: 2px 4px; }
         .speak-btn:hover { opacity: 1; }
 
+        /* Панель вводу та кнопки внизу */
         .input-container {
             background: #17212b;
             padding: 12px 16px;
@@ -601,44 +557,58 @@
             background: #242f3d;
             border: 1px solid #2b5278;
             color: #fff;
-            padding: 12px 45px 12px 16px;
+            padding: 12px 16px;
             border-radius: 24px;
             outline: none;
             font-size: 0.95rem;
+            transition: all 0.3s ease;
         }
+        #message-input:focus { border-color: #00ffcc; }
 
-        #message-input:focus {
-            border-color: #00ffcc;
-        }
-
-        .mic-button {
-            position: absolute;
-            right: 10px;
-            background: none;
-            border: none;
-            font-size: 1.2rem;
-            cursor: pointer;
-            padding: 6px;
-        }
-
-        .mic-button.listening {
-            background-color: rgba(255, 59, 48, 0.2);
-            border-radius: 50%;
-        }
-
-        .send-button {
-            background: #2b5278;
-            color: #00ffcc;
-            border: none;
+        /* Окремі круглі кнопки дій (мікрофон та відправка) */
+        .action-btn {
             width: 44px;
             height: 44px;
             border-radius: 50%;
-            font-weight: bold;
-            cursor: pointer;
+            border: none;
             display: flex;
             align-items: center;
             justify-content: center;
+            cursor: pointer;
             box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+            flex-shrink: 0;
+        }
+
+        /* Кнопка мікрофона зліва від стрілки */
+        .mic-button {
+            background: #2b5278;
+            color: #00ffcc;
+        }
+        .mic-button:hover { background: #34608c; transform: scale(1.05); }
+        .mic-button.listening {
+            background-color: #ff3b30 !important;
+            color: #ffffff !important;
+            box-shadow: 0 0 15px rgba(255, 59, 48, 0.9);
+            animation: redPulse 1.2s infinite;
+        }
+
+        /* Стрілка відправки — темно-синя в тон фону чату */
+        .send-button {
+            background: #182533;
+            border: 1px solid #2b5278;
+            color: #00ffcc;
+        }
+        .send-button:hover { background: #2b5278; transform: scale(1.05); }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding-top: 10px;
+            border-top: 1px solid #242f3d;
+            text-align: center;
+            font-size: 0.75rem;
+            color: #89a1b2;
+            letter-spacing: 0.5px;
         }
     </style>
 </head>
@@ -649,14 +619,26 @@
             <button id="menu-btn" class="menu-btn" title="Menu">☰</button>
             <div class="logo">Habla Mobile</div>
         </div>
-        <div id="online-count" class="online-status" title="Online">Online: 1</div>
+        <div id="header-active-contact" class="header-active-contact" title="Активний чат">
+            <div id="header-contact-avatar" class="header-contact-avatar"></div>
+            <span id="header-contact-name" class="header-contact-name"></span>
+        </div>
     </header>
 
-    <div id="top-stories-strip" class="top-stories-strip">
-        <span style="color: #89a1b2; font-size: 0.85rem; padding: 4px;">Cargando...</span>
-    </div>
-
     <div id="menu-overlay" class="menu-overlay"></div>
+
+    <div id="install-modal">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="color: #00ffcc; font-weight: bold; font-size: 0.95rem;">📱 Встановити Habla Mobile</span>
+            <button id="close-install-modal" style="background: none; border: none; color: #89a1b2; font-size: 1.1rem; cursor: pointer;">✕</button>
+        </div>
+        <div style="font-size: 0.8rem; color: #b1c3d1; line-height: 1.3;">
+            Додайте додаток на екран вашого пристрою для швидкого доступу та сповіщень!
+        </div>
+        <button id="modal-install-btn" style="background: #00ffcc; color: #0e1621; border: none; padding: 9px; border-radius: 8px; font-weight: bold; cursor: pointer; text-align: center; font-size: 0.85rem;">
+            📥 Встановити зараз
+        </button>
+    </div>
 
     <div id="contact-modal">
         <div class="modal-header">
@@ -679,8 +661,6 @@
     </div>
 
     <div id="side-menu" class="side-menu">
-        
-        <!-- ГОЛОВНЕ МЕНЮ (СІТКА 2Х2) -->
         <div id="panel-main" class="sidebar-panel active">
             <div class="menu-header">
                 <span class="menu-title" id="menu-title-text">Habla Menu</span>
@@ -698,34 +678,41 @@
                 </div>
             </div>
 
-            <!-- СІТКА КНОПОК 2Х2 -->
             <div class="menu-section">
-                <label>Меню керування</label>
+                <label>Керування</label>
                 <div class="menu-grid">
                     <div id="btn-open-settings" class="grid-tile">
-                        <span class="tile-icon">⚙️</span>
+                        <span class="tile-icon">
+                            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                        </span>
                         <span class="tile-title" id="lbl-settings-tile">Налаштування</span>
                     </div>
 
                     <div id="btn-open-qr" class="grid-tile">
-                        <span class="tile-icon">📱</span>
+                        <span class="tile-icon">
+                            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><line x1="14" y1="14" x2="14.01" y2="14"></line><line x1="18" y1="14" x2="21" y2="14"></line><line x1="14" y1="18" x2="14" y2="21"></line><line x1="18" y1="18" x2="21" y2="21"></line></svg>
+                        </span>
                         <span class="tile-title" id="lbl-qr-tile">QR-код</span>
                     </div>
 
-                    <div id="btn-open-contacts" class="grid-tile">
-                        <span class="tile-icon">📖</span>
-                        <span class="tile-title" id="lbl-contacts-tile">Контакти</span>
-                    </div>
-
                     <div id="btn-open-admin" class="grid-tile" style="display: none;">
-                        <span class="tile-icon">🛠️</span>
-                        <span class="tile-title" id="lbl-dev-tile">Розробник</span>
+                        <span class="tile-icon">
+                            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.778-7.778zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>
+                        </span>
+                        <span class="tile-title" id="lbl-dev-tile">Адмін</span>
                     </div>
                 </div>
             </div>
+
+            <div class="menu-section">
+                <label id="label-sidebar-contacts">Контакти</label>
+                <div id="sidebar-contacts-strip" class="sidebar-contacts-strip"></div>
+            </div>
+
+            <div class="sidebar-footer">Ⓢ 2026 Stasan</div>
         </div>
 
-        <!-- ПАНЕЛЬ 1: НАЛАШТУВАННЯ -->
+        <!-- ПАНЕЛЬ НАЛАШТУВАНЬ -->
         <div id="panel-settings" class="sidebar-panel">
             <div class="menu-header">
                 <button id="btn-back-from-settings" class="back-btn">← Назад</button>
@@ -777,9 +764,11 @@
                     <input type="checkbox" id="sound-toggle" style="width: 18px; height: 18px; accent-color: #00ffcc;">
                 </div>
             </div>
+
+            <div class="sidebar-footer">Ⓢ 2026 Stasan</div>
         </div>
 
-        <!-- ПАНЕЛЬ 2: QR-КОД ТА ПОШИРЕННЯ -->
+        <!-- ПАНЕЛЬ QR-КОДУ -->
         <div id="panel-qr" class="sidebar-panel">
             <div class="menu-header">
                 <button id="btn-back-from-qr" class="back-btn">← Назад</button>
@@ -787,47 +776,49 @@
             </div>
 
             <div class="menu-section">
-                <label id="label-share-app">Поділитися додатком</label>
-                <div style="background: #242f3d; padding: 14px; border-radius: 10px; border: 1px solid #2b5278; display: flex; flex-direction: column; gap: 10px; align-items: center; text-align: center;">
-                    
-                    <div style="position: relative; width: 142px; height: 142px; background: #fff; padding: 6px; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
-                        <img id="qr-code-img" src="" alt="QR Code" style="width: 100%; height: 100%; display: block;">
-                        <div style="position: absolute; width: 36px; height: 36px; background: #17212b; border: 2px solid #00ffcc; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #00ffcc; font-weight: bold; font-size: 0.95rem; box-shadow: 0 2px 8px rgba(0,0,0,0.6);">H</div>
-                    </div>
+                <label id="label-share-app">Встановлення та поширення</label>
+                
+                <div style="display: flex; gap: 6px; background: #242f3d; padding: 4px; border-radius: 8px; border: 1px solid #2b5278;">
+                    <button id="tab-android-btn" style="flex: 1; background: #00ffcc; color: #0e1621; border: none; padding: 7px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.8rem;">📱 Android</button>
+                    <button id="tab-pc-btn" style="flex: 1; background: transparent; color: #89a1b2; border: none; padding: 7px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.8rem;">💻 ПК / Ноутбук</button>
+                </div>
 
-                    <div id="app-url-text" style="font-size: 0.75rem; color: #89a1b2; word-break: break-all;">---</div>
-                    <button id="native-share-btn" style="background: #00ffcc; color: #0e1621; border: none; padding: 9px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85rem; width: 100%;">
+                <div id="qr-content-android" style="background: #242f3d; padding: 12px; border-radius: 10px; border: 1px solid #2b5278; display: flex; flex-direction: column; gap: 8px; align-items: center; text-align: center; margin-top: 8px;">
+                    <div style="font-size: 0.78rem; color: #00ffcc; font-weight: 600;">Скануйте телефоном або встановіть:</div>
+                    <div style="position: relative; width: 130px; height: 130px; background: #fff; padding: 5px; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                        <img id="qr-code-img" src="" alt="QR Code" style="width: 100%; height: 100%; display: block;">
+                        <div style="position: absolute; width: 32px; height: 32px; background: #17212b; border: 2px solid #00ffcc; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #00ffcc; font-weight: bold; font-size: 0.8rem; box-shadow: 0 2px 8px rgba(0,0,0,0.6);">H</div>
+                    </div>
+                    <button id="install-app-btn" style="background: #00ffcc; color: #0e1621; border: none; padding: 8px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.8rem; width: 100%;">
+                        📥 Встановити на Android
+                    </button>
+                </div>
+
+                <div id="qr-content-pc" style="background: #242f3d; padding: 12px; border-radius: 10px; border: 1px solid #2b5278; display: none; flex-direction: column; gap: 8px; align-items: center; text-align: center; margin-top: 8px;">
+                    <div style="font-size: 0.78rem; color: #00ffcc; font-weight: 600;">Для Windows / macOS / Linux:</div>
+                    <div style="font-size: 0.75rem; color: #89a1b2; line-height: 1.3; text-align: left; width: 100%; padding: 0 4px;">
+                        1. Відкрийте посилання в браузері Chrome або Edge на ПК.<br>
+                        2. Натисніть іконку встановлення праворуч у вашому адресному рядку.
+                    </div>
+                    <button id="install-pc-btn" style="background: #2b5278; color: #00ffcc; border: 1px solid #00ffcc; padding: 8px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.8rem; width: 100%;">
+                        💻 Встановити на ПК
+                    </button>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 4px;">
+                    <div id="app-url-text" style="font-size: 0.72rem; color: #89a1b2; word-break: break-all;">---</div>
+                    <button id="native-share-btn" style="background: #17212b; color: #00ffcc; border: 1px solid #2b5278; padding: 7px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.8rem; width: 100%;">
                         📤 Поділитися
                     </button>
-                    <button id="copy-link-btn" style="background: #17212b; color: #00ffcc; border: 1px solid #2b5278; padding: 7px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85rem; width: 100%;">
+                    <button id="copy-link-btn" style="background: #17212b; color: #00ffcc; border: 1px solid #2b5278; padding: 6px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.8rem; width: 100%;">
                         📋 Копіювати посилання
                     </button>
                 </div>
             </div>
+            <div class="sidebar-footer">Ⓢ 2026 Stasan</div>
         </div>
 
-        <!-- ПАНЕЛЬ 3: КОНТАКТИ -->
-        <div id="panel-contacts" class="sidebar-panel">
-            <div class="menu-header">
-                <button id="btn-back-from-contacts" class="back-btn">← Назад</button>
-                <button id="close-menu-btn-5" class="close-menu-btn">✕</button>
-            </div>
-
-            <div class="menu-section">
-                <label id="label-manage-contacts">Керування контактами</label>
-                <div style="display: flex; flex-direction: column; gap: 8px;">
-                    <div class="add-contact-box">
-                        <input type="text" id="new-contact-input" class="add-contact-input" placeholder="Додати за ніком...">
-                        <button id="add-contact-btn" class="add-contact-btn">Додати</button>
-                    </div>
-                    <div style="font-size: 0.78rem; color: #89a1b2; line-height: 1.4;">
-                        Додавайте контакти за їхнім унікальним нікнеймом, щоб вони з'явилися у вашій верхній стрічці.
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ПАНЕЛЬ 4: РОЗРОБНИК -->
+        <!-- ПАНЕЛЬ АДМІНІСТРАТОРА -->
         <div id="panel-admin" class="sidebar-panel">
             <div class="menu-header">
                 <button id="btn-back-from-admin" class="back-btn">← Назад</button>
@@ -847,18 +838,34 @@
                     </div>
                 </div>
             </div>
+            <div class="sidebar-footer">Ⓢ 2026 Stasan</div>
         </div>
 
     </div>
 
     <div id="chat-messages"></div>
 
+    <!-- Панель вводу з окремим круглим мікрофоном та темно-синьою стрілкою відправки -->
     <div class="input-container">
         <div class="input-wrapper">
             <input type="text" id="message-input" placeholder="Escribe un mensaje..." autocomplete="off">
-            <button id="mic-btn" class="mic-button" title="Entrada de voz">🎤</button>
         </div>
-        <button id="send-btn" class="send-button" title="Enviar">➤</button>
+        <!-- Окремий круглий мікрофон (спрямований вгору) -->
+        <button id="mic-btn" class="action-btn mic-button" title="Entrada de voz">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path>
+                <path d="M19 10v1a7 7 0 0 1-14 0v-1"></path>
+                <line x1="12" y1="19" x2="12" y2="22"></line>
+                <line x1="8" y1="22" x2="16" y2="22"></line>
+            </svg>
+        </button>
+        <!-- Темно-синя кругла стрілка відправки -->
+        <button id="send-btn" class="action-btn send-button" title="Enviar">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
+        </button>
     </div>
 
     <script>
@@ -892,7 +899,8 @@
             localStorage.setItem('habla_contact_colors', JSON.stringify(contactColors));
             localStorage.setItem('habla_contact_avatars', JSON.stringify(contactAvatars));
             updateProfileDisplay();
-            renderStories(lastUsersData, lastIsAdmin);
+            renderSidebarContacts(lastUsersData);
+            updateHeaderActiveContact();
         });
 
         function getDeviceLanguage() {
@@ -943,24 +951,24 @@
 
         targetLangSelect.addEventListener('change', () => {
             localStorage.setItem('habla_target_lang', targetLangSelect.value);
-            if (forceTranslateToggle.checked) {
-                joinWithLanguage();
-            }
+            if (forceTranslateToggle.checked) { joinWithLanguage(); }
+        });
+
+        interfaceLangSelect.addEventListener('change', () => {
+            const newLang = interfaceLangSelect.value;
+            localStorage.setItem('habla_interface_lang', newLang);
+            updateInterfaceTexts();
+            if (!forceTranslateToggle.checked) { joinWithLanguage(); }
         });
 
         function joinWithLanguage() {
             if (username) {
                 const langToUse = forceTranslateToggle.checked ? targetLangSelect.value : interfaceLangSelect.value;
-                socket.emit('join', {
-                    username: username,
-                    lang: langToUse
-                });
+                socket.emit('join', { username: username, lang: langToUse });
             }
         }
 
-        socket.on('connect', () => {
-            joinWithLanguage();
-        });
+        socket.on('connect', () => { joinWithLanguage(); });
 
         document.addEventListener('visibilitychange', () => {
             if (document.visibilityState === 'visible') {
@@ -975,9 +983,7 @@
                 if (totalUnread > 0) {
                     navigator.setAppBadge(totalUnread).catch(err => console.log('Badge error:', err));
                 } else {
-                    if ('clearAppBadge' in navigator) {
-                        navigator.clearAppBadge().catch(err => console.log('Clear badge error:', err));
-                    }
+                    if ('clearAppBadge' in navigator) { navigator.clearAppBadge().catch(err => {}); }
                 }
             }
         }
@@ -1007,13 +1013,71 @@
 
         const currentAppUrl = window.location.origin;
         document.getElementById('app-url-text').textContent = currentAppUrl;
-        document.getElementById('qr-code-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(currentAppUrl)}`;
+        document.getElementById('qr-code-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&ecc=H&data=${encodeURIComponent(currentAppUrl)}`;
+
+        let deferredPrompt = null;
+        const installModal = document.getElementById('install-modal');
+        const closeInstallModal = document.getElementById('close-install-modal');
+        const modalInstallBtn = document.getElementById('modal-install-btn');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            if (!localStorage.getItem('habla_install_dismissed')) {
+                setTimeout(() => { installModal.classList.add('active'); }, 2000);
+            }
+        });
+
+        closeInstallModal.addEventListener('click', () => {
+            installModal.classList.remove('active');
+            localStorage.setItem('habla_install_dismissed', 'true');
+        });
+
+        const handleInstallAction = async (isDesktop = false) => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt = null;
+                installModal.classList.remove('active');
+            } else {
+                if (isDesktop) {
+                    alert('На ПК натисніть іконку встановлення праворуч в адресному рядку браузера.');
+                } else {
+                    alert('Скористайтеся меню браузера (три крапки → "Встановити додаток").');
+                }
+                installModal.classList.remove('active');
+            }
+        };
+
+        modalInstallBtn.addEventListener('click', () => handleInstallAction(false));
+        document.getElementById('install-app-btn').addEventListener('click', () => handleInstallAction(false));
+        document.getElementById('install-pc-btn').addEventListener('click', () => handleInstallAction(true));
+
+        const tabAndroidBtn = document.getElementById('tab-android-btn');
+        const tabPcBtn = document.getElementById('tab-pc-btn');
+        const qrContentAndroid = document.getElementById('qr-content-android');
+        const qrContentPc = document.getElementById('qr-content-pc');
+
+        tabAndroidBtn.addEventListener('click', () => {
+            tabAndroidBtn.style.background = '#00ffcc';
+            tabAndroidBtn.style.color = '#0e1621';
+            tabPcBtn.style.background = 'transparent';
+            tabPcBtn.style.color = '#89a1b2';
+            qrContentAndroid.style.display = 'flex';
+            qrContentPc.style.display = 'none';
+        });
+
+        tabPcBtn.addEventListener('click', () => {
+            tabPcBtn.style.background = '#00ffcc';
+            tabPcBtn.style.color = '#0e1621';
+            tabAndroidBtn.style.background = 'transparent';
+            tabAndroidBtn.style.color = '#89a1b2';
+            qrContentPc.style.display = 'flex';
+            qrContentAndroid.style.display = 'none';
+        });
 
         document.getElementById('native-share-btn').addEventListener('click', async () => {
             if (navigator.share) {
-                try {
-                    await navigator.share({ title: 'Habla Mobile 3.0', url: currentAppUrl });
-                } catch (err) { console.log(err); }
+                try { await navigator.share({ title: 'Habla Mobile 3.0', url: currentAppUrl }); } catch (err) {}
             } else {
                 navigator.clipboard.writeText(currentAppUrl);
                 alert('Посилання скопійовано!');
@@ -1040,8 +1104,7 @@
             if (!('speechSynthesis' in window)) return;
             const utterance = new SpeechSynthesisUtterance(textToSpeech);
             const activeLang = forceTranslateToggle.checked ? targetLangSelect.value : interfaceLangSelect.value;
-            const selectedLangCode = ttsLangMap[activeLang] || 'es-ES';
-            utterance.lang = selectedLangCode;
+            utterance.lang = ttsLangMap[activeLang] || 'es-ES';
             window.speechSynthesis.cancel();
             window.speechSynthesis.speak(utterance);
         }
@@ -1060,23 +1123,20 @@
                 gain.connect(audioCtx.destination);
                 osc.start();
                 osc.stop(audioCtx.currentTime + 0.3);
-            } catch (e) {
-                console.log('Audio context blocked', e);
-            }
+            } catch (e) {}
         }
 
         const translations = {
-            Spanish: { settings: "Configuración", profile: "Tu perfil", onlineUsersTitle: "Contactos", interfaceLang: "Idioma de la interfaz", voiceOver: "Locución de traducción", enableSound: "Activar sonido", apiStatus: "Estado API Groq", shareApp: "Compartir App", nativeShare: "📤 Поділитися", copyLink: "📋 Copiar enlace", placeholder: "Escribe un mensaje...", addPlaceholder: "Додати за ніком...", addBtn: "Додати", noContacts: "Sin contactos", online: "En línea", devPanel: "Panel de Desarrollador", forceTranslate: "Примусовий переклад", enableForce: "Увімкнути переклад", qrTitle: "Código QR", contactsTitle: "Contactos" },
-            English: { settings: "Settings", profile: "Your profile", onlineUsersTitle: "Contacts", interfaceLang: "Interface language", voiceOver: "Translation voiceover", enableSound: "Enable sound", apiStatus: "Groq API Status", shareApp: "Share App", nativeShare: "📤 Поділитися", copyLink: "📋 Copy Link", placeholder: "Type a message...", addPlaceholder: "Додати за ніком...", addBtn: "Додати", noContacts: "No contacts", online: "Online", devPanel: "Developer Panel", forceTranslate: "Forced translation", enableForce: "Enable translation", qrTitle: "QR Code", contactsTitle: "Contacts" },
-            Ukrainian: { settings: "Налаштування", profile: "Ваш профіль", onlineUsersTitle: "Контакти", interfaceLang: "Мова інтерфейсу", voiceOver: "Озвучування перекладу", enableSound: "Увімкнути звук", apiStatus: "Статус API Groq", shareApp: "Поділитися додатком", nativeShare: "📤 Поділитися", copyLink: "📋 Копіювати посилання", placeholder: "Введіть повідомлення...", addPlaceholder: "Додати за ніком...", addBtn: "Додати", noContacts: "Немає контактів", online: "Онлайн", devPanel: "Панель Розробника", forceTranslate: "Примусовий переклад", enableForce: "Увімкнути переклад", qrTitle: "QR-код", contactsTitle: "Контакти" },
-            German: { settings: "Einstellungen", profile: "Ihr Profil", onlineUsersTitle: "Kontakte", interfaceLang: "Sprache", voiceOver: "Sprachausgabe", enableSound: "Ton", apiStatus: "API-Status", shareApp: "App teilen", nativeShare: "📤 Поділитися", copyLink: "📋 Link kopieren", placeholder: "Nachricht...", addPlaceholder: "Додати за ніком...", addBtn: "Додати", noContacts: "Keine", online: "Online", devPanel: "Entwickler-Panel", forceTranslate: "Erzwungene Übersetzung", enableForce: "Übersetzung aktivieren", qrTitle: "QR-Code", contactsTitle: "Kontakte" },
-            French: { settings: "Paramètres", profile: "Profil", onlineUsersTitle: "Contacts", interfaceLang: "Langue", voiceOver: "Voix", enableSound: "Son", apiStatus: "Statut API", shareApp: "Partager", nativeShare: "📤 Поділитися", copyLink: "📋 Copier", placeholder: "Message...", addPlaceholder: "Додати за ніком...", addBtn: "Додати", noContacts: "Aucun", online: "En ligne", devPanel: "Panneau Développeur", forceTranslate: "Traduction forcée", enableForce: "Activer la traduction", qrTitle: "Code QR", contactsTitle: "Contacts" }
+            Spanish: { settings: "Configuración", profile: "Tu perfil", onlineUsersTitle: "Contactos", interfaceLang: "Idioma", voiceOver: "Locución", enableSound: "Sonido", apiStatus: "Estado API", shareApp: "Compartir", placeholder: "Escribe un mensaje...", devPanel: "Admin", qrTitle: "QR", contactsTitle: "Contactos", forceTranslate: "Traducción forzada", enableForce: "Activar traducción" },
+            English: { settings: "Settings", profile: "Your profile", onlineUsersTitle: "Contacts", interfaceLang: "Language", voiceOver: "Voiceover", enableSound: "Sound", apiStatus: "API Status", shareApp: "Share", placeholder: "Type a message...", devPanel: "Admin", qrTitle: "QR Code", contactsTitle: "Contacts", forceTranslate: "Forced translation", enableForce: "Enable translation" },
+            Ukrainian: { settings: "Налаштування", profile: "Ваш профіль", onlineUsersTitle: "Контакти", interfaceLang: "Мова інтерфейсу", voiceOver: "Озвучування", enableSound: "Звук", apiStatus: "Статус API", shareApp: "Поділитися", placeholder: "Введіть повідомлення...", devPanel: "Адмін", qrTitle: "QR-код", contactsTitle: "Контакти", forceTranslate: "Примусовий переклад", enableForce: "Увімкнути переклад" },
+            German: { settings: "Einstellungen", profile: "Ihr Profil", onlineUsersTitle: "Kontakte", interfaceLang: "Sprache", voiceOver: "Sprachausgabe", enableSound: "Ton", apiStatus: "API-Status", shareApp: "Teilen", placeholder: "Nachricht...", devPanel: "Admin", qrTitle: "QR-Code", contactsTitle: "Kontakte", forceTranslate: "Erzwungene Übersetzung", enableForce: "Übersetzung aktivieren" },
+            French: { settings: "Paramètres", profile: "Profil", onlineUsersTitle: "Contacts", interfaceLang: "Langue", voiceOver: "Voix", enableSound: "Son", apiStatus: "Statut API", shareApp: "Partager", placeholder: "Message...", devPanel: "Admin", qrTitle: "Code QR", contactsTitle: "Contacts", forceTranslate: "Traduction forcée", enableForce: "Activer la traduction" }
         };
 
         const messageInput = document.getElementById('message-input');
         const sendBtn = document.getElementById('send-btn');
         const chatMessages = document.getElementById('chat-messages');
-        const onlineCount = document.getElementById('online-count');
         const micBtn = document.getElementById('mic-btn');
         
         const menuBtn = document.getElementById('menu-btn');
@@ -1084,28 +1144,21 @@
         const closeMenuBtn2 = document.getElementById('close-menu-btn-2');
         const closeMenuBtn3 = document.getElementById('close-menu-btn-3');
         const closeMenuBtn4 = document.getElementById('close-menu-btn-4');
-        const closeMenuBtn5 = document.getElementById('close-menu-btn-5');
         const sideMenu = document.getElementById('side-menu');
         const menuOverlay = document.getElementById('menu-overlay');
-        const topStoriesStrip = document.getElementById('top-stories-strip');
         const soundToggle = document.getElementById('sound-toggle');
-        const newContactInput = document.getElementById('new-contact-input');
-        const addContactBtn = document.getElementById('add-contact-btn');
 
         const panelMain = document.getElementById('panel-main');
         const panelSettings = document.getElementById('panel-settings');
         const panelQr = document.getElementById('panel-qr');
-        const panelContacts = document.getElementById('panel-contacts');
         const panelAdmin = document.getElementById('panel-admin');
 
         const btnOpenSettings = document.getElementById('btn-open-settings');
         const btnOpenQr = document.getElementById('btn-open-qr');
-        const btnOpenContacts = document.getElementById('btn-open-contacts');
         const btnOpenAdmin = document.getElementById('btn-open-admin');
 
         const btnBackFromSettings = document.getElementById('btn-back-from-settings');
         const btnBackFromQr = document.getElementById('btn-back-from-qr');
-        const btnBackFromContacts = document.getElementById('btn-back-from-contacts');
         const btnBackFromAdmin = document.getElementById('btn-back-from-admin');
 
         const contactModal = document.getElementById('contact-modal');
@@ -1116,7 +1169,6 @@
         const modalAvatarInput = document.getElementById('modal-avatar-input');
         const colorCircles = document.querySelectorAll('.color-circle');
 
-        let currentOnlineCount = 1;
         let lastUsersData = [];
         let lastIsAdmin = false;
 
@@ -1132,31 +1184,17 @@
             document.getElementById('label-enable-sound').textContent = t.enableSound;
             document.getElementById('label-api-status').textContent = t.apiStatus;
             document.getElementById('label-share-app').textContent = t.shareApp;
-            document.getElementById('native-share-btn').textContent = t.nativeShare;
-            document.getElementById('copy-link-btn').textContent = t.copyLink;
-            document.getElementById('label-manage-contacts').textContent = t.contactsTitle;
+            document.getElementById('label-sidebar-contacts').textContent = t.contactsTitle;
             
             document.getElementById('lbl-settings-tile').textContent = t.settings;
             document.getElementById('lbl-qr-tile').textContent = t.qrTitle;
-            document.getElementById('lbl-contacts-tile').textContent = t.onlineUsersTitle;
             document.getElementById('lbl-dev-tile').textContent = t.devPanel;
 
-            messageInput.placeholder = t.placeholder;
-            newContactInput.placeholder = t.addPlaceholder;
-            addContactBtn.textContent = t.addBtn;
-            onlineCount.textContent = `${t.online}: ${currentOnlineCount}`;
-
-            renderStories(lastUsersData, lastIsAdmin);
-        }
-
-        interfaceLangSelect.addEventListener('change', () => {
-            const newLang = interfaceLangSelect.value;
-            localStorage.setItem('habla_interface_lang', newLang);
-            updateInterfaceTexts();
-            if (!forceTranslateToggle.checked) {
-                joinWithLanguage();
+            if (!micBtn.classList.contains('listening')) {
+                messageInput.placeholder = t.placeholder;
             }
-        });
+            renderSidebarContacts(lastUsersData);
+        }
 
         updateInterfaceTexts();
         updateProfileDisplay();
@@ -1176,7 +1214,6 @@
             panelMain.classList.add('active');
             panelSettings.classList.remove('active');
             panelQr.classList.remove('active');
-            panelContacts.classList.remove('active');
             panelAdmin.classList.remove('active');
         }
 
@@ -1190,11 +1227,6 @@
             panelQr.classList.add('active');
         });
 
-        btnOpenContacts.addEventListener('click', () => {
-            panelMain.classList.remove('active');
-            panelContacts.classList.add('active');
-        });
-
         btnOpenAdmin.addEventListener('click', () => {
             panelMain.classList.remove('active');
             panelAdmin.classList.add('active');
@@ -1202,17 +1234,13 @@
 
         btnBackFromSettings.addEventListener('click', showMainPanel);
         btnBackFromQr.addEventListener('click', showMainPanel);
-        btnBackFromContacts.addEventListener('click', showMainPanel);
         btnBackFromAdmin.addEventListener('click', showMainPanel);
 
         menuBtn.addEventListener('click', openMenu);
-        onlineCount.addEventListener('click', openMenu);
-        
         closeMenuBtn.addEventListener('click', closeMenu);
         closeMenuBtn2.addEventListener('click', closeMenu);
         closeMenuBtn3.addEventListener('click', closeMenu);
         closeMenuBtn4.addEventListener('click', closeMenu);
-        closeMenuBtn5.addEventListener('click', closeMenu);
         
         menuOverlay.addEventListener('click', () => {
             closeMenu();
@@ -1246,7 +1274,6 @@
             });
 
             modalAvatarInput.value = contactAvatars[targetName] || '';
-
             contactModal.classList.add('active');
             menuOverlay.classList.add('active');
         }
@@ -1265,27 +1292,20 @@
 
         modalSaveBtn.addEventListener('click', () => {
             if (!activeContactForModal) return;
-            
             const color = selectedModalColor;
             const avatar = modalAvatarInput.value.trim();
 
             contactColors[activeContactForModal] = color;
-            if (avatar) {
-                contactAvatars[activeContactForModal] = avatar;
-            } else {
-                delete contactAvatars[activeContactForModal];
-            }
+            if (avatar) { contactAvatars[activeContactForModal] = avatar; }
+            else { delete contactAvatars[activeContactForModal]; }
 
-            socket.emit('update-customization', {
-                targetName: activeContactForModal,
-                color: color,
-                avatar: avatar
-            });
+            socket.emit('update-customization', { targetName: activeContactForModal, color: color, avatar: avatar });
 
             contactModal.classList.remove('active');
             menuOverlay.classList.remove('active');
             updateProfileDisplay();
-            renderStories(lastUsersData, lastIsAdmin);
+            renderSidebarContacts(lastUsersData);
+            updateHeaderActiveContact();
         });
 
         modalDeleteBtn.addEventListener('click', () => {
@@ -1298,46 +1318,37 @@
                 delete contactColors[activeContactForModal];
                 delete contactAvatars[activeContactForModal];
                 
-                socket.emit('update-customization', {
-                    targetName: activeContactForModal,
-                    color: '#00ffcc',
-                    avatar: ''
-                });
+                socket.emit('update-customization', { targetName: activeContactForModal, color: '#00ffcc', avatar: '' });
                 
-                if (selectedRecipientName === activeContactForModal) {
-                    selectedRecipientName = null;
-                }
+                if (selectedRecipientName === activeContactForModal) { selectedRecipientName = null; }
 
                 contactModal.classList.remove('active');
                 menuOverlay.classList.remove('active');
-                renderStories(lastUsersData, lastIsAdmin);
+                renderSidebarContacts(lastUsersData);
+                updateHeaderActiveContact();
             }
         });
 
-        addContactBtn.addEventListener('click', () => {
-            const targetName = newContactInput.value.trim();
-            if (targetName && targetName !== username) {
-                socket.emit('add-contact', targetName);
-                if (!localAddedContacts.includes(targetName)) {
-                    localAddedContacts.push(targetName);
-                    localStorage.setItem('habla_local_contacts', JSON.stringify(localAddedContacts));
+        function addNewContactPrompt() {
+            const targetName = prompt("Введіть нікнейм контакту для додавання:");
+            if (targetName) {
+                const cleanName = targetName.trim();
+                if (cleanName && cleanName !== username) {
+                    socket.emit('add-contact', cleanName);
+                    if (!localAddedContacts.includes(cleanName)) {
+                        localAddedContacts.push(cleanName);
+                        localStorage.setItem('habla_local_contacts', JSON.stringify(localAddedContacts));
+                    }
+                    renderSidebarContacts(lastUsersData);
+                    alert(`Контакт ${cleanName} додано!`);
                 }
-                newContactInput.value = '';
-                renderStories(lastUsersData, lastIsAdmin);
-                alert(`Контакт ${targetName} додано!`);
             }
-        });
-
-        newContactInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') addContactBtn.click(); });
+        }
 
         function sendMessage() {
             const text = messageInput.value.trim();
             if (!text) return;
-            socket.emit('chatMessage', { 
-                text: text, 
-                user: username, 
-                recipientName: selectedRecipientName 
-            });
+            socket.emit('chatMessage', { text: text, user: username, recipientName: selectedRecipientName });
             messageInput.value = '';
         }
 
@@ -1345,16 +1356,32 @@
         messageInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
 
         socket.on('chatMessage', (data) => {
+            const isFromMe = (data.user === username);
+            const isForCurrentChat = (
+                (!data.recipientName && !selectedRecipientName) || 
+                (isFromMe && data.recipientName === selectedRecipientName) || 
+                (!isFromMe && data.user === selectedRecipientName)
+            );
+
+            if (!isForCurrentChat) {
+                if (!isFromMe) {
+                    playNotificationSound();
+                    unreadSenders.add(data.user);
+                    unreadCounts[data.user] = (unreadCounts[data.user] || 0) + 1;
+                    updateAppBadge();
+                    renderSidebarContacts(lastUsersData);
+                }
+                return;
+            }
+
             const messageDiv = document.createElement('div');
             messageDiv.classList.add('message');
-            const isSelf = data.user === username;
-            messageDiv.classList.add(isSelf ? 'outgoing' : 'incoming');
+            messageDiv.classList.add(isFromMe ? 'outgoing' : 'incoming');
             if (data.isPrivate) messageDiv.classList.add('private');
 
             let authorLabel = escapeHtml(data.user);
             if (data.isPrivate) authorLabel += ` 🔒`;
 
-            // Форматування дати та часу (ДД.ММ ГГ:ХХ)
             let timeString = '';
             if (data.timestamp) {
                 const d = new Date(data.timestamp);
@@ -1378,17 +1405,7 @@
             chatMessages.appendChild(messageDiv);
             chatMessages.scrollTop = chatMessages.scrollHeight;
 
-            if (soundToggle.checked) speakText(data.text);
-
-            if (!isSelf) {
-                playNotificationSound();
-                if (selectedRecipientName !== data.user) {
-                    unreadSenders.add(data.user);
-                    unreadCounts[data.user] = (unreadCounts[data.user] || 0) + 1;
-                    updateAppBadge();
-                    renderStories(lastUsersData, lastIsAdmin);
-                }
-            }
+            if (soundToggle.checked && !isFromMe) speakText(data.text);
         });
 
         socket.on('groq-limits', (limits) => {
@@ -1398,48 +1415,75 @@
             if (!isNaN(tokVal)) document.getElementById('tok-value').textContent = tokVal;
         });
 
-        socket.on('onlineCount', (count) => {
-            currentOnlineCount = count;
-            const lang = interfaceLangSelect.value;
-            const t = translations[lang] || translations.Spanish;
-            onlineCount.textContent = `${t.online}: ${count}`;
-        });
-
         socket.on('update-users', ({ users, isAdmin }) => {
             lastUsersData = users;
             lastIsAdmin = isAdmin;
-            
-            if (isAdmin) {
-                btnOpenAdmin.style.display = 'flex';
-            } else {
-                btnOpenAdmin.style.display = 'none';
-            }
-
-            renderStories(users, isAdmin);
+            if (isAdmin) { btnOpenAdmin.style.display = 'flex'; }
+            else { btnOpenAdmin.style.display = 'none'; }
+            renderSidebarContacts(users);
         });
 
-        function renderStories(users, isAdmin) {
-            topStoriesStrip.innerHTML = '';
-            const lang = interfaceLangSelect.value;
-            const t = translations[lang] || translations.Spanish;
-
+        function getCombinedUsers(users) {
             let userMap = new Map();
             users.forEach(u => userMap.set(u.name, u));
-
             let combinedUsers = [];
             localAddedContacts.forEach(name => {
-                if (userMap.has(name)) {
-                    combinedUsers.push(userMap.get(name));
-                } else {
-                    combinedUsers.push({ name: name, isOnline: false, myAdd: true, theirAdd: false, isMutual: false });
+                if (userMap.has(name)) { combinedUsers.push(userMap.get(name)); }
+                else { combinedUsers.push({ name: name, isOnline: false, myAdd: true, theirAdd: false, isMutual: false }); }
+            });
+            users.forEach(u => {
+                if (!combinedUsers.some(item => item.name === u.name) && u.name !== username) {
+                    combinedUsers.push(u);
                 }
             });
+            return combinedUsers;
+        }
 
-            if (combinedUsers.length === 0) {
-                topStoriesStrip.innerHTML = `<span style="color: #89a1b2; font-size: 0.85rem; padding: 4px;">${t.noContacts}</span>`;
+        function updateHeaderActiveContact() {
+            const headerActiveContainer = document.getElementById('header-active-contact');
+            const headerAvatar = document.getElementById('header-contact-avatar');
+            const headerName = document.getElementById('header-contact-name');
+
+            if (!selectedRecipientName) {
+                headerActiveContainer.classList.remove('active');
                 return;
             }
 
+            headerActiveContainer.classList.add('active');
+            headerName.textContent = selectedRecipientName;
+
+            const firstLetter = selectedRecipientName.charAt(0).toUpperCase();
+            const customColor = contactColors[selectedRecipientName] || '#00ffcc';
+            const customAvatarUrl = contactAvatars[selectedRecipientName];
+
+            if (customAvatarUrl) {
+                headerAvatar.innerHTML = `<img src="${escapeHtml(customAvatarUrl)}" alt="">`;
+                headerAvatar.style.background = 'none';
+            } else {
+                headerAvatar.innerHTML = firstLetter;
+                headerAvatar.style.background = customColor;
+                headerAvatar.style.color = '#0e1621';
+            }
+
+            headerActiveContainer.onclick = (e) => { triggerSettings(selectedRecipientName, e); };
+        }
+
+        function renderSidebarContacts(users) {
+            const strip = document.getElementById('sidebar-contacts-strip');
+            if (!strip) return;
+            strip.innerHTML = '';
+
+            const addTile = document.createElement('div');
+            addTile.classList.add('sidebar-contact-item');
+            addTile.innerHTML = `
+                <div class="sidebar-add-btn-tile" title="Додати за ніком">+</div>
+                <span class="story-name">Додати</span>
+            `;
+            addTile.addEventListener('click', addNewContactPrompt);
+            strip.appendChild(addTile);
+
+            let combinedUsers = getCombinedUsers(users);
+            
             combinedUsers.sort((a, b) => {
                 const indexA = recentContactsOrder.indexOf(a.name);
                 const indexB = recentContactsOrder.indexOf(b.name);
@@ -1450,53 +1494,44 @@
             });
 
             combinedUsers.forEach(user => {
-                const story = document.createElement('div');
-                story.classList.add('story-item');
+                if (user.name === username) return;
+                const item = document.createElement('div');
+                item.classList.add('sidebar-contact-item');
 
                 const firstLetter = user.name.charAt(0).toUpperCase();
-                let statusBadgeText = '';
-                if (isAdmin && user.isMutual) statusBadgeText = ' ⭐';
-
                 const customColor = contactColors[user.name] || '#00ffcc';
                 const customAvatarUrl = contactAvatars[user.name];
-
                 const isUnread = unreadSenders.has(user.name);
                 let dotClass = user.isOnline ? 'online' : 'offline';
-                if (isUnread) {
-                    dotClass = 'unread';
-                }
+                if (isUnread) dotClass = 'unread';
 
                 let avatarInnerHtml = '';
                 if (customAvatarUrl) {
                     avatarInnerHtml = `<img src="${escapeHtml(customAvatarUrl)}" alt="">`;
                 } else {
-                    avatarInnerHtml = `<div class="story-avatar" style="background: ${customColor}; color: #0e1621; width:100%; height:100%; display:flex; align-items:center; justify-content:center; border-radius:50%; font-weight:bold; font-size:1.1rem;">${firstLetter}</div>`;
+                    avatarInnerHtml = `<div class="story-avatar" style="background: ${customColor}; color: #0e1621; width:100%; height:100%; display:flex; align-items:center; justify-content:center; border-radius:50%; font-weight:bold; font-size:1.0rem;">${firstLetter}</div>`;
                 }
 
-                story.innerHTML = `
-                    <div class="story-avatar-wrapper" style="${selectedRecipientName === user.name ? `border: 2px solid ${customColor};` : ''}">
+                const isActiveChat = (selectedRecipientName === user.name);
+                const wrapperClass = isActiveChat ? 'story-avatar-wrapper active-chat' : 'story-avatar-wrapper';
+
+                item.innerHTML = `
+                    <div class="${wrapperClass}" style="width: 46px; height: 46px;">
                         <div class="story-avatar">${avatarInnerHtml}</div>
-                        <div class="story-dot ${dotClass}"></div>
+                        <div class="story-dot ${dotClass}" style="width: 10px; height: 10px;"></div>
                     </div>
-                    <span class="story-name">${escapeHtml(user.name)}${statusBadgeText}</span>
+                    <span class="story-name">${escapeHtml(user.name)}</span>
                 `;
 
                 let pressTimer = null;
-
-                story.addEventListener('touchstart', (e) => {
-                    pressTimer = setTimeout(() => {
-                        triggerSettings(user.name, e);
-                    }, 500);
+                item.addEventListener('touchstart', (e) => {
+                    pressTimer = setTimeout(() => { triggerSettings(user.name, e); }, 500);
                 });
+                item.addEventListener('touchend', () => { clearTimeout(pressTimer); });
+                item.addEventListener('touchmove', () => { clearTimeout(pressTimer); });
+                item.addEventListener('contextmenu', (e) => { triggerSettings(user.name, e); });
 
-                story.addEventListener('touchend', () => { clearTimeout(pressTimer); });
-                story.addEventListener('touchmove', () => { clearTimeout(pressTimer); });
-
-                story.addEventListener('contextmenu', (e) => {
-                    triggerSettings(user.name, e);
-                });
-
-                story.addEventListener('click', () => {
+                item.addEventListener('click', () => {
                     selectedRecipientName = user.name;
                     unreadSenders.delete(user.name);
                     delete unreadCounts[user.name];
@@ -1504,10 +1539,12 @@
                     recentContactsOrder = recentContactsOrder.filter(n => n !== user.name);
                     recentContactsOrder.unshift(user.name);
                     localStorage.setItem('habla_recent_contacts', JSON.stringify(recentContactsOrder));
-                    renderStories(lastUsersData, lastIsAdmin);
+                    closeMenu();
+                    renderSidebarContacts(lastUsersData);
+                    updateHeaderActiveContact();
                 });
 
-                topStoriesStrip.appendChild(story);
+                strip.appendChild(item);
             });
         }
 
@@ -1516,6 +1553,7 @@
             return text.replace(/[&<>"']/g, function(m) { return map[m]; });
         }
 
+        /* Надійний блок мікрофона: червоніє під час говоріння, розпізнає та одразу відправляє */
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (!SpeechRecognition) {
             micBtn.style.display = 'none';
@@ -1532,8 +1570,16 @@
             });
 
             recognition.onstart = () => { isListening = true; micBtn.classList.add('listening'); };
-            recognition.onresult = (event) => { messageInput.value += (messageInput.value ? ' ' : '') + event.results[0][0].transcript; };
-            recognition.onend = () => { isListening = false; micBtn.classList.remove('listening'); };
+            recognition.onresult = (event) => { 
+                messageInput.value += (messageInput.value ? ' ' : '') + event.results[0][0].transcript; 
+            };
+            recognition.onend = () => { 
+                isListening = false; 
+                micBtn.classList.remove('listening');
+                if (messageInput.value.trim()) {
+                    sendMessage();
+                }
+            };
         }
     </script>
 </body>
