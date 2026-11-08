@@ -860,7 +860,7 @@
 
     <div id="chat-messages"></div>
 
-    <!-- Оновлена панель вводу з окремим круглим мікрофоном та темно-синьою стрілкою відправки -->
+    <!-- Панель вводу з окремим круглим мікрофоном та темно-синьою стрілкою відправки -->
     <div class="input-container">
         <div class="input-wrapper">
             <input type="text" id="message-input" placeholder="Escribe un mensaje..." autocomplete="off">
@@ -1192,8 +1192,6 @@
             document.getElementById('label-enable-sound').textContent = t.enableSound;
             document.getElementById('label-api-status').textContent = t.apiStatus;
             document.getElementById('label-share-app').textContent = t.shareApp;
-            document.getElementById('native-share-btn').textContent = t.nativeShare;
-            document.getElementById('copy-link-btn').textContent = t.copyLink;
             document.getElementById('label-sidebar-contacts').textContent = t.contactsTitle;
             
             document.getElementById('lbl-settings-tile').textContent = t.settings;
@@ -1570,20 +1568,22 @@
             return text.replace(/[&<>"']/g, function(m) { return map[m]; });
         }
 
-        /* Налаштування розпізнавання мови та динамічного графіку в полі вводу */
+        /* Повноцінна робоча логіка мікрофона з перекладом і відправкою */
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (!SpeechRecognition) {
             micBtn.style.display = 'none';
         } else {
             const recognition = new SpeechRecognition();
-            recognition.interimResults = true; // увімкнено проміжкові результати для динаміки
+            recognition.interimResults = true;
             recognition.continuous = false;
             let isListening = false;
+            let finalTranscript = '';
 
             micBtn.addEventListener('click', () => {
                 if (isListening) { recognition.stop(); return; }
                 const activeLang = forceTranslateToggle.checked ? targetLangSelect.value : interfaceLangSelect.value;
                 recognition.lang = ttsLangMap[activeLang] || 'es-ES';
+                finalTranscript = '';
                 try { recognition.start(); } catch (e) { console.error(e); }
             });
 
@@ -1598,10 +1598,16 @@
 
             recognition.onresult = (event) => {
                 let interimText = '';
-                for (let i = event.resultIndex; i < event.results.length; ++i) {
-                    interimText += event.results[i][0].transcript;
+                finalTranscript = '';
+                for (let i = 0; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        finalTranscript += event.results[i][0].transcript;
+                    } else {
+                        interimText += event.results[i][0].transcript;
+                    }
                 }
-                messageInput.placeholder = interimText ? `🎙️ "${interimText}"` : "🎙️ Говоріть... ▂▃▄▅▆▇█";
+                const currentText = finalTranscript || interimText;
+                messageInput.placeholder = currentText ? `🎙️ "${currentText}"` : "🎙️ Говоріть... ▂▃▄▅▆▇█";
             };
 
             recognition.onend = () => {
@@ -1609,8 +1615,15 @@
                 micBtn.classList.remove('listening');
                 messageInput.classList.remove('listening-state');
                 messageInput.disabled = false;
+                
                 const t = translations[interfaceLangSelect.value] || translations.Spanish;
                 messageInput.placeholder = t.placeholder;
+
+                // Автоматично підставляємо розпізнаний текст у поле та одразу відправляємо
+                if (finalTranscript.trim()) {
+                    messageInput.value = finalTranscript.trim();
+                    sendMessage();
+                }
             };
         }
     </script>
