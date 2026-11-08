@@ -163,7 +163,7 @@
             text-align: center;
         }
 
-        /* Стилі для повзунка (тумблера) */
+        /* Стилі для тумблера */
         .switch {
             position: relative;
             display: inline-block;
@@ -206,8 +206,8 @@
         .side-menu {
             position: fixed;
             top: 0;
-            left: -300px;
-            width: 300px;
+            left: -320px;
+            width: 320px;
             height: 100%;
             background: #17212b;
             border-right: 1px solid #2b5278;
@@ -256,24 +256,42 @@
             display: flex;
         }
 
-        .sidebar-nav-btn {
+        /* Нова сітка 2х2 для кнопок сайдбару */
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 6px;
+        }
+
+        .grid-tile {
             background: #242f3d;
             border: 1px solid #2b5278;
-            color: #f5f5f5;
-            padding: 12px 16px;
-            border-radius: 10px;
-            font-size: 0.95rem;
-            font-weight: 500;
-            cursor: pointer;
+            border-radius: 12px;
+            padding: 16px 10px;
             display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 12px;
-            transition: background 0.2s, border-color 0.2s, color 0.2s;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s, transform 0.2s;
+            color: #f5f5f5;
+            text-align: center;
         }
-        .sidebar-nav-btn:hover {
+        .grid-tile:hover {
             background: #2b5278;
             border-color: #00ffcc;
-            color: #00ffcc;
+            transform: translateY(-2px);
+        }
+
+        .tile-icon {
+            font-size: 1.6rem;
+        }
+
+        .tile-title {
+            font-size: 0.85rem;
+            font-weight: 500;
         }
 
         .back-btn {
@@ -306,10 +324,10 @@
             align-items: center;
             gap: 12px;
             background: #242f3d;
-            padding: 10px 14px;
-            border-radius: 10px;
+            padding: 12px 14px;
+            border-radius: 12px;
             cursor: pointer;
-            border: 1px solid transparent;
+            border: 1px solid #2b5278;
             transition: border-color 0.2s;
         }
         .user-badge-container:hover {
@@ -317,16 +335,18 @@
         }
 
         .user-avatar-large {
-            width: 40px;
-            height: 40px;
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
             background: linear-gradient(135deg, #00ffcc 0%, #2b5278 100%);
             color: #0e1621;
             font-weight: bold;
+            font-size: 1.1rem;
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
+            flex-shrink: 0;
         }
 
         .user-avatar-large img {
@@ -352,9 +372,9 @@
             background: #242f3d;
             border: 1px solid #2b5278;
             color: #fff;
-            padding: 8px 12px;
+            padding: 10px 12px;
             border-radius: 8px;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             outline: none;
         }
 
@@ -362,18 +382,18 @@
             background: #00ffcc;
             color: #0e1621;
             border: none;
-            padding: 8px 12px;
+            padding: 10px 14px;
             border-radius: 8px;
             font-weight: bold;
             cursor: pointer;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
         }
 
         .lang-select {
             background: #242f3d;
             color: #00ffcc;
             border: 1px solid #2b5278;
-            padding: 8px 12px;
+            padding: 10px 12px;
             border-radius: 8px;
             outline: none;
             font-size: 0.9rem;
@@ -653,6 +673,7 @@
 
     <div id="side-menu" class="side-menu">
         
+        <!-- ГОЛОВНЕ МЕНЮ (СІТКА 2Х2) -->
         <div id="panel-main" class="sidebar-panel active">
             <div class="menu-header">
                 <span class="menu-title" id="menu-title-text">Habla Menu</span>
@@ -661,45 +682,47 @@
 
             <div class="menu-section">
                 <label id="label-profile">Ваш профіль</label>
-                <div id="profile-settings-trigger" class="user-badge-container" title="Натисніть або клацніть правою кнопкою, щоб змінити стиль">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <div id="user-avatar-large" class="user-avatar-large">G</div>
-                        <div id="user-display" class="user-badge">Invitado</div>
+                <div id="profile-settings-trigger" class="user-badge-container" title="Натисніть, щоб змінити профіль">
+                    <div id="user-avatar-large" class="user-avatar-large">G</div>
+                    <div style="flex: 1; overflow: hidden;">
+                        <div id="user-display" class="user-badge" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Invitado</div>
+                        <div style="font-size: 0.75rem; color: #89a1b2;">Налаштувати профіль</div>
                     </div>
                 </div>
             </div>
 
+            <!-- СІТКА КНОПОК 2Х2 -->
             <div class="menu-section">
-                <label id="label-share-app">Поділитися додатком</label>
-                <div style="background: #242f3d; padding: 10px; border-radius: 8px; border: 1px solid #2b5278; display: flex; flex-direction: column; gap: 8px; align-items: center; text-align: center;">
-                    <img id="qr-code-img" src="" alt="QR Code" style="width: 90px; height: 90px; background: #fff; padding: 4px; border-radius: 6px;">
-                    <div id="app-url-text" style="font-size: 0.75rem; color: #89a1b2; word-break: break-all;">---</div>
-                    <button id="native-share-btn" style="background: #00ffcc; color: #0e1621; border: none; padding: 7px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.8rem; width: 100%;">
-                        📤 Поділитися
-                    </button>
-                    <button id="copy-link-btn" style="background: #17212b; color: #00ffcc; border: 1px solid #2b5278; padding: 5px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.8rem; width: 100%;">
-                        📋 Копіювати посилання
-                    </button>
+                <label>Меню керування</label>
+                <div class="menu-grid">
+                    <!-- 1. Налаштування -->
+                    <div id="btn-open-settings" class="grid-tile">
+                        <span class="tile-icon">⚙️</span>
+                        <span class="tile-title" id="lbl-settings-tile">Налаштування</span>
+                    </div>
+
+                    <!-- 2. QR-код -->
+                    <div id="btn-open-qr" class="grid-tile">
+                        <span class="tile-icon">📱</span>
+                        <span class="tile-title" id="lbl-qr-tile">QR-код</span>
+                    </div>
+
+                    <!-- 3. Контакти -->
+                    <div id="btn-open-contacts" class="grid-tile">
+                        <span class="tile-icon">📖</span>
+                        <span class="tile-title" id="lbl-contacts-tile">Контакти</span>
+                    </div>
+
+                    <!-- 4. Розробник -->
+                    <div id="btn-open-admin" class="grid-tile" style="display: none;">
+                        <span class="tile-icon">🛠️</span>
+                        <span class="tile-title" id="lbl-dev-tile">Розробник</span>
+                    </div>
                 </div>
             </div>
-
-            <div class="menu-section">
-                <label id="label-online-users">Контакти</label>
-                <div class="add-contact-box">
-                    <input type="text" id="new-contact-input" class="add-contact-input" placeholder="Додати за ніком...">
-                    <button id="add-contact-btn" class="add-contact-btn">Додати</button>
-                </div>
-            </div>
-
-            <button id="btn-open-settings" class="sidebar-nav-btn">
-                <span>⚙️</span> Налаштування
-            </button>
-
-            <button id="btn-open-admin" class="sidebar-nav-btn" style="display: none;">
-                <span>🔑</span> Панель Адміна (Groq)
-            </button>
         </div>
 
+        <!-- ПАНЕЛЬ 1: НАЛАШТУВАННЯ -->
         <div id="panel-settings" class="sidebar-panel">
             <div class="menu-header">
                 <button id="btn-back-from-settings" class="back-btn">← Назад</button>
@@ -708,7 +731,7 @@
 
             <div class="menu-section">
                 <label id="label-profile-settings">Керування профілем</label>
-                <button id="reset-user-btn" class="sidebar-nav-btn" style="background: rgba(255, 59, 48, 0.15); border-color: #ff3b30; color: #ff3b30; width: 100%; justify-content: center;">
+                <button id="reset-user-btn" class="sidebar-nav-btn" style="background: rgba(255, 59, 48, 0.15); border: 1px solid #ff3b30; color: #ff3b30; padding: 10px; border-radius: 8px; width: 100%; cursor: pointer; font-weight: bold; font-size: 0.9rem; text-align: center;">
                     🔄 Змінити нікнейм
                 </button>
             </div>
@@ -753,6 +776,50 @@
             </div>
         </div>
 
+        <!-- ПАНЕЛЬ 2: QR-КОД ТА ПОШИРЕННЯ -->
+        <div id="panel-qr" class="sidebar-panel">
+            <div class="menu-header">
+                <button id="btn-back-from-qr" class="back-btn">← Назад</button>
+                <button id="close-menu-btn-4" class="close-menu-btn">✕</button>
+            </div>
+
+            <div class="menu-section">
+                <label id="label-share-app">Поділитися додатком</label>
+                <div style="background: #242f3d; padding: 14px; border-radius: 10px; border: 1px solid #2b5278; display: flex; flex-direction: column; gap: 10px; align-items: center; text-align: center;">
+                    <img id="qr-code-img" src="" alt="QR Code" style="width: 130px; height: 130px; background: #fff; padding: 6px; border-radius: 8px;">
+                    <div id="app-url-text" style="font-size: 0.75rem; color: #89a1b2; word-break: break-all;">---</div>
+                    <button id="native-share-btn" style="background: #00ffcc; color: #0e1621; border: none; padding: 9px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85rem; width: 100%;">
+                        📤 Поділитися
+                    </button>
+                    <button id="copy-link-btn" style="background: #17212b; color: #00ffcc; border: 1px solid #2b5278; padding: 7px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85rem; width: 100%;">
+                        📋 Копіювати посилання
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ПАНЕЛЬ 3: КОНТАКТИ -->
+        <div id="panel-contacts" class="sidebar-panel">
+            <div class="menu-header">
+                <button id="btn-back-from-contacts" class="back-btn">← Назад</button>
+                <button id="close-menu-btn-5" class="close-menu-btn">✕</button>
+            </div>
+
+            <div class="menu-section">
+                <label id="label-manage-contacts">Керування контактами</label>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <div class="add-contact-box">
+                        <input type="text" id="new-contact-input" class="add-contact-input" placeholder="Додати за ніком...">
+                        <button id="add-contact-btn" class="add-contact-btn">Додати</button>
+                    </div>
+                    <div style="font-size: 0.78rem; color: #89a1b2; line-height: 1.4;">
+                        Додавайте контакти за їхнім унікальним нікнеймом, щоб вони з'явилися у вашій верхній стрічці.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ПАНЕЛЬ 4: РОЗРОБНИК (АДМІН) -->
         <div id="panel-admin" class="sidebar-panel">
             <div class="menu-header">
                 <button id="btn-back-from-admin" class="back-btn">← Назад</button>
@@ -760,7 +827,7 @@
             </div>
 
             <div class="menu-section">
-                <label id="label-api-status">Статус API Groq</label>
+                <label id="label-api-status">Статус API Groq (Розробник)</label>
                 <div style="display: flex; gap: 8px;">
                     <div id="req-box" style="flex: 1; background: #242f3d; padding: 10px; border-radius: 8px; border: 1px solid #2b5278; text-align: center;">
                         <div style="font-size: 0.7rem; color: #89a1b2; margin-bottom: 2px;">REQS</div>
@@ -787,7 +854,7 @@
     </div>
 
     <script>
-        // Реєстрація Service Worker для PWA та фонових процесів
+        // Реєстрація Service Worker для PWA
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/sw.js')
@@ -992,11 +1059,11 @@
         }
 
         const translations = {
-            Spanish: { settings: "Configuración", profile: "Tu perfil", onlineUsersTitle: "Contactos", interfaceLang: "Idioma de la interfaz", voiceOver: "Locución de traducción", enableSound: "Activar sonido", apiStatus: "Estado API Groq", shareApp: "Compartir App", nativeShare: "📤 Поділитися", copyLink: "📋 Copiar enlace", placeholder: "Escribe un mensaje...", addPlaceholder: "Додати за ніком...", addBtn: "Додати", noContacts: "Sin contactos", online: "En línea", adminPanel: "Панель Адміністратора", forceTranslate: "Примусовий переклад", enableForce: "Увімкнути переклад" },
-            English: { settings: "Settings", profile: "Your profile", onlineUsersTitle: "Contacts", interfaceLang: "Interface language", voiceOver: "Translation voiceover", enableSound: "Enable sound", apiStatus: "Groq API Status", shareApp: "Share App", nativeShare: "📤 Поділитися", copyLink: "📋 Copy Link", placeholder: "Type a message...", addPlaceholder: "Додати за ніком...", addBtn: "Додати", noContacts: "No contacts", online: "Online", adminPanel: "Admin Panel", forceTranslate: "Forced translation", enableForce: "Enable translation" },
-            Ukrainian: { settings: "Налаштування", profile: "Ваш профіль", onlineUsersTitle: "Контакти", interfaceLang: "Мова інтерфейсу", voiceOver: "Озвучування перекладу", enableSound: "Увімкнути звук", apiStatus: "Статус API Groq", shareApp: "Поділитися додатком", nativeShare: "📤 Поділитися", copyLink: "📋 Копіювати посилання", placeholder: "Введіть повідомлення...", addPlaceholder: "Додати за ніком...", addBtn: "Додати", noContacts: "Немає контактів", online: "Онлайн", adminPanel: "Панель Адміністратора", forceTranslate: "Примусовий переклад", enableForce: "Увімкнути переклад" },
-            German: { settings: "Einstellungen", profile: "Ihr Profil", onlineUsersTitle: "Kontakte", interfaceLang: "Sprache", voiceOver: "Sprachausgabe", enableSound: "Ton", apiStatus: "API-Status", shareApp: "App teilen", nativeShare: "📤 Поділитися", copyLink: "📋 Link kopieren", placeholder: "Nachricht...", addPlaceholder: "Додати за ніком...", addBtn: "Додати", noContacts: "Keine", online: "Online", adminPanel: "Admin-Panel", forceTranslate: "Erzwungene Übersetzung", enableForce: "Übersetzung aktivieren" },
-            French: { settings: "Paramètres", profile: "Profil", onlineUsersTitle: "Contacts", interfaceLang: "Langue", voiceOver: "Voix", enableSound: "Son", apiStatus: "Statut API", shareApp: "Partager", nativeShare: "📤 Поділитися", copyLink: "📋 Copier", placeholder: "Message...", addPlaceholder: "Додати за ніком...", addBtn: "Додати", noContacts: "Aucun", online: "En ligne", adminPanel: "Panneau Admin", forceTranslate: "Traduction forcée", enableForce: "Activer la traduction" }
+            Spanish: { settings: "Configuración", profile: "Tu perfil", onlineUsersTitle: "Contactos", interfaceLang: "Idioma de la interfaz", voiceOver: "Locución de traducción", enableSound: "Activar sonido", apiStatus: "Estado API Groq", shareApp: "Compartir App", nativeShare: "📤 Поділитися", copyLink: "📋 Copiar enlace", placeholder: "Escribe un mensaje...", addPlaceholder: "Додати за ніком...", addBtn: "Додати", noContacts: "Sin contactos", online: "En línea", devPanel: "Panel de Desarrollador", forceTranslate: "Примусовий переклад", enableForce: "Увімкнути переклад", qrTitle: "Código QR", contactsTitle: "Contactos" },
+            English: { settings: "Settings", profile: "Your profile", onlineUsersTitle: "Contacts", interfaceLang: "Interface language", voiceOver: "Translation voiceover", enableSound: "Enable sound", apiStatus: "Groq API Status", shareApp: "Share App", nativeShare: "📤 Поділитися", copyLink: "📋 Copy Link", placeholder: "Type a message...", addPlaceholder: "Додати за ніком...", addBtn: "Додати", noContacts: "No contacts", online: "Online", devPanel: "Developer Panel", forceTranslate: "Forced translation", enableForce: "Enable translation", qrTitle: "QR Code", contactsTitle: "Contacts" },
+            Ukrainian: { settings: "Налаштування", profile: "Ваш профіль", onlineUsersTitle: "Контакти", interfaceLang: "Мова інтерфейсу", voiceOver: "Озвучування перекладу", enableSound: "Увімкнути звук", apiStatus: "Статус API Groq", shareApp: "Поділитися додатком", nativeShare: "📤 Поділитися", copyLink: "📋 Копіювати посилання", placeholder: "Введіть повідомлення...", addPlaceholder: "Додати за ніком...", addBtn: "Додати", noContacts: "Немає контактів", online: "Онлайн", devPanel: "Панель Розробника", forceTranslate: "Примусовий переклад", enableForce: "Увімкнути переклад", qrTitle: "QR-код", contactsTitle: "Контакти" },
+            German: { settings: "Einstellungen", profile: "Ihr Profil", onlineUsersTitle: "Kontakte", interfaceLang: "Sprache", voiceOver: "Sprachausgabe", enableSound: "Ton", apiStatus: "API-Status", shareApp: "App teilen", nativeShare: "📤 Поділитися", copyLink: "📋 Link kopieren", placeholder: "Nachricht...", addPlaceholder: "Додати за ніком...", addBtn: "Додати", noContacts: "Keine", online: "Online", devPanel: "Entwickler-Panel", forceTranslate: "Erzwungene Übersetzung", enableForce: "Übersetzung aktivieren", qrTitle: "QR-Code", contactsTitle: "Kontakte" },
+            French: { settings: "Paramètres", profile: "Profil", onlineUsersTitle: "Contacts", interfaceLang: "Langue", voiceOver: "Voix", enableSound: "Son", apiStatus: "Statut API", shareApp: "Partager", nativeShare: "📤 Поділитися", copyLink: "📋 Copier", placeholder: "Message...", addPlaceholder: "Додати за ніком...", addBtn: "Додати", noContacts: "Aucun", online: "En ligne", devPanel: "Panneau Développeur", forceTranslate: "Traduction forcée", enableForce: "Activer la traduction", qrTitle: "Code QR", contactsTitle: "Contacts" }
         };
 
         const messageInput = document.getElementById('message-input');
@@ -1009,6 +1076,8 @@
         const closeMenuBtn = document.getElementById('close-menu-btn');
         const closeMenuBtn2 = document.getElementById('close-menu-btn-2');
         const closeMenuBtn3 = document.getElementById('close-menu-btn-3');
+        const closeMenuBtn4 = document.getElementById('close-menu-btn-4');
+        const closeMenuBtn5 = document.getElementById('close-menu-btn-5');
         const sideMenu = document.getElementById('side-menu');
         const menuOverlay = document.getElementById('menu-overlay');
         const topStoriesStrip = document.getElementById('top-stories-strip');
@@ -1018,10 +1087,18 @@
 
         const panelMain = document.getElementById('panel-main');
         const panelSettings = document.getElementById('panel-settings');
+        const panelQr = document.getElementById('panel-qr');
+        const panelContacts = document.getElementById('panel-contacts');
         const panelAdmin = document.getElementById('panel-admin');
+
         const btnOpenSettings = document.getElementById('btn-open-settings');
+        const btnOpenQr = document.getElementById('btn-open-qr');
+        const btnOpenContacts = document.getElementById('btn-open-contacts');
         const btnOpenAdmin = document.getElementById('btn-open-admin');
+
         const btnBackFromSettings = document.getElementById('btn-back-from-settings');
+        const btnBackFromQr = document.getElementById('btn-back-from-qr');
+        const btnBackFromContacts = document.getElementById('btn-back-from-contacts');
         const btnBackFromAdmin = document.getElementById('btn-back-from-admin');
 
         const contactModal = document.getElementById('contact-modal');
@@ -1041,7 +1118,6 @@
             const t = translations[lang] || translations.Spanish;
 
             document.getElementById('label-profile').textContent = t.profile;
-            document.getElementById('label-online-users').textContent = t.onlineUsersTitle;
             document.getElementById('label-interface-lang').textContent = t.interfaceLang;
             document.getElementById('label-force-translate').textContent = t.forceTranslate;
             document.getElementById('label-enable-force').textContent = t.enableForce;
@@ -1051,13 +1127,17 @@
             document.getElementById('label-share-app').textContent = t.shareApp;
             document.getElementById('native-share-btn').textContent = t.nativeShare;
             document.getElementById('copy-link-btn').textContent = t.copyLink;
+            document.getElementById('label-manage-contacts').textContent = t.contactsTitle;
+            
+            document.getElementById('lbl-settings-tile').textContent = t.settings;
+            document.getElementById('lbl-qr-tile').textContent = t.qrTitle;
+            document.getElementById('lbl-contacts-tile').textContent = t.onlineUsersTitle;
+            document.getElementById('lbl-dev-tile').textContent = t.devPanel;
+
             messageInput.placeholder = t.placeholder;
             newContactInput.placeholder = t.addPlaceholder;
             addContactBtn.textContent = t.addBtn;
             onlineCount.textContent = `${t.online}: ${currentOnlineCount}`;
-
-            btnOpenAdmin.innerHTML = `<span>🔑</span> ${t.adminPanel}`;
-            btnOpenSettings.innerHTML = `<span>⚙️</span> ${t.settings}`;
 
             renderStories(lastUsersData, lastIsAdmin);
         }
@@ -1088,12 +1168,25 @@
         function showMainPanel() {
             panelMain.classList.add('active');
             panelSettings.classList.remove('active');
+            panelQr.classList.remove('active');
+            panelContacts.classList.remove('active');
             panelAdmin.classList.remove('active');
         }
 
+        // Перемикання панелей за кліком на плитку сітки 2х2
         btnOpenSettings.addEventListener('click', () => {
             panelMain.classList.remove('active');
             panelSettings.classList.add('active');
+        });
+
+        btnOpenQr.addEventListener('click', () => {
+            panelMain.classList.remove('active');
+            panelQr.classList.add('active');
+        });
+
+        btnOpenContacts.addEventListener('click', () => {
+            panelMain.classList.remove('active');
+            panelContacts.classList.add('active');
         });
 
         btnOpenAdmin.addEventListener('click', () => {
@@ -1102,13 +1195,18 @@
         });
 
         btnBackFromSettings.addEventListener('click', showMainPanel);
+        btnBackFromQr.addEventListener('click', showMainPanel);
+        btnBackFromContacts.addEventListener('click', showMainPanel);
         btnBackFromAdmin.addEventListener('click', showMainPanel);
 
         menuBtn.addEventListener('click', openMenu);
         onlineCount.addEventListener('click', openMenu);
+        
         closeMenuBtn.addEventListener('click', closeMenu);
         closeMenuBtn2.addEventListener('click', closeMenu);
         closeMenuBtn3.addEventListener('click', closeMenu);
+        closeMenuBtn4.addEventListener('click', closeMenu);
+        closeMenuBtn5.addEventListener('click', closeMenu);
         
         menuOverlay.addEventListener('click', () => {
             closeMenu();
@@ -1220,6 +1318,7 @@
                 }
                 newContactInput.value = '';
                 renderStories(lastUsersData, lastIsAdmin);
+                alert(`Контакт ${targetName} додано!`);
             }
         });
 
