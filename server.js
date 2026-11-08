@@ -1,23 +1,25 @@
-const express = require('http');
-const app = require('express')();
-const server = require('http').createServer(app);
-const io = require('socket.io')(server);
-const path = require('path');
+import express from 'express';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-// Обслуговування статичних файлів з кореня проєкту
-app.use(require('express').static(path.join(__dirname)));
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-// --- СХОВИЩЕ ДЛЯ ІСТОРІЇ ТА ЧАСУ ВІДКЛЮЧЕННЯ ---
-let messageHistory = [];         // Масив для збереження повідомлень
-let userDisconnectTimes = {};    // Час останнього виходу користувача: { username: timestamp }
-let activeUsers = new Map();     // Список активних користувачів
-let customizations = {};         // Кастомізації (кольори, аватарки)
-let groqUsage = { requests: 0, tokens: 0 }; // Статистика API
+const app = express();
+const server = createServer(app);
+const io = new Server(server);
 
-// 3 дні у мілісекундах (3 доби * 24 години * 60 хв * 60 сек * 1000 мс)
+app.use(express.static(path.join(__dirname)));
+
+let messageHistory = [];
+let userDisconnectTimes = {};
+let activeUsers = new Map();
+let customizations = {};
+
 const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
 
-// Функція автоматичного видалення повідомлень, старших за 3 дні
 function cleanExpiredMessages() {
     const now = Date.now();
     const initialLength = messageHistory.length;
@@ -27,19 +29,17 @@ function cleanExpiredMessages() {
     }
 }
 
-// Запускаємо перевірку прострочених повідомлень кожну годину
 setInterval(cleanExpiredMessages, 60 * 60 * 1000);
 
 io.on('connection', (socket) => {
     console.log('Користувач підключився ID:', socket.id);
 
-    // Приєднання користувача до чату
     socket.on('join', (userData) => {
         if (!userData || !userData.username) return;
         
         const username = userData.username.trim();
         socket.username = username;
-        socket.join(username); // Особиста кімната для приватних повідомлень
+        socket.join(username);
 
         activeUsers.set(socket.id, {
             name: username,
@@ -47,24 +47,16 @@ io.on('connection', (socket) => {
             lang: userData.lang || 'Spanish'
         });
 
-        // Очищаємо старі повідомлення перед видачею пропущених
         cleanExpiredMessages();
 
-        // Визначаємо час, коли користувач востаннє виходив з мережі
-        // Якщо заходив уперше або дані не збереглися, беремо межу за останні 3 дні
         const lastActiveTime = userDisconnectTimes[username] || (Date.now() - THREE_DAYS_MS);
 
-        // Фільтруємо пропущені повідомлення:
-        // 1. Вони адресовані саме цьому користувачу (приватні) або загальні (без recipientName)
-        // 2. Вони надійшли ПІСЛЯ того, як користувач востаннє вийшов
-        // 3. Вони надіслані НЕ самим користувачем
         const missedMessages = messageHistory.filter(msg => {
             const isForMe = (msg.recipientName === username) || (!msg.recipientName && msg.user !== username);
             const isNewerThanDisconnect = msg.timestamp > lastActiveTime;
             return isForMe && isNewerThanDisconnect;
         });
 
-        // Надсилаємо пропущені повідомлення користувачу одразу при вході
         if (missedMessages.length > 0) {
             console.log(`[Доставка] Відправляємо ${missedMessages.length} пропущених повідомлень для ${username}`);
             missedMessages.forEach(msg => {
@@ -72,13 +64,11 @@ io.on('connection', (socket) => {
             });
         }
 
-        // Синхронізуємо кастомізації та користувачів
         socket.emit('sync-customizations', customizations);
         broadcastUsersUpdate();
         io.emit('onlineCount', activeUsers.size);
     });
 
-    // Обробка вхідного повідомлення
     socket.on('chatMessage', (data) => {
         if (!data || !data.text || !data.user) return;
 
@@ -88,29 +78,20 @@ io.on('connection', (socket) => {
             user: data.user,
             recipientName: data.recipientName || null,
             isPrivate: !!data.recipientName,
-            timestamp: Date.now() // Фіксуємо точний час створення
+            timestamp: Date.now()
         };
 
-        // Очищаємо старі й додаємо нове повідомлення в історію
         cleanExpiredMessages();
         messageHistory.push(messageData);
 
         if (messageData.recipientName) {
-            // Приватне повідомлення: надсилаємо отримувачу та відправнику
             io.to(messageData.recipientName).emit('chatMessage', messageData);
             socket.emit('chatMessage', messageData);
         } else {
-            // Загальне повідомлення для всіх
             io.emit('chatMessage', messageData);
         }
     });
 
-    // Додавання контакту
-    socket.on('add-contact', (targetName) => {
-        // Логіка додавання контактів залишається незмінною
-    });
-
-    // Оновлення кастомізацій (кольори, аватарки)
     socket.on('update-customization', (data) => {
         if (data && data.targetName) {
             customizations[data.targetName] = {
@@ -121,16 +102,13 @@ io.on('connection', (socket) => {
         }
     });
 
-    // Відключення користувача
     socket.on('disconnect', () => {
         if (socket.username) {
-            // Фіксуємо точний час, коли користувач покинув додаток
             userDisconnectTimes[socket.username] = Date.now();
         }
         activeUsers.delete(socket.id);
         broadcastUsersUpdate();
         io.emit('onlineCount', activeUsers.size);
-        console.log('Користувач відключився:', socket.id);
     });
 });
 
@@ -139,9 +117,7 @@ function broadcastUsersUpdate() {
     io.emit('update-users', { users: usersList, isAdmin: false });
 }
 
-// Порт для запуску ( Render автоматично підставляє process.env.PORT )
 const PORT = process.env.PORT || 3000;
-server.PORT = PORT;
 server.listen(PORT, () => {
     console.log(`Сервер успішно запущено на порту ${PORT}`);
 });
