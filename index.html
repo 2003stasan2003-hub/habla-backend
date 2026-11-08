@@ -102,13 +102,35 @@
             transform: scale(1.05);
         }
 
+        /* Обгортка аватарки за замовчуванням */
         .story-avatar-wrapper {
             position: relative;
             width: 56px;
             height: 56px;
             border-radius: 50%;
             padding: 2px;
-            background: linear-gradient(135deg, #00ffcc 0%, #2b5278 100%);
+            background: #2b5278;
+        }
+
+        /* Анімація обертового різнокольорового неонового кільця для активного співрозмовника */
+        @keyframes activeRingSpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .story-avatar-wrapper.active-chat {
+            padding: 3px;
+            background: transparent !important;
+        }
+
+        .story-avatar-wrapper.active-chat::before {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: 50%;
+            background: conic-gradient(from 0deg, #00ffcc, #ffcc00, #ff3b30, #7928ca, #0056b3, #00ffcc);
+            animation: activeRingSpin 3s linear infinite;
+            z-index: -1;
         }
 
         .story-avatar {
@@ -140,6 +162,7 @@
             height: 12px;
             border-radius: 50%;
             border: 2px solid #17212b;
+            z-index: 2;
         }
         .story-dot.online { background-color: #3acc6e; }
         .story-dot.offline { background-color: #89a1b2; }
@@ -751,7 +774,6 @@
                         <span class="tile-title" id="lbl-settings-tile">Налаштування</span>
                     </div>
 
-                    <!-- Точний QR-код значок як на скріншоті -->
                     <div id="btn-open-qr" class="grid-tile">
                         <span class="tile-icon">
                             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1495,11 +1517,30 @@
         sendBtn.addEventListener('click', sendMessage);
         messageInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
 
+        // Обробка вхідних повідомлень з фільтрацією за активним чатом
         socket.on('chatMessage', (data) => {
+            const isFromMe = (data.user === username);
+            
+            const isForCurrentChat = (
+                (!data.recipientName && !selectedRecipientName) || 
+                (isFromMe && data.recipientName === selectedRecipientName) || 
+                (!isFromMe && data.user === selectedRecipientName)
+            );
+
+            if (!isForCurrentChat) {
+                if (!isFromMe) {
+                    playNotificationSound();
+                    unreadSenders.add(data.user);
+                    unreadCounts[data.user] = (unreadCounts[data.user] || 0) + 1;
+                    updateAppBadge();
+                    renderStories(lastUsersData, lastIsAdmin);
+                }
+                return;
+            }
+
             const messageDiv = document.createElement('div');
             messageDiv.classList.add('message');
-            const isSelf = data.user === username;
-            messageDiv.classList.add(isSelf ? 'outgoing' : 'incoming');
+            messageDiv.classList.add(isFromMe ? 'outgoing' : 'incoming');
             if (data.isPrivate) messageDiv.classList.add('private');
 
             let authorLabel = escapeHtml(data.user);
@@ -1528,17 +1569,7 @@
             chatMessages.appendChild(messageDiv);
             chatMessages.scrollTop = chatMessages.scrollHeight;
 
-            if (soundToggle.checked) speakText(data.text);
-
-            if (!isSelf) {
-                playNotificationSound();
-                if (selectedRecipientName !== data.user) {
-                    unreadSenders.add(data.user);
-                    unreadCounts[data.user] = (unreadCounts[data.user] || 0) + 1;
-                    updateAppBadge();
-                    renderStories(lastUsersData, lastIsAdmin);
-                }
-            }
+            if (soundToggle.checked && !isFromMe) speakText(data.text);
         });
 
         socket.on('groq-limits', (limits) => {
@@ -1623,8 +1654,12 @@
                     avatarInnerHtml = `<div class="story-avatar" style="background: ${customColor}; color: #0e1621; width:100%; height:100%; display:flex; align-items:center; justify-content:center; border-radius:50%; font-weight:bold; font-size:1.1rem;">${firstLetter}</div>`;
                 }
 
+                // Перевіряємо, чи це активний співрозмовник, з яким зараз відкрито чат
+                const isActiveChat = (selectedRecipientName === user.name);
+                const wrapperClass = isActiveChat ? 'story-avatar-wrapper active-chat' : 'story-avatar-wrapper';
+
                 story.innerHTML = `
-                    <div class="story-avatar-wrapper" style="${selectedRecipientName === user.name ? `border: 2px solid ${customColor};` : ''}">
+                    <div class="${wrapperClass}">
                         <div class="story-avatar">${avatarInnerHtml}</div>
                         <div class="story-dot ${dotClass}"></div>
                     </div>
