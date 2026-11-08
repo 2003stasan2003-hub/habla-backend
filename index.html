@@ -698,7 +698,6 @@
                 </div>
             </div>
 
-            <!-- СІТКА КНОПОК 2Х2 -->
             <div class="menu-section">
                 <label>Меню керування</label>
                 <div class="menu-grid">
@@ -779,7 +778,7 @@
             </div>
         </div>
 
-        <!-- ПАНЕЛЬ 2: QR-КОД ТА ПОШИРЕННЯ -->
+        <!-- ПАНЕЛЬ 2: QR-КОД ТА КНОПКА ВСТАНОВЛЕННЯ -->
         <div id="panel-qr" class="sidebar-panel">
             <div class="menu-header">
                 <button id="btn-back-from-qr" class="back-btn">← Назад</button>
@@ -796,7 +795,13 @@
                     </div>
 
                     <div id="app-url-text" style="font-size: 0.75rem; color: #89a1b2; word-break: break-all;">---</div>
-                    <button id="native-share-btn" style="background: #00ffcc; color: #0e1621; border: none; padding: 9px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85rem; width: 100%;">
+                    
+                    <!-- Кнопка Встановити додаток -->
+                    <button id="install-app-btn" style="background: #00ffcc; color: #0e1621; border: none; padding: 9px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85rem; width: 100%;">
+                        📥 Встановити додаток
+                    </button>
+
+                    <button id="native-share-btn" style="background: #17212b; color: #00ffcc; border: 1px solid #2b5278; padding: 9px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85rem; width: 100%;">
                         📤 Поділитися
                     </button>
                     <button id="copy-link-btn" style="background: #17212b; color: #00ffcc; border: 1px solid #2b5278; padding: 7px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85rem; width: 100%;">
@@ -1008,6 +1013,26 @@
         const currentAppUrl = window.location.origin;
         document.getElementById('app-url-text').textContent = currentAppUrl;
         document.getElementById('qr-code-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(currentAppUrl)}`;
+
+        // Логіка кнопки встановлення PWA
+        let deferredPrompt = null;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+        });
+
+        document.getElementById('install-app-btn').addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    console.log('Користувач встановив додаток');
+                }
+                deferredPrompt = null;
+            } else {
+                alert('Щоб встановити додаток, скористайтеся меню браузера (три крапки у правому верхньому кутку → "Встановити додаток" або "Додати на головний екран").');
+            }
+        });
 
         document.getElementById('native-share-btn').addEventListener('click', async () => {
             if (navigator.share) {
@@ -1354,7 +1379,6 @@
             let authorLabel = escapeHtml(data.user);
             if (data.isPrivate) authorLabel += ` 🔒`;
 
-            // Форматування дати та часу (ДД.ММ ГГ:ХХ)
             let timeString = '';
             if (data.timestamp) {
                 const d = new Date(data.timestamp);
