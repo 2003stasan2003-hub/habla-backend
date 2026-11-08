@@ -565,21 +565,6 @@
         }
         #message-input:focus { border-color: #00ffcc; }
 
-        /* Динамічний голосовий графік (анімація в полі вводу при записі) */
-        #message-input.listening-state {
-            background: linear-gradient(90deg, #182533, #2b5278, #182533);
-            background-size: 200% 100%;
-            animation: waveGradient 1.5s linear infinite;
-            color: #00ffcc;
-            font-style: italic;
-            border-color: #ff3b30;
-            box-shadow: 0 0 10px rgba(255, 59, 48, 0.4);
-        }
-        @keyframes waveGradient {
-            0% { background-position: 100% 0; }
-            100% { background-position: -100% 0; }
-        }
-
         /* Окремі круглі кнопки дій (мікрофон та відправка) */
         .action-btn {
             width: 44px;
@@ -1568,60 +1553,31 @@
             return text.replace(/[&<>"']/g, function(m) { return map[m]; });
         }
 
-        /* Повноцінна робоча логіка мікрофона з перекладом і відправкою */
+        /* Надійний блок мікрофона: червоніє під час говоріння, розпізнає та одразу відправляє */
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (!SpeechRecognition) {
             micBtn.style.display = 'none';
         } else {
             const recognition = new SpeechRecognition();
-            recognition.interimResults = true;
-            recognition.continuous = false;
+            recognition.interimResults = false;
             let isListening = false;
-            let finalTranscript = '';
 
             micBtn.addEventListener('click', () => {
                 if (isListening) { recognition.stop(); return; }
                 const activeLang = forceTranslateToggle.checked ? targetLangSelect.value : interfaceLangSelect.value;
                 recognition.lang = ttsLangMap[activeLang] || 'es-ES';
-                finalTranscript = '';
                 try { recognition.start(); } catch (e) { console.error(e); }
             });
 
-            recognition.onstart = () => {
-                isListening = true;
-                micBtn.classList.add('listening');
-                messageInput.classList.add('listening-state');
-                messageInput.value = '';
-                messageInput.placeholder = "🎙️ Слухаю ваш голос... ▂▃▄▅▆▇█";
-                messageInput.disabled = true;
+            recognition.onstart = () => { isListening = true; micBtn.classList.add('listening'); };
+            recognition.onresult = (event) => { 
+                messageInput.value += (messageInput.value ? ' ' : '') + event.results[0][0].transcript; 
             };
-
-            recognition.onresult = (event) => {
-                let interimText = '';
-                finalTranscript = '';
-                for (let i = 0; i < event.results.length; ++i) {
-                    if (event.results[i].isFinal) {
-                        finalTranscript += event.results[i][0].transcript;
-                    } else {
-                        interimText += event.results[i][0].transcript;
-                    }
-                }
-                const currentText = finalTranscript || interimText;
-                messageInput.placeholder = currentText ? `🎙️ "${currentText}"` : "🎙️ Говоріть... ▂▃▄▅▆▇█";
-            };
-
-            recognition.onend = () => {
-                isListening = false;
+            recognition.onend = () => { 
+                isListening = false; 
                 micBtn.classList.remove('listening');
-                messageInput.classList.remove('listening-state');
-                messageInput.disabled = false;
-                
-                const t = translations[interfaceLangSelect.value] || translations.Spanish;
-                messageInput.placeholder = t.placeholder;
-
-                // Автоматично підставляємо розпізнаний текст у поле та одразу відправляємо
-                if (finalTranscript.trim()) {
-                    messageInput.value = finalTranscript.trim();
+                // Автоматично відправляємо повідомлення після завершення мовлення
+                if (messageInput.value.trim()) {
                     sendMessage();
                 }
             };
