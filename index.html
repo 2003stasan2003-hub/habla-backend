@@ -285,6 +285,10 @@
 
         .tile-icon {
             font-size: 1.6rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #f5f5f5;
         }
 
         .tile-title {
@@ -408,7 +412,7 @@
         }
         .menu-overlay.active { display: block; }
 
-        /* Спливаюче вікно автоматичного запрошення встановлення */
+        /* Спливаюче вікно для швидкого встановлення */
         #install-modal {
             position: fixed;
             bottom: 20px;
@@ -747,8 +751,19 @@
                         <span class="tile-title" id="lbl-settings-tile">Налаштування</span>
                     </div>
 
+                    <!-- Точний QR-код значок як на скріншоті -->
                     <div id="btn-open-qr" class="grid-tile">
-                        <span class="tile-icon">📱</span>
+                        <span class="tile-icon">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="3" width="7" height="7"></rect>
+                                <rect x="3" y="14" width="7" height="7"></rect>
+                                <line x1="14" y1="14" x2="14.01" y2="14"></line>
+                                <line x1="18" y1="14" x2="21" y2="14"></line>
+                                <line x1="14" y1="18" x2="14" y2="21"></line>
+                                <line x1="18" y1="18" x2="21" y2="21"></line>
+                            </svg>
+                        </span>
                         <span class="tile-title" id="lbl-qr-tile">QR-код</span>
                     </div>
 
