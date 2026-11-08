@@ -408,6 +408,33 @@
         }
         .menu-overlay.active { display: block; }
 
+        /* Спливаюче вікно автоматичного запрошення встановлення */
+        #install-modal {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(150px);
+            width: 90%;
+            max-width: 380px;
+            background: #17212b;
+            border: 1px solid #00ffcc;
+            border-radius: 16px;
+            padding: 18px;
+            z-index: 1000;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            opacity: 0;
+            pointer-events: none;
+        }
+        #install-modal.active {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+
         #contact-modal {
             position: fixed;
             top: 50%;
@@ -658,6 +685,20 @@
 
     <div id="menu-overlay" class="menu-overlay"></div>
 
+    <!-- Спливаюче вікно для швидкого встановлення -->
+    <div id="install-modal">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="color: #00ffcc; font-weight: bold; font-size: 0.95rem;">📱 Встановити Habla Mobile</span>
+            <button id="close-install-modal" style="background: none; border: none; color: #89a1b2; font-size: 1.1rem; cursor: pointer;">✕</button>
+        </div>
+        <div style="font-size: 0.8rem; color: #b1c3d1; line-height: 1.3;">
+            Додайте додаток на екран вашого пристрою для швидкого доступу та сповіщень!
+        </div>
+        <button id="modal-install-btn" style="background: #00ffcc; color: #0e1621; border: none; padding: 9px; border-radius: 8px; font-weight: bold; cursor: pointer; text-align: center; font-size: 0.85rem;">
+            📥 Встановити зараз
+        </button>
+    </div>
+
     <div id="contact-modal">
         <div class="modal-header">
             <span id="modal-contact-title" class="modal-title">Контакт</span>
@@ -797,9 +838,9 @@
                 <!-- Вкладка 1: Android -->
                 <div id="qr-content-android" style="background: #242f3d; padding: 12px; border-radius: 10px; border: 1px solid #2b5278; display: flex; flex-direction: column; gap: 8px; align-items: center; text-align: center; margin-top: 8px;">
                     <div style="font-size: 0.78rem; color: #00ffcc; font-weight: 600;">Скануйте телефоном або встановіть:</div>
-                    <div style="position: relative; width: 120px; height: 120px; background: #fff; padding: 5px; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                    <div style="position: relative; width: 130px; height: 130px; background: #fff; padding: 5px; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
                         <img id="qr-code-img" src="" alt="QR Code" style="width: 100%; height: 100%; display: block;">
-                        <div style="position: absolute; width: 30px; height: 30px; background: #17212b; border: 2px solid #00ffcc; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #00ffcc; font-weight: bold; font-size: 0.8rem; box-shadow: 0 2px 8px rgba(0,0,0,0.6);">H</div>
+                        <div style="position: absolute; width: 32px; height: 32px; background: #17212b; border: 2px solid #00ffcc; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #00ffcc; font-weight: bold; font-size: 0.8rem; box-shadow: 0 2px 8px rgba(0,0,0,0.6);">H</div>
                     </div>
                     <button id="install-app-btn" style="background: #00ffcc; color: #0e1621; border: none; padding: 8px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.8rem; width: 100%;">
                         📥 Встановити на Android
@@ -1032,7 +1073,53 @@
 
         const currentAppUrl = window.location.origin;
         document.getElementById('app-url-text').textContent = currentAppUrl;
-        document.getElementById('qr-code-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(currentAppUrl)}`;
+        
+        // Генерація QR-коду з високою корекцією помилок (ecc=H) для ідеального сканування з логотипом 'H'
+        document.getElementById('qr-code-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&ecc=H&data=${encodeURIComponent(currentAppUrl)}`;
+
+        // Логіка спливаючого вікна автоматичного запрошення встановлення
+        let deferredPrompt = null;
+        const installModal = document.getElementById('install-modal');
+        const closeInstallModal = document.getElementById('close-install-modal');
+        const modalInstallBtn = document.getElementById('modal-install-btn');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            if (!localStorage.getItem('habla_install_dismissed')) {
+                setTimeout(() => {
+                    installModal.classList.add('active');
+                }, 2000);
+            }
+        });
+
+        closeInstallModal.addEventListener('click', () => {
+            installModal.classList.remove('active');
+            localStorage.setItem('habla_install_dismissed', 'true');
+        });
+
+        const handleInstallAction = async (isDesktop = false) => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    console.log('Користувач встановив додаток');
+                }
+                deferredPrompt = null;
+                installModal.classList.remove('active');
+            } else {
+                if (isDesktop) {
+                    alert('На ПК натисніть іконку встановлення (монітор із плюсом/стрілкою) праворуч у вашому адресному рядку браузера Chrome або Edge.');
+                } else {
+                    alert('Щоб встановити додаток, скористайтеся меню браузера (три крапки у правому верхньому кутку → "Встановити додаток" або "Додати на головний екран").');
+                }
+                installModal.classList.remove('active');
+            }
+        };
+
+        modalInstallBtn.addEventListener('click', () => handleInstallAction(false));
+        document.getElementById('install-app-btn').addEventListener('click', () => handleInstallAction(false));
+        document.getElementById('install-pc-btn').addEventListener('click', () => handleInstallAction(true));
 
         // Перемикач вкладок Android / ПК у сайдбарі
         const tabAndroidBtn = document.getElementById('tab-android-btn');
@@ -1057,33 +1144,6 @@
             qrContentPc.style.display = 'flex';
             qrContentAndroid.style.display = 'none';
         });
-
-        // Логіка кнопок встановлення PWA ( Android та ПК )
-        let deferredPrompt = null;
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-        });
-
-        const handleInstallClick = async (isDesktop = false) => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                if (outcome === 'accepted') {
-                    console.log('Користувач встановив додаток');
-                }
-                deferredPrompt = null;
-            } else {
-                if (isDesktop) {
-                    alert('На ПК натисніть іконку встановлення (монітор із плюсом/стрілкою) праворуч у вашому адресному рядку браузера Chrome або Edge.');
-                } else {
-                    alert('Щоб встановити додаток, скористайтеся меню браузера (три крапки у правому верхньому кутку → "Встановити додаток" або "Додати на головний екран").');
-                }
-            }
-        };
-
-        document.getElementById('install-app-btn').addEventListener('click', () => handleInstallClick(false));
-        document.getElementById('install-pc-btn').addEventListener('click', () => handleInstallClick(true));
 
         document.getElementById('native-share-btn').addEventListener('click', async () => {
             if (navigator.share) {
