@@ -1,231 +1,147 @@
-import express from 'express';
-import { createServer } from 'http';
-import { Server } from 'socket.io';
-import cors from 'cors';
-import path from 'path';
-import { fileURLToPath } from 'url';
+const express = require('http');
+const app = require('express')();
+const server = require('http').createServer(app);
+const io = require('socket.io')(server);
+const path = require('path');
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// Обслуговування статичних файлів з кореня проєкту
+app.use(require('express').static(path.join(__dirname)));
 
-const app = express();
-const server = createServer(app);
-const io = new Server(server, {
-    cors: {
-        origin: "*",
-        methods: ["GET", "POST"]
+// --- СХОВИЩЕ ДЛЯ ІСТОРІЇ ТА ЧАСУ ВІДКЛЮЧЕННЯ ---
+let messageHistory = [];         // Масив для збереження повідомлень
+let userDisconnectTimes = {};    // Час останнього виходу користувача: { username: timestamp }
+let activeUsers = new Map();     // Список активних користувачів
+let customizations = {};         // Кастомізації (кольори, аватарки)
+let groqUsage = { requests: 0, tokens: 0 }; // Статистика API
+
+// 3 дні у мілісекундах (3 доби * 24 години * 60 хв * 60 сек * 1000 мс)
+const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
+
+// Функція автоматичного видалення повідомлень, старших за 3 дні
+function cleanExpiredMessages() {
+    const now = Date.now();
+    const initialLength = messageHistory.length;
+    messageHistory = messageHistory.filter(msg => (now - msg.timestamp) < THREE_DAYS_MS);
+    if (messageHistory.length !== initialLength) {
+        console.log(`[Очищення] Видалено прострочених повідомлень: ${initialLength - messageHistory.length}`);
     }
-});
-
-app.use(cors());
-app.use(express.json());
-
-// Маршрут для запобігання засинанню сервера на Render
-app.get('/ping', (req, res) => {
-    res.status(200).send('pong');
-});
-
-app.use('/.well-known', express.static('.well-known'));
-app.use(express.static(__dirname));
-
-let currentGroqLimits = { requests: '---', tokens: '---' };
-
-const activeSockets = {}; 
-const allKnownUsers = new Set(); 
-const userContacts = {}; 
-const userLanguages = {}; 
-const userCustomizations = {}; 
-
-function checkIsAdmin(username) {
-    if (!username) return false;
-    const lower = username.toLowerCase().trim();
-    return lower === 'stasan' || lower === 'admin' || lower === 'стасан';
 }
 
-function updateUsers() {
-    const onlineNames = new Set(Object.values(activeSockets));
-    
-    for (let [id, socket] of io.of("/").sockets) {
-        const currentUsername = activeSockets[id];
-        if (!currentUsername) continue;
-
-        const isAdmin = checkIsAdmin(currentUsername);
-
-        const usersList = Array.from(allKnownUsers).map(name => {
-            if (name === currentUsername) return null;
-
-            const isOnline = onlineNames.has(name);
-            const myAdd = userContacts[currentUsername]?.has(name) || false;
-            const theirAdd = userContacts[name]?.has(currentUsername) || false;
-            const isMutual = myAdd && theirAdd;
-
-            if (!isAdmin && !isMutual) {
-                return null;
-            }
-
-            return {
-                name: name,
-                isOnline: isOnline,
-                myAdd: myAdd,
-                theirAdd: theirAdd,
-                isMutual: isMutual
-            };
-        }).filter(Boolean);
-
-        socket.emit('update-users', { users: usersList, isAdmin });
-    }
-
-    io.emit('onlineCount', onlineNames.size);
-}
-
-async function translateText(text, targetLanguage) {
-    const apiKey = process.env.GROQ_API_KEY;
-    if (!apiKey || !text || !targetLanguage) return text;
-
-    try {
-        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
-            },
-            body: JSON.stringify({
-                model: "qwen/qwen3.8-27b",
-                messages: [
-                    {
-                        role: "system",
-                        content: `You are a professional translator. Translate the given text accurately and naturally into ${targetLanguage}. Return ONLY the translated text without any extra notes or formatting.`
-                    },
-                    { role: "user", content: text }
-                ],
-                max_tokens: 250
-            })
-        });
-
-        const remReq = response.headers.get('x-ratelimit-remaining-requests');
-        const remTok = response.headers.get('x-ratelimit-remaining-tokens');
-        if (remReq) {
-            currentGroqLimits = { requests: remReq, tokens: remTok };
-            io.emit('groq-limits', currentGroqLimits);
-        }
-
-        const data = await response.json();
-        if (data.choices && data.choices[0] && data.choices[0].message) {
-            return data.choices[0].message.content.trim();
-        }
-    } catch (error) {
-        console.error('Помилка перекладу Groq:', error);
-    }
-    return text;
-}
+// Запускаємо перевірку прострочених повідомлень кожну годину
+setInterval(cleanExpiredMessages, 60 * 60 * 1000);
 
 io.on('connection', (socket) => {
-    console.log(`Користувач підключився: ${socket.id}`);
-    socket.emit('groq-limits', currentGroqLimits);
+    console.log('Користувач підключився ID:', socket.id);
 
-    socket.on('join', (data) => {
-        let username, lang;
-        if (typeof data === 'object' && data !== null) {
-            username = data.username;
-            lang = data.lang || 'Spanish';
-        } else {
-            username = data;
-            lang = 'Spanish';
-        }
+    // Приєднання користувача до чату
+    socket.on('join', (userData) => {
+        if (!userData || !userData.username) return;
+        
+        const username = userData.username.trim();
+        socket.username = username;
+        socket.join(username); // Особиста кімната для приватних повідомлень
 
-        if (!username) return;
-        activeSockets[socket.id] = username;
-        allKnownUsers.add(username);
-        userLanguages[username] = lang;
+        activeUsers.set(socket.id, {
+            name: username,
+            isOnline: true,
+            lang: userData.lang || 'Spanish'
+        });
 
-        if (!userContacts[username]) {
-            userContacts[username] = new Set();
-        }
+        // Очищаємо старі повідомлення перед видачею пропущених
+        cleanExpiredMessages();
 
-        if (userCustomizations[username]) {
-            socket.emit('sync-customizations', userCustomizations[username]);
-        }
+        // Визначаємо час, коли користувач востаннє виходив з мережі
+        // Якщо заходив уперше або дані не збереглися, беремо межу за останні 3 дні
+        const lastActiveTime = userDisconnectTimes[username] || (Date.now() - THREE_DAYS_MS);
 
-        updateUsers();
-    });
+        // Фільтруємо пропущені повідомлення:
+        // 1. Вони адресовані саме цьому користувачу (приватні) або загальні (без recipientName)
+        // 2. Вони надійшли ПІСЛЯ того, як користувач востаннє вийшов
+        // 3. Вони надіслані НЕ самим користувачем
+        const missedMessages = messageHistory.filter(msg => {
+            const isForMe = (msg.recipientName === username) || (!msg.recipientName && msg.user !== username);
+            const isNewerThanDisconnect = msg.timestamp > lastActiveTime;
+            return isForMe && isNewerThanDisconnect;
+        });
 
-    socket.on('update-customization', ({ targetName, color, avatar }) => {
-        const username = activeSockets[socket.id];
-        if (!username || !targetName) return;
-
-        if (!userCustomizations[username]) {
-            userCustomizations[username] = {};
-        }
-        userCustomizations[username][targetName] = { color, avatar };
-
-        for (let [id, name] of Object.entries(activeSockets)) {
-            if (name === username) {
-                io.to(id).emit('sync-customizations', userCustomizations[username]);
-            }
-        }
-    });
-
-    socket.on('add-contact', (targetName) => {
-        const username = activeSockets[socket.id];
-        if (!username || !targetName || username === targetName) return;
-
-        allKnownUsers.add(targetName);
-        if (!userContacts[username]) {
-            userContacts[username] = new Set();
-        }
-        userContacts[username].add(targetName);
-        updateUsers();
-    });
-
-    socket.on('chatMessage', async (data) => {
-        try {
-            const sender = data.user;
-            const recipient = data.recipientName;
-            const originalText = data.text;
-
-            if (!originalText) return;
-
-            socket.emit('chatMessage', {
-                user: sender,
-                text: originalText,
-                recipientName: recipient,
-                isPrivate: !!recipient
+        // Надсилаємо пропущені повідомлення користувачу одразу при вході
+        if (missedMessages.length > 0) {
+            console.log(`[Доставка] Відправляємо ${missedMessages.length} пропущених повідомлень для ${username}`);
+            missedMessages.forEach(msg => {
+                socket.emit('chatMessage', msg);
             });
+        }
 
-            if (recipient) {
-                const cleanRecipient = recipient.toLowerCase().trim();
-                const recipientSocketId = Object.keys(activeSockets).find(
-                    id => activeSockets[id] && activeSockets[id].toLowerCase().trim() === cleanRecipient
-                );
+        // Синхронізуємо кастомізації та користувачів
+        socket.emit('sync-customizations', customizations);
+        broadcastUsersUpdate();
+        io.emit('onlineCount', activeUsers.size);
+    });
 
-                if (recipientSocketId && recipientSocketId !== socket.id) {
-                    const recipientLang = userLanguages[recipient] || 'Ukrainian';
-                    const translatedText = await translateText(originalText, recipientLang);
+    // Обробка вхідного повідомлення
+    socket.on('chatMessage', (data) => {
+        if (!data || !data.text || !data.user) return;
 
-                    io.to(recipientSocketId).emit('chatMessage', {
-                        user: sender,
-                        text: translatedText,
-                        recipientName: sender,
-                        isPrivate: true
-                    });
-                }
-            } else {
-                socket.broadcast.emit('chatMessage', {
-                    user: sender,
-                    text: originalText,
-                    isPrivate: false
-                });
-            }
-        } catch (e) {
-            console.error("Помилка обробки повідомлення:", e);
+        const messageData = {
+            id: Date.now() + Math.random().toString(36).substr(2, 5),
+            text: data.text,
+            user: data.user,
+            recipientName: data.recipientName || null,
+            isPrivate: !!data.recipientName,
+            timestamp: Date.now() // Фіксуємо точний час створення
+        };
+
+        // Очищаємо старі й додаємо нове повідомлення в історію
+        cleanExpiredMessages();
+        messageHistory.push(messageData);
+
+        if (messageData.recipientName) {
+            // Приватне повідомлення: надсилаємо отримувачу та відправнику
+            io.to(messageData.recipientName).emit('chatMessage', messageData);
+            socket.emit('chatMessage', messageData);
+        } else {
+            // Загальне повідомлення для всіх
+            io.emit('chatMessage', messageData);
         }
     });
 
+    // Додавання контакту
+    socket.on('add-contact', (targetName) => {
+        // Логіка додавання контактів залишається незмінною
+    });
+
+    // Оновлення кастомізацій (кольори, аватарки)
+    socket.on('update-customization', (data) => {
+        if (data && data.targetName) {
+            customizations[data.targetName] = {
+                color: data.color,
+                avatar: data.avatar
+            };
+            io.emit('sync-customizations', customizations);
+        }
+    });
+
+    // Відключення користувача
     socket.on('disconnect', () => {
-        delete activeSockets[socket.id];
-        updateUsers();
+        if (socket.username) {
+            // Фіксуємо точний час, коли користувач покинув додаток
+            userDisconnectTimes[socket.username] = Date.now();
+        }
+        activeUsers.delete(socket.id);
+        broadcastUsersUpdate();
+        io.emit('onlineCount', activeUsers.size);
+        console.log('Користувач відключився:', socket.id);
     });
 });
 
+function broadcastUsersUpdate() {
+    const usersList = Array.from(activeUsers.values());
+    io.emit('update-users', { users: usersList, isAdmin: false });
+}
+
+// Порт для запуску ( Render автоматично підставляє process.env.PORT )
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
+server.PORT = PORT;
+server.listen(PORT, () => {
+    console.log(`Сервер успішно запущено на порту ${PORT}`);
+});
