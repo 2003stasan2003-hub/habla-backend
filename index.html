@@ -163,7 +163,6 @@
             text-align: center;
         }
 
-        /* Стилі для тумблера */
         .switch {
             position: relative;
             display: inline-block;
@@ -256,7 +255,6 @@
             display: flex;
         }
 
-        /* Нова сітка 2х2 для кнопок сайдбару */
         .menu-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -776,7 +774,7 @@
             </div>
         </div>
 
-        <!-- ПАНЕЛЬ 2: QR-КОД ТА ПОШИРЕННЯ (З ФІРМОВИМ ЛОГОТИПОМ ПО ЦЕНТРУ) -->
+        <!-- ПАНЕЛЬ 2: QR-КОД ТА ПОШИРЕННЯ (З ЛОГОТИПОМ ПО ЦЕНТРУ) -->
         <div id="panel-qr" class="sidebar-panel">
             <div class="menu-header">
                 <button id="btn-back-from-qr" class="back-btn">← Назад</button>
@@ -787,7 +785,7 @@
                 <label id="label-share-app">Поділитися додатком</label>
                 <div style="background: #242f3d; padding: 14px; border-radius: 10px; border: 1px solid #2b5278; display: flex; flex-direction: column; gap: 10px; align-items: center; text-align: center;">
                     
-                    <!-- Контейнер QR-коду з фірмовим значком Habla (H) по центру -->
+                    <!-- QR-код з фірмовим знаком H по центру -->
                     <div style="position: relative; width: 142px; height: 142px; background: #fff; padding: 6px; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
                         <img id="qr-code-img" src="" alt="QR Code" style="width: 100%; height: 100%; display: block;">
                         <div style="position: absolute; width: 36px; height: 36px; background: #17212b; border: 2px solid #00ffcc; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #00ffcc; font-weight: bold; font-size: 0.95rem; box-shadow: 0 2px 8px rgba(0,0,0,0.6);">H</div>
@@ -860,7 +858,6 @@
     </div>
 
     <script>
-        // Реєстрація Service Worker для PWA
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/sw.js')
