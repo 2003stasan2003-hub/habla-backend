@@ -78,7 +78,7 @@ function updateUsers() {
     io.emit('onlineCount', onlineNames.size);
 }
 
-// Функція динамічного отримання першої доступної активної моделі напряму з API Groq
+// Інтелектуальний вибір активної чат-моделі з відсіюванням системних (guard, whisper тощо)
 async function getActiveModel(apiKey) {
     try {
         const response = await fetch('https://api.groq.com/openai/v1/models', {
@@ -89,23 +89,30 @@ async function getActiveModel(apiKey) {
         });
         const data = await response.json();
         if (response.ok && data.data && data.data.length > 0) {
-            // Шукаємо модель для чату (наприклад, яка містить llama)
-            const chatModel = data.data.find(m => m.id && m.id.toLowerCase().includes('llama'));
-            if (chatModel) return chatModel.id;
+            // Фільтруємо: шукаємо тільки чатові моделі і відкидаємо guard/whisper/embed
+            const chatModels = data.data.filter(m => {
+                const id = m.id.toLowerCase();
+                const isChat = id.includes('llama') || id.includes('mixtral') || id.includes('gemma');
+                const isSystem = id.includes('guard') || id.includes('whisper') || id.includes('embed') || id.includes('tool');
+                return isChat && !isSystem;
+            });
+
+            if (chatModels.length > 0) {
+                return chatModels[0].id;
+            }
             return data.data[0].id;
         }
     } catch (e) {
         console.error("Помилка отримання списку моделей:", e.message);
     }
-    // Запасний універсальний варіант
-    return "llama-3.3-70b-versatile";
+    // Надійний запасний варіант
+    return "llama-3.1-70b-versatile";
 }
 
 async function translateText(text, targetLanguage) {
     const apiKey = process.env.GROQ_API_KEY;
     if (!apiKey || !text || !targetLanguage) return text;
 
-    // Автоматично дізнаємося, яка модель зараз підтримується цим ключем
     const modelName = await getActiveModel(apiKey);
 
     try {
@@ -139,7 +146,7 @@ async function translateText(text, targetLanguage) {
             }
 
             if (data.choices && data.choices[0] && data.choices[0].message) {
-                console.log(`✅ Успішний переклад через динамічну модель: ${modelName}`);
+                console.log(`✅ Успішний переклад через модель: ${modelName}`);
                 return data.choices[0].message.content.trim();
             }
         } else {
