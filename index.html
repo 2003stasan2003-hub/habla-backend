@@ -108,27 +108,7 @@
             height: 56px;
             border-radius: 50%;
             padding: 2px;
-            background: #2b5278;
-        }
-
-        @keyframes activeRingSpin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .story-avatar-wrapper.active-chat {
-            padding: 3px;
-            background: transparent !important;
-        }
-
-        .story-avatar-wrapper.active-chat::before {
-            content: '';
-            position: absolute;
-            inset: -3px;
-            border-radius: 50%;
-            background: conic-gradient(from 0deg, #00ffcc, #ffcc00, #ff3b30, #7928ca, #0056b3, #00ffcc);
-            animation: activeRingSpin 3s linear infinite;
-            z-index: -1;
+            background: linear-gradient(135deg, #00ffcc 0%, #2b5278 100%);
         }
 
         .story-avatar {
@@ -160,7 +140,6 @@
             height: 12px;
             border-radius: 50%;
             border: 2px solid #17212b;
-            z-index: 2;
         }
         .story-dot.online { background-color: #3acc6e; }
         .story-dot.offline { background-color: #89a1b2; }
@@ -191,7 +170,11 @@
             height: 24px;
             flex-shrink: 0;
         }
-        .switch input { opacity: 0; width: 0; height: 0; }
+        .switch input { 
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
         .slider {
             position: absolute;
             cursor: pointer;
@@ -211,18 +194,19 @@
             transition: 0.3s;
             border-radius: 50%;
         }
-        input:checked + .slider { background-color: #00ffcc; }
+        input:checked + .slider {
+            background-color: #00ffcc;
+        }
         input:checked + .slider:before {
             transform: translateX(20px);
             background-color: #0e1621;
         }
 
-        /* Стилізація сайдбару у точній відповідності до скріншотів */
         .side-menu {
             position: fixed;
             top: 0;
-            left: -320px;
-            width: 320px;
+            left: -300px;
+            width: 300px;
             height: 100%;
             background: #17212b;
             border-right: 1px solid #2b5278;
@@ -231,8 +215,8 @@
             transition: left 0.3s ease;
             display: flex;
             flex-direction: column;
-            padding: 20px 16px;
-            gap: 14px;
+            padding: 20px;
+            gap: 16px;
             overflow-y: auto;
         }
 
@@ -245,7 +229,7 @@
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid #242f3d;
-            padding-bottom: 10px;
+            padding-bottom: 12px;
         }
 
         .menu-title {
@@ -265,53 +249,30 @@
         .sidebar-panel {
             display: none;
             flex-direction: column;
-            gap: 14px;
-            flex: 1;
+            gap: 16px;
         }
         .sidebar-panel.active {
             display: flex;
         }
 
-        .menu-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            margin-top: 4px;
-        }
-
-        /* Красиві квадратні плитки (не завеликі й не замалі) як на зразку */
-        .grid-tile {
+        .sidebar-nav-btn {
             background: #242f3d;
             border: 1px solid #2b5278;
-            border-radius: 14px;
-            padding: 18px 10px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            cursor: pointer;
-            transition: background 0.2s, border-color 0.2s, transform 0.2s;
             color: #f5f5f5;
-            text-align: center;
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: background 0.2s, border-color 0.2s, color 0.2s;
         }
-        .grid-tile:hover {
+        .sidebar-nav-btn:hover {
             background: #2b5278;
             border-color: #00ffcc;
-            transform: translateY(-2px);
-        }
-
-        .tile-icon {
-            font-size: 1.6rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #f5f5f5;
-        }
-
-        .tile-title {
-            font-size: 0.85rem;
-            font-weight: 500;
+            color: #00ffcc;
         }
 
         .back-btn {
@@ -344,10 +305,10 @@
             align-items: center;
             gap: 12px;
             background: #242f3d;
-            padding: 12px 14px;
-            border-radius: 12px;
+            padding: 10px 14px;
+            border-radius: 10px;
             cursor: pointer;
-            border: 1px solid #2b5278;
+            border: 1px solid transparent;
             transition: border-color 0.2s;
         }
         .user-badge-container:hover {
@@ -355,18 +316,16 @@
         }
 
         .user-avatar-large {
-            width: 44px;
-            height: 44px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             background: linear-gradient(135deg, #00ffcc 0%, #2b5278 100%);
             color: #0e1621;
             font-weight: bold;
-            font-size: 1.1rem;
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
-            flex-shrink: 0;
         }
 
         .user-avatar-large img {
@@ -382,49 +341,38 @@
             font-size: 1rem;
         }
 
-        /* Блок контактів у сайдбарі у вигляді стрічки кружечків + кнопка Додати */
-        .sidebar-contacts-strip {
+        .add-contact-box {
             display: flex;
-            gap: 10px;
-            overflow-x: auto;
-            padding: 6px 0;
-            align-items: center;
-            scrollbar-width: none;
-        }
-        .sidebar-contacts-strip::-webkit-scrollbar { display: none; }
-
-        .sidebar-contact-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-            cursor: pointer;
-            flex-shrink: 0;
+            gap: 6px;
         }
 
-        .sidebar-add-btn-tile {
-            width: 46px;
-            height: 46px;
-            border-radius: 50%;
+        .add-contact-input {
+            flex: 1;
             background: #242f3d;
-            border: 1px dashed #00ffcc;
-            color: #00ffcc;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            cursor: pointer;
-            transition: background 0.2s;
+            border: 1px solid #2b5278;
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            outline: none;
         }
-        .sidebar-add-btn-tile:hover {
-            background: #2b5278;
+
+        .add-contact-btn {
+            background: #00ffcc;
+            color: #0e1621;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.85rem;
         }
 
         .lang-select {
             background: #242f3d;
             color: #00ffcc;
             border: 1px solid #2b5278;
-            padding: 10px 12px;
+            padding: 8px 12px;
             border-radius: 8px;
             outline: none;
             font-size: 0.9rem;
@@ -440,33 +388,6 @@
             display: none;
         }
         .menu-overlay.active { display: block; }
-
-        /* Спливаюче вікно для швидкого встановлення */
-        #install-modal {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%) translateY(150px);
-            width: 90%;
-            max-width: 380px;
-            background: #17212b;
-            border: 1px solid #00ffcc;
-            border-radius: 16px;
-            padding: 18px;
-            z-index: 1000;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            transition: transform 0.3s ease, opacity 0.3s ease;
-            opacity: 0;
-            pointer-events: none;
-        }
-        #install-modal.active {
-            transform: translateX(-50%) translateY(0);
-            opacity: 1;
-            pointer-events: auto;
-        }
 
         #contact-modal {
             position: fixed;
@@ -484,7 +405,10 @@
             gap: 12px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.7);
         }
-        #contact-modal.active { display: flex; }
+
+        #contact-modal.active {
+            display: flex;
+        }
 
         .modal-header {
             display: flex;
@@ -561,7 +485,9 @@
             font-size: 0.9rem;
             transition: background 0.2s;
         }
-        .modal-btn-delete:hover { background: rgba(255, 59, 48, 0.4); }
+        .modal-btn-delete:hover {
+            background: rgba(255, 59, 48, 0.4);
+        }
 
         #chat-messages {
             flex: 1;
@@ -611,17 +537,8 @@
 
         .msg-footer {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 6px;
-            gap: 12px;
-        }
-
-        .msg-time {
-            font-size: 0.7rem;
-            color: #89a1b2;
-            opacity: 0.85;
-            user-select: none;
+            justify-content: flex-end;
+            margin-top: 4px;
         }
 
         .speak-btn {
@@ -695,17 +612,6 @@
             justify-content: center;
             box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         }
-
-        /* Футер сайдбару: знак права власності та Stasan */
-        .sidebar-footer {
-            margin-top: auto;
-            padding-top: 10px;
-            border-top: 1px solid #242f3d;
-            text-align: center;
-            font-size: 0.75rem;
-            color: #89a1b2;
-            letter-spacing: 0.5px;
-        }
     </style>
 </head>
 <body>
@@ -723,20 +629,6 @@
     </div>
 
     <div id="menu-overlay" class="menu-overlay"></div>
-
-    <!-- Спливаюче вікно для швидкого встановлення -->
-    <div id="install-modal">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <span style="color: #00ffcc; font-weight: bold; font-size: 0.95rem;">📱 Встановити Habla Mobile</span>
-            <button id="close-install-modal" style="background: none; border: none; color: #89a1b2; font-size: 1.1rem; cursor: pointer;">✕</button>
-        </div>
-        <div style="font-size: 0.8rem; color: #b1c3d1; line-height: 1.3;">
-            Додайте додаток на екран вашого пристрою для швидкого доступу та сповіщень!
-        </div>
-        <button id="modal-install-btn" style="background: #00ffcc; color: #0e1621; border: none; padding: 9px; border-radius: 8px; font-weight: bold; cursor: pointer; text-align: center; font-size: 0.85rem;">
-            📥 Встановити зараз
-        </button>
-    </div>
 
     <div id="contact-modal">
         <div class="modal-header">
@@ -760,7 +652,6 @@
 
     <div id="side-menu" class="side-menu">
         
-        <!-- ГОЛОВНЕ МЕНЮ (СІТКА 2Х2 ТА КОНТАКТИ ЗНИЗУ) -->
         <div id="panel-main" class="sidebar-panel active">
             <div class="menu-header">
                 <span class="menu-title" id="menu-title-text">Habla Menu</span>
@@ -769,70 +660,45 @@
 
             <div class="menu-section">
                 <label id="label-profile">Ваш профіль</label>
-                <div id="profile-settings-trigger" class="user-badge-container" title="Натисніть, щоб змінити профіль">
-                    <div id="user-avatar-large" class="user-avatar-large">G</div>
-                    <div style="flex: 1; overflow: hidden;">
-                        <div id="user-display" class="user-badge" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Invitado</div>
-                        <div style="font-size: 0.75rem; color: #89a1b2;">Налаштувати профіль</div>
+                <div id="profile-settings-trigger" class="user-badge-container" title="Натисніть або клацніть правою кнопкою, щоб змінити стиль">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div id="user-avatar-large" class="user-avatar-large">G</div>
+                        <div id="user-display" class="user-badge">Invitado</div>
                     </div>
                 </div>
             </div>
 
-            <!-- Плитки меню точно як на скріншоті: Налаштування, QR-код, Адмін -->
             <div class="menu-section">
-                <label>Керування</label>
-                <div class="menu-grid">
-                    <div id="btn-open-settings" class="grid-tile">
-                        <span class="tile-icon">
-                            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="12" cy="12" r="3"></circle>
-                                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-                            </svg>
-                        </span>
-                        <span class="tile-title" id="lbl-settings-tile">Налаштування</span>
-                    </div>
-
-                    <div id="btn-open-qr" class="grid-tile">
-                        <span class="tile-icon">
-                            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="3" y="3" width="7" height="7"></rect>
-                                <rect x="14" y="3" width="7" height="7"></rect>
-                                <rect x="3" y="14" width="7" height="7"></rect>
-                                <line x1="14" y1="14" x2="14.01" y2="14"></line>
-                                <line x1="18" y1="14" x2="21" y2="14"></line>
-                                <line x1="14" y1="18" x2="14" y2="21"></line>
-                                <line x1="18" y1="18" x2="21" y2="21"></line>
-                            </svg>
-                        </span>
-                        <span class="tile-title" id="lbl-qr-tile">QR-код</span>
-                    </div>
-
-                    <div id="btn-open-admin" class="grid-tile" style="display: none;">
-                        <span class="tile-icon">
-                            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.778-7.778zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path>
-                            </svg>
-                        </span>
-                        <span class="tile-title" id="lbl-dev-tile">Адмін</span>
-                    </div>
+                <label id="label-share-app">Поділитися додатком</label>
+                <div style="background: #242f3d; padding: 10px; border-radius: 8px; border: 1px solid #2b5278; display: flex; flex-direction: column; gap: 8px; align-items: center; text-align: center;">
+                    <img id="qr-code-img" src="" alt="QR Code" style="width: 90px; height: 90px; background: #fff; padding: 4px; border-radius: 6px;">
+                    <div id="app-url-text" style="font-size: 0.75rem; color: #89a1b2; word-break: break-all;">---</div>
+                    <button id="native-share-btn" style="background: #00ffcc; color: #0e1621; border: none; padding: 7px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.8rem; width: 100%;">
+                        📤 Поділитися
+                    </button>
+                    <button id="copy-link-btn" style="background: #17212b; color: #00ffcc; border: 1px solid #2b5278; padding: 5px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.8rem; width: 100%;">
+                        📋 Копіювати посилання
+                    </button>
                 </div>
             </div>
 
-            <!-- Блок контактів унизу сайдбару з усіма аватарками та кнопкою Додати -->
             <div class="menu-section">
-                <label id="label-sidebar-contacts">Контакти</label>
-                <div id="sidebar-contacts-strip" class="sidebar-contacts-strip">
-                    <!-- Динамічно заповнюється JS -->
+                <label id="label-online-users">Контакти</label>
+                <div class="add-contact-box">
+                    <input type="text" id="new-contact-input" class="add-contact-input" placeholder="Додати за ніком...">
+                    <button id="add-contact-btn" class="add-contact-btn">Додати</button>
                 </div>
             </div>
 
-            <!-- Футер сайдбару: Ⓢ 2026 Stasan -->
-            <div class="sidebar-footer">
-                Ⓢ 2026 Stasan
-            </div>
+            <button id="btn-open-settings" class="sidebar-nav-btn">
+                <span>⚙️</span> Налаштування
+            </button>
+
+            <button id="btn-open-admin" class="sidebar-nav-btn" style="display: none;">
+                <span>🔑</span> Панель Адміна (Groq)
+            </button>
         </div>
 
-        <!-- ПАНЕЛЬ 1: НАЛАШТУВАННЯ -->
         <div id="panel-settings" class="sidebar-panel">
             <div class="menu-header">
                 <button id="btn-back-from-settings" class="back-btn">← Назад</button>
@@ -841,7 +707,7 @@
 
             <div class="menu-section">
                 <label id="label-profile-settings">Керування профілем</label>
-                <button id="reset-user-btn" class="sidebar-nav-btn" style="background: rgba(255, 59, 48, 0.15); border: 1px solid #ff3b30; color: #ff3b30; padding: 10px; border-radius: 8px; width: 100%; cursor: pointer; font-weight: bold; font-size: 0.9rem; text-align: center;">
+                <button id="reset-user-btn" class="sidebar-nav-btn" style="background: rgba(255, 59, 48, 0.15); border-color: #ff3b30; color: #ff3b30; width: 100%; justify-content: center;">
                     🔄 Змінити нікнейм
                 </button>
             </div>
@@ -884,65 +750,8 @@
                     <input type="checkbox" id="sound-toggle" style="width: 18px; height: 18px; accent-color: #00ffcc;">
                 </div>
             </div>
-
-            <div class="sidebar-footer">Ⓢ 2026 Stasan</div>
         </div>
 
-        <!-- ПАНЕЛЬ 2: QR-КОД ТА ВСТАНОВЛЕННЯ (ANDROID / ПК ВКЛАДКИ) -->
-        <div id="panel-qr" class="sidebar-panel">
-            <div class="menu-header">
-                <button id="btn-back-from-qr" class="back-btn">← Назад</button>
-                <button id="close-menu-btn-4" class="close-menu-btn">✕</button>
-            </div>
-
-            <div class="menu-section">
-                <label id="label-share-app">Встановлення та поширення</label>
-                
-                <!-- Перемикач вкладок Android / ПК -->
-                <div style="display: flex; gap: 6px; background: #242f3d; padding: 4px; border-radius: 8px; border: 1px solid #2b5278;">
-                    <button id="tab-android-btn" style="flex: 1; background: #00ffcc; color: #0e1621; border: none; padding: 7px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.8rem;">📱 Android</button>
-                    <button id="tab-pc-btn" style="flex: 1; background: transparent; color: #89a1b2; border: none; padding: 7px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.8rem;">💻 ПК / Ноутбук</button>
-                </div>
-
-                <!-- Вкладка 1: Android -->
-                <div id="qr-content-android" style="background: #242f3d; padding: 12px; border-radius: 10px; border: 1px solid #2b5278; display: flex; flex-direction: column; gap: 8px; align-items: center; text-align: center; margin-top: 8px;">
-                    <div style="font-size: 0.78rem; color: #00ffcc; font-weight: 600;">Скануйте телефоном або встановіть:</div>
-                    <div style="position: relative; width: 130px; height: 130px; background: #fff; padding: 5px; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
-                        <img id="qr-code-img" src="" alt="QR Code" style="width: 100%; height: 100%; display: block;">
-                        <div style="position: absolute; width: 32px; height: 32px; background: #17212b; border: 2px solid #00ffcc; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #00ffcc; font-weight: bold; font-size: 0.8rem; box-shadow: 0 2px 8px rgba(0,0,0,0.6);">H</div>
-                    </div>
-                    <button id="install-app-btn" style="background: #00ffcc; color: #0e1621; border: none; padding: 8px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.8rem; width: 100%;">
-                        📥 Встановити на Android
-                    </button>
-                </div>
-
-                <!-- Вкладка 2: ПК -->
-                <div id="qr-content-pc" style="background: #242f3d; padding: 12px; border-radius: 10px; border: 1px solid #2b5278; display: none; flex-direction: column; gap: 8px; align-items: center; text-align: center; margin-top: 8px;">
-                    <div style="font-size: 0.78rem; color: #00ffcc; font-weight: 600;">Для Windows / macOS / Linux:</div>
-                    <div style="font-size: 0.75rem; color: #89a1b2; line-height: 1.3; text-align: left; width: 100%; padding: 0 4px;">
-                        1. Відкрийте посилання в браузері Chrome або Edge на ПК.<br>
-                        2. Натисніть іконку встановлення (монітор із плюсом/стрілкою) праворуч у вашому адресному рядку.
-                    </div>
-                    <button id="install-pc-btn" style="background: #2b5278; color: #00ffcc; border: 1px solid #00ffcc; padding: 8px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.8rem; width: 100%;">
-                        💻 Встановити на ПК
-                    </button>
-                </div>
-
-                <!-- Загальні кнопки поширення -->
-                <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 4px;">
-                    <div id="app-url-text" style="font-size: 0.72rem; color: #89a1b2; word-break: break-all;">---</div>
-                    <button id="native-share-btn" style="background: #17212b; color: #00ffcc; border: 1px solid #2b5278; padding: 7px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.8rem; width: 100%;">
-                        📤 Поділитися
-                    </button>
-                    <button id="copy-link-btn" style="background: #17212b; color: #00ffcc; border: 1px solid #2b5278; padding: 6px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.8rem; width: 100%;">
-                        📋 Копіювати посилання
-                    </button>
-                </div>
-            </div>
-            <div class="sidebar-footer">Ⓢ 2026 Stasan</div>
-        </div>
-
-        <!-- ПАНЕЛЬ 4: РОЗРОБНИК -->
         <div id="panel-admin" class="sidebar-panel">
             <div class="menu-header">
                 <button id="btn-back-from-admin" class="back-btn">← Назад</button>
@@ -950,7 +759,7 @@
             </div>
 
             <div class="menu-section">
-                <label id="label-api-status">Статус API Groq (Розробник)</label>
+                <label id="label-api-status">Статус API Groq</label>
                 <div style="display: flex; gap: 8px;">
                     <div id="req-box" style="flex: 1; background: #242f3d; padding: 10px; border-radius: 8px; border: 1px solid #2b5278; text-align: center;">
                         <div style="font-size: 0.7rem; color: #89a1b2; margin-bottom: 2px;">REQS</div>
@@ -962,7 +771,6 @@
                     </div>
                 </div>
             </div>
-            <div class="sidebar-footer">Ⓢ 2026 Stasan</div>
         </div>
 
     </div>
@@ -978,6 +786,7 @@
     </div>
 
     <script>
+        // Реєстрація Service Worker для PWA та фонових процесів
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/sw.js')
@@ -1123,77 +932,7 @@
 
         const currentAppUrl = window.location.origin;
         document.getElementById('app-url-text').textContent = currentAppUrl;
-        
-        // Генерація QR-коду з високою корекцією помилок (ecc=H) для ідеального сканування з логотипом 'H'
-        document.getElementById('qr-code-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&ecc=H&data=${encodeURIComponent(currentAppUrl)}`;
-
-        // Логіка спливаючого вікна автоматичного запрошення встановлення
-        let deferredPrompt = null;
-        const installModal = document.getElementById('install-modal');
-        const closeInstallModal = document.getElementById('close-install-modal');
-        const modalInstallBtn = document.getElementById('modal-install-btn');
-
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            if (!localStorage.getItem('habla_install_dismissed')) {
-                setTimeout(() => {
-                    installModal.classList.add('active');
-                }, 2000);
-            }
-        });
-
-        closeInstallModal.addEventListener('click', () => {
-            installModal.classList.remove('active');
-            localStorage.setItem('habla_install_dismissed', 'true');
-        });
-
-        const handleInstallAction = async (isDesktop = false) => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                if (outcome === 'accepted') {
-                    console.log('Користувач встановив додаток');
-                }
-                deferredPrompt = null;
-                installModal.classList.remove('active');
-            } else {
-                if (isDesktop) {
-                    alert('На ПК натисніть іконку встановлення (монітор із плюсом/стрілкою) праворуч у вашому адресному рядку браузера Chrome або Edge.');
-                } else {
-                    alert('Щоб встановити додаток, скористайтеся меню браузера (три крапки у правому верхньому кутку → "Встановити додаток" або "Додати на головний екран").');
-                }
-                installModal.classList.remove('active');
-            }
-        };
-
-        modalInstallBtn.addEventListener('click', () => handleInstallAction(false));
-        document.getElementById('install-app-btn').addEventListener('click', () => handleInstallAction(false));
-        document.getElementById('install-pc-btn').addEventListener('click', () => handleInstallAction(true));
-
-        // Перемикач вкладок Android / ПК у сайдбарі
-        const tabAndroidBtn = document.getElementById('tab-android-btn');
-        const tabPcBtn = document.getElementById('tab-pc-btn');
-        const qrContentAndroid = document.getElementById('qr-content-android');
-        const qrContentPc = document.getElementById('qr-content-pc');
-
-        tabAndroidBtn.addEventListener('click', () => {
-            tabAndroidBtn.style.background = '#00ffcc';
-            tabAndroidBtn.style.color = '#0e1621';
-            tabPcBtn.style.background = 'transparent';
-            tabPcBtn.style.color = '#89a1b2';
-            qrContentAndroid.style.display = 'flex';
-            qrContentPc.style.display = 'none';
-        });
-
-        tabPcBtn.addEventListener('click', () => {
-            tabPcBtn.style.background = '#00ffcc';
-            tabPcBtn.style.color = '#0e1621';
-            tabAndroidBtn.style.background = 'transparent';
-            tabAndroidBtn.style.color = '#89a1b2';
-            qrContentPc.style.display = 'flex';
-            qrContentAndroid.style.display = 'none';
-        });
+        document.getElementById('qr-code-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(currentAppUrl)}`;
 
         document.getElementById('native-share-btn').addEventListener('click', async () => {
             if (navigator.share) {
@@ -1220,7 +959,16 @@
             speechSynthesis.onvoiceschanged = populateVoiceList;
         }
 
-        const ttsLangMap = { 'Ukrainian': 'uk-UA', 'English': 'en-US', 'Spanish': 'es-ES', 'German': 'de-DE', 'French': 'fr-FR' };
+        // Розширена мапа мовних кодів для ідеального озвучення без трансліту
+        const ttsLangMap = { 
+            'Ukrainian': 'uk-UA', 
+            'English': 'en-US', 
+            'Spanish': 'es-ES', 
+            'German': 'de-DE', 
+            'French': 'fr-FR',
+            'Polish': 'pl-PL',
+            'Italian': 'it-IT'
+        };
 
         function speakText(textToSpeech) {
             if (!('speechSynthesis' in window)) return;
@@ -1252,11 +1000,11 @@
         }
 
         const translations = {
-            Spanish: { settings: "Configuración", profile: "Tu perfil", onlineUsersTitle: "Contactos", interfaceLang: "Idioma de la interfaz", voiceOver: "Locución de traducción", enableSound: "Activar sonido", apiStatus: "Estado API Groq", shareApp: "Compartir App", nativeShare: "📤 Поділитися", copyLink: "📋 Copiar enlace", placeholder: "Escribe un mensaje...", addPlaceholder: "Додати за ніком...", addBtn: "Додати", noContacts: "Sin contactos", online: "En línea", devPanel: "Administrador", forceTranslate: "Примусовий переклад", enableForce: "Увімкнути переклад", qrTitle: "Código QR", contactsTitle: "Contactos" },
-            English: { settings: "Settings", profile: "Your profile", onlineUsersTitle: "Contacts", interfaceLang: "Interface language", voiceOver: "Translation voiceover", enableSound: "Enable sound", apiStatus: "Groq API Status", shareApp: "Share App", nativeShare: "📤 Поділитися", copyLink: "📋 Copy Link", placeholder: "Type a message...", addPlaceholder: "Додати за ніком...", addBtn: "Додати", noContacts: "No contacts", online: "Online", devPanel: "Admin", forceTranslate: "Forced translation", enableForce: "Enable translation", qrTitle: "QR Code", contactsTitle: "Contacts" },
-            Ukrainian: { settings: "Налаштування", profile: "Ваш профіль", onlineUsersTitle: "Контакти", interfaceLang: "Мова інтерфейсу", voiceOver: "Озвучування перекладу", enableSound: "Увімкнути звук", apiStatus: "Статус API Groq", shareApp: "Поділитися додатком", nativeShare: "📤 Поділитися", copyLink: "📋 Копіювати посилання", placeholder: "Введіть повідомлення...", addPlaceholder: "Додати за ніком...", addBtn: "Додати", noContacts: "Немає контактів", online: "Онлайн", devPanel: "Адмін", forceTranslate: "Примусовий переклад", enableForce: "Увімкнути переклад", qrTitle: "QR-код", contactsTitle: "Контакти" },
-            German: { settings: "Einstellungen", profile: "Ihr Profil", onlineUsersTitle: "Kontakte", interfaceLang: "Sprache", voiceOver: "Sprachausgabe", enableSound: "Ton", apiStatus: "API-Status", shareApp: "App teilen", nativeShare: "📤 Поділитися", copyLink: "📋 Link kopieren", placeholder: "Nachricht...", addPlaceholder: "Додати за ніком...", addBtn: "Додати", noContacts: "Keine", online: "Online", devPanel: "Admin", forceTranslate: "Erzwungene Übersetzung", enableForce: "Übersetzung aktivieren", qrTitle: "QR-Code", contactsTitle: "Kontakte" },
-            French: { settings: "Paramètres", profile: "Profil", onlineUsersTitle: "Contacts", interfaceLang: "Langue", voiceOver: "Voix", enableSound: "Son", apiStatus: "Statut API", shareApp: "Partager", nativeShare: "📤 Поділитися", copyLink: "📋 Copier", placeholder: "Message...", addPlaceholder: "Додати за ніком...", addBtn: "Додати", noContacts: "Aucun", online: "En ligne", devPanel: "Admin", forceTranslate: "Traduction forcée", enableForce: "Activer la traduction", qrTitle: "Code QR", contactsTitle: "Contacts" }
+            Spanish: { settings: "Configuración", profile: "Tu perfil", onlineUsersTitle: "Contactos", interfaceLang: "Idioma de la interfaz", voiceOver: "Locución de traducción", enableSound: "Activar sonido", apiStatus: "Estado API Groq", shareApp: "Compartir App", nativeShare: "📤 Поділитися", copyLink: "📋 Copiar enlace", placeholder: "Escribe un mensaje...", addPlaceholder: "Додати за ніком...", addBtn: "Додати", noContacts: "Sin contactos", online: "En línea", adminPanel: "Панель Адміністратора", forceTranslate: "Примусовий переклад", enableForce: "Увімкнути переклад" },
+            English: { settings: "Settings", profile: "Your profile", onlineUsersTitle: "Contacts", interfaceLang: "Interface language", voiceOver: "Translation voiceover", enableSound: "Enable sound", apiStatus: "Groq API Status", shareApp: "Share App", nativeShare: "📤 Поділитися", copyLink: "📋 Copy Link", placeholder: "Type a message...", addPlaceholder: "Додати за ніком...", addBtn: "Додати", noContacts: "No contacts", online: "Online", adminPanel: "Admin Panel", forceTranslate: "Forced translation", enableForce: "Enable translation" },
+            Ukrainian: { settings: "Налаштування", profile: "Ваш профіль", onlineUsersTitle: "Контакти", interfaceLang: "Мова інтерфейсу", voiceOver: "Озвучування перекладу", enableSound: "Увімкнути звук", apiStatus: "Статус API Groq", shareApp: "Поділитися додатком", nativeShare: "📤 Поділитися", copyLink: "📋 Копіювати посилання", placeholder: "Введіть повідомлення...", addPlaceholder: "Додати за ніком...", addBtn: "Додати", noContacts: "Немає контактів", online: "Онлайн", adminPanel: "Панель Адміністратора", forceTranslate: "Примусовий переклад", enableForce: "Увімкнути переклад" },
+            German: { settings: "Einstellungen", profile: "Ihr Profil", onlineUsersTitle: "Kontakte", interfaceLang: "Sprache", voiceOver: "Sprachausgabe", enableSound: "Ton", apiStatus: "API-Status", shareApp: "App teilen", nativeShare: "📤 Поділитися", copyLink: "📋 Link kopieren", placeholder: "Nachricht...", addPlaceholder: "Додати за ніком...", addBtn: "Додати", noContacts: "Keine", online: "Online", adminPanel: "Admin-Panel", forceTranslate: "Erzwungene Übersetzung", enableForce: "Übersetzung aktivieren" },
+            French: { settings: "Paramètres", profile: "Profil", onlineUsersTitle: "Contacts", interfaceLang: "Langue", voiceOver: "Voix", enableSound: "Son", apiStatus: "Statut API", shareApp: "Partager", nativeShare: "📤 Поділитися", copyLink: "📋 Copier", placeholder: "Message...", addPlaceholder: "Додати за ніком...", addBtn: "Додати", noContacts: "Aucun", online: "En ligne", adminPanel: "Panneau Admin", forceTranslate: "Traduction forcée", enableForce: "Activer la traduction" }
         };
 
         const messageInput = document.getElementById('message-input');
@@ -1269,25 +1017,19 @@
         const closeMenuBtn = document.getElementById('close-menu-btn');
         const closeMenuBtn2 = document.getElementById('close-menu-btn-2');
         const closeMenuBtn3 = document.getElementById('close-menu-btn-3');
-        const closeMenuBtn4 = document.getElementById('close-menu-btn-4');
-        const closeMenuBtn5 = document.getElementById('close-menu-btn-5');
         const sideMenu = document.getElementById('side-menu');
         const menuOverlay = document.getElementById('menu-overlay');
         const topStoriesStrip = document.getElementById('top-stories-strip');
         const soundToggle = document.getElementById('sound-toggle');
+        const newContactInput = document.getElementById('new-contact-input');
+        const addContactBtn = document.getElementById('add-contact-btn');
 
         const panelMain = document.getElementById('panel-main');
         const panelSettings = document.getElementById('panel-settings');
-        const panelQr = document.getElementById('panel-qr');
-        const panelContacts = document.getElementById('panel-contacts');
         const panelAdmin = document.getElementById('panel-admin');
-
         const btnOpenSettings = document.getElementById('btn-open-settings');
-        const btnOpenQr = document.getElementById('btn-open-qr');
         const btnOpenAdmin = document.getElementById('btn-open-admin');
-
         const btnBackFromSettings = document.getElementById('btn-back-from-settings');
-        const btnBackFromQr = document.getElementById('btn-back-from-qr');
         const btnBackFromAdmin = document.getElementById('btn-back-from-admin');
 
         const contactModal = document.getElementById('contact-modal');
@@ -1307,6 +1049,7 @@
             const t = translations[lang] || translations.Spanish;
 
             document.getElementById('label-profile').textContent = t.profile;
+            document.getElementById('label-online-users').textContent = t.onlineUsersTitle;
             document.getElementById('label-interface-lang').textContent = t.interfaceLang;
             document.getElementById('label-force-translate').textContent = t.forceTranslate;
             document.getElementById('label-enable-force').textContent = t.enableForce;
@@ -1316,23 +1059,25 @@
             document.getElementById('label-share-app').textContent = t.shareApp;
             document.getElementById('native-share-btn').textContent = t.nativeShare;
             document.getElementById('copy-link-btn').textContent = t.copyLink;
-            document.getElementById('label-sidebar-contacts').textContent = t.contactsTitle;
-            
-            document.getElementById('lbl-settings-tile').textContent = t.settings;
-            document.getElementById('lbl-qr-tile').textContent = t.qrTitle;
-            document.getElementById('lbl-dev-tile').textContent = t.devPanel;
-
             messageInput.placeholder = t.placeholder;
+            newContactInput.placeholder = t.addPlaceholder;
+            addContactBtn.textContent = t.addBtn;
             onlineCount.textContent = `${t.online}: ${currentOnlineCount}`;
 
+            btnOpenAdmin.innerHTML = `<span>🔑</span> ${t.adminPanel}`;
+            btnOpenSettings.innerHTML = `<span>⚙️</span> ${t.settings}`;
+
             renderStories(lastUsersData, lastIsAdmin);
-            renderSidebarContacts(lastUsersData);
         }
 
         interfaceLangSelect.addEventListener('change', () => {
             const newLang = interfaceLangSelect.value;
             localStorage.setItem('habla_interface_lang', newLang);
             updateInterfaceTexts();
+            
+            // ✨ МИТТЄВА СИНХРОНІЗАЦІЯ МОВИ НА СЕРВЕРІ ЗА МІЛІСЕКУНДИ
+            socket.emit('update-language', newLang);
+
             if (!forceTranslateToggle.checked) {
                 joinWithLanguage();
             }
@@ -1355,8 +1100,6 @@
         function showMainPanel() {
             panelMain.classList.add('active');
             panelSettings.classList.remove('active');
-            panelQr.classList.remove('active');
-            if(panelContacts) panelContacts.classList.remove('active');
             panelAdmin.classList.remove('active');
         }
 
@@ -1365,27 +1108,19 @@
             panelSettings.classList.add('active');
         });
 
-        btnOpenQr.addEventListener('click', () => {
-            panelMain.classList.remove('active');
-            panelQr.classList.add('active');
-        });
-
         btnOpenAdmin.addEventListener('click', () => {
             panelMain.classList.remove('active');
             panelAdmin.classList.add('active');
         });
 
         btnBackFromSettings.addEventListener('click', showMainPanel);
-        btnBackFromQr.addEventListener('click', showMainPanel);
         btnBackFromAdmin.addEventListener('click', showMainPanel);
 
         menuBtn.addEventListener('click', openMenu);
         onlineCount.addEventListener('click', openMenu);
-        
         closeMenuBtn.addEventListener('click', closeMenu);
         closeMenuBtn2.addEventListener('click', closeMenu);
         closeMenuBtn3.addEventListener('click', closeMenu);
-        closeMenuBtn4.addEventListener('click', closeMenu);
         
         menuOverlay.addEventListener('click', () => {
             closeMenu();
@@ -1459,7 +1194,6 @@
             menuOverlay.classList.remove('active');
             updateProfileDisplay();
             renderStories(lastUsersData, lastIsAdmin);
-            renderSidebarContacts(lastUsersData);
         });
 
         modalDeleteBtn.addEventListener('click', () => {
@@ -1485,26 +1219,23 @@
                 contactModal.classList.remove('active');
                 menuOverlay.classList.remove('active');
                 renderStories(lastUsersData, lastIsAdmin);
-                renderSidebarContacts(lastUsersData);
             }
         });
 
-        function addNewContactPrompt() {
-            const targetName = prompt("Введіть нікнейм контакту для додавання:");
-            if (targetName) {
-                const cleanName = targetName.trim();
-                if (cleanName && cleanName !== username) {
-                    socket.emit('add-contact', cleanName);
-                    if (!localAddedContacts.includes(cleanName)) {
-                        localAddedContacts.push(cleanName);
-                        localStorage.setItem('habla_local_contacts', JSON.stringify(localAddedContacts));
-                    }
-                    renderStories(lastUsersData, lastIsAdmin);
-                    renderSidebarContacts(lastUsersData);
-                    alert(`Контакт ${cleanName} додано!`);
+        addContactBtn.addEventListener('click', () => {
+            const targetName = newContactInput.value.trim();
+            if (targetName && targetName !== username) {
+                socket.emit('add-contact', targetName);
+                if (!localAddedContacts.includes(targetName)) {
+                    localAddedContacts.push(targetName);
+                    localStorage.setItem('habla_local_contacts', JSON.stringify(localAddedContacts));
                 }
+                newContactInput.value = '';
+                renderStories(lastUsersData, lastIsAdmin);
             }
-        }
+        });
+
+        newContactInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') addContactBtn.click(); });
 
         function sendMessage() {
             const text = messageInput.value.trim();
@@ -1520,60 +1251,37 @@
         sendBtn.addEventListener('click', sendMessage);
         messageInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
 
-        // Обробка вхідних повідомлень з фільтрацією за активним чатом
         socket.on('chatMessage', (data) => {
-            const isFromMe = (data.user === username);
-            
-            const isForCurrentChat = (
-                (!data.recipientName && !selectedRecipientName) || 
-                (isFromMe && data.recipientName === selectedRecipientName) || 
-                (!isFromMe && data.user === selectedRecipientName)
-            );
-
-            if (!isForCurrentChat) {
-                if (!isFromMe) {
-                    playNotificationSound();
-                    unreadSenders.add(data.user);
-                    unreadCounts[data.user] = (unreadCounts[data.user] || 0) + 1;
-                    updateAppBadge();
-                    renderStories(lastUsersData, lastIsAdmin);
-                    renderSidebarContacts(lastUsersData);
-                }
-                return;
-            }
-
             const messageDiv = document.createElement('div');
             messageDiv.classList.add('message');
-            messageDiv.classList.add(isFromMe ? 'outgoing' : 'incoming');
+            const isSelf = data.user === username;
+            messageDiv.classList.add(isSelf ? 'outgoing' : 'incoming');
             if (data.isPrivate) messageDiv.classList.add('private');
 
             let authorLabel = escapeHtml(data.user);
             if (data.isPrivate) authorLabel += ` 🔒`;
 
-            let timeString = '';
-            if (data.timestamp) {
-                const d = new Date(data.timestamp);
-                const day = String(d.getDate()).padStart(2, '0');
-                const month = String(d.getMonth() + 1).padStart(2, '0');
-                const hours = String(d.getHours()).padStart(2, '0');
-                const minutes = String(d.getMinutes()).padStart(2, '0');
-                timeString = `${day}.${month} ${hours}:${minutes}`;
-            }
-
             messageDiv.innerHTML = `
                 <div class="author"><span>${authorLabel}</span></div>
                 <div>${escapeHtml(data.text)}</div>
-                <div class="msg-footer">
-                    <span class="msg-time">${timeString}</span>
-                    <button class="speak-btn" title="🔊">🔊</button>
-                </div>
+                <div class="msg-footer"><button class="speak-btn" title="🔊">🔊</button></div>
             `;
 
             messageDiv.querySelector('.speak-btn').addEventListener('click', () => speakText(data.text));
             chatMessages.appendChild(messageDiv);
             chatMessages.scrollTop = chatMessages.scrollHeight;
 
-            if (soundToggle.checked && !isFromMe) speakText(data.text);
+            if (soundToggle.checked) speakText(data.text);
+
+            if (!isSelf) {
+                playNotificationSound();
+                if (selectedRecipientName !== data.user) {
+                    unreadSenders.add(data.user);
+                    unreadCounts[data.user] = (unreadCounts[data.user] || 0) + 1;
+                    updateAppBadge();
+                    renderStories(lastUsersData, lastIsAdmin);
+                }
+            }
         });
 
         socket.on('groq-limits', (limits) => {
@@ -1601,10 +1309,13 @@
             }
 
             renderStories(users, isAdmin);
-            renderSidebarContacts(users);
         });
 
-        function getCombinedUsers(users) {
+        function renderStories(users, isAdmin) {
+            topStoriesStrip.innerHTML = '';
+            const lang = interfaceLangSelect.value;
+            const t = translations[lang] || translations.Spanish;
+
             let userMap = new Map();
             users.forEach(u => userMap.set(u.name, u));
 
@@ -1616,24 +1327,6 @@
                     combinedUsers.push({ name: name, isOnline: false, myAdd: true, theirAdd: false, isMutual: false });
                 }
             });
-
-            // Додаємо також тих, хто є у системі (кого додали нас), навіть якщо їх нема в локальному списку
-            users.forEach(u => {
-                if (!combinedUsers.some(item => item.name === u.name) && u.name !== username) {
-                    combinedUsers.push(u);
-                }
-            });
-
-            return combinedUsers;
-        }
-
-        // Рендер верхньої стрічки сторіс
-        function renderStories(users, isAdmin) {
-            topStoriesStrip.innerHTML = '';
-            const lang = interfaceLangSelect.value;
-            const t = translations[lang] || translations.Spanish;
-
-            let combinedUsers = getCombinedUsers(users);
 
             if (combinedUsers.length === 0) {
                 topStoriesStrip.innerHTML = `<span style="color: #89a1b2; font-size: 0.85rem; padding: 4px;">${t.noContacts}</span>`;
@@ -1673,11 +1366,8 @@
                     avatarInnerHtml = `<div class="story-avatar" style="background: ${customColor}; color: #0e1621; width:100%; height:100%; display:flex; align-items:center; justify-content:center; border-radius:50%; font-weight:bold; font-size:1.1rem;">${firstLetter}</div>`;
                 }
 
-                const isActiveChat = (selectedRecipientName === user.name);
-                const wrapperClass = isActiveChat ? 'story-avatar-wrapper active-chat' : 'story-avatar-wrapper';
-
                 story.innerHTML = `
-                    <div class="${wrapperClass}">
+                    <div class="story-avatar-wrapper" style="${selectedRecipientName === user.name ? `border: 2px solid ${customColor};` : ''}">
                         <div class="story-avatar">${avatarInnerHtml}</div>
                         <div class="story-dot ${dotClass}"></div>
                     </div>
@@ -1685,12 +1375,19 @@
                 `;
 
                 let pressTimer = null;
+
                 story.addEventListener('touchstart', (e) => {
-                    pressTimer = setTimeout(() => { triggerSettings(user.name, e); }, 500);
+                    pressTimer = setTimeout(() => {
+                        triggerSettings(user.name, e);
+                    }, 500);
                 });
+
                 story.addEventListener('touchend', () => { clearTimeout(pressTimer); });
                 story.addEventListener('touchmove', () => { clearTimeout(pressTimer); });
-                story.addEventListener('contextmenu', (e) => { triggerSettings(user.name, e); });
+
+                story.addEventListener('contextmenu', (e) => {
+                    triggerSettings(user.name, e);
+                });
 
                 story.addEventListener('click', () => {
                     selectedRecipientName = user.name;
@@ -1701,71 +1398,9 @@
                     recentContactsOrder.unshift(user.name);
                     localStorage.setItem('habla_recent_contacts', JSON.stringify(recentContactsOrder));
                     renderStories(lastUsersData, lastIsAdmin);
-                    renderSidebarContacts(lastUsersData);
                 });
 
                 topStoriesStrip.appendChild(story);
-            });
-        }
-
-        // Рендер блок контактів у сайдбарі (кружечки всіх контактів + кнопка Додати)
-        function renderSidebarContacts(users) {
-            const strip = document.getElementById('sidebar-contacts-strip');
-            if (!strip) return;
-            strip.innerHTML = '';
-
-            // Кнопка Додати першою у стрічці контактів сайдбару
-            const addTile = document.createElement('div');
-            addTile.classList.add('sidebar-contact-item');
-            addTile.innerHTML = `
-                <div class="sidebar-add-btn-tile" title="Додати за ніком">+</div>
-                <span class="story-name">Додати</span>
-            `;
-            addTile.addEventListener('click', addNewContactPrompt);
-            strip.appendChild(addTile);
-
-            let combinedUsers = getCombinedUsers(users);
-            combinedUsers.forEach(user => {
-                if (user.name === username) return; // не показувати себе у контактах сайдбару
-                const item = document.createElement('div');
-                item.classList.add('sidebar-contact-item');
-
-                const firstLetter = user.name.charAt(0).toUpperCase();
-                const customColor = contactColors[user.name] || '#00ffcc';
-                const customAvatarUrl = contactAvatars[user.name];
-                const isUnread = unreadSenders.has(user.name);
-                let dotClass = user.isOnline ? 'online' : 'offline';
-                if (isUnread) dotClass = 'unread';
-
-                let avatarInnerHtml = '';
-                if (customAvatarUrl) {
-                    avatarInnerHtml = `<img src="${escapeHtml(customAvatarUrl)}" alt="">`;
-                } else {
-                    avatarInnerHtml = `<div class="story-avatar" style="background: ${customColor}; color: #0e1621; width:100%; height:100%; display:flex; align-items:center; justify-content:center; border-radius:50%; font-weight:bold; font-size:1.0rem;">${firstLetter}</div>`;
-                }
-
-                const isActiveChat = (selectedRecipientName === user.name);
-                const wrapperClass = isActiveChat ? 'story-avatar-wrapper active-chat' : 'story-avatar-wrapper';
-
-                item.innerHTML = `
-                    <div class="${wrapperClass}" style="width: 46px; height: 46px;">
-                        <div class="story-avatar">${avatarInnerHtml}</div>
-                        <div class="story-dot ${dotClass}" style="width: 10px; height: 10px;"></div>
-                    </div>
-                    <span class="story-name">${escapeHtml(user.name)}</span>
-                `;
-
-                item.addEventListener('click', () => {
-                    selectedRecipientName = user.name;
-                    unreadSenders.delete(user.name);
-                    delete unreadCounts[user.name];
-                    updateAppBadge();
-                    closeMenu();
-                    renderStories(lastUsersData, lastIsAdmin);
-                    renderSidebarContacts(lastUsersData);
-                });
-
-                strip.appendChild(item);
             });
         }
 
