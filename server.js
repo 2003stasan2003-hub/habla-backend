@@ -90,7 +90,7 @@ async function translateText(text, targetLanguage) {
                 'Authorization': `Bearer ${apiKey}`
             },
             body: JSON.stringify({
-                model: "llama3-8b-8192",
+                model: "llama-3.1-8b-instant", // <--- Оновлена актуальна модель Groq
                 messages: [
                     {
                         role: "system",
@@ -104,7 +104,6 @@ async function translateText(text, targetLanguage) {
 
         const data = await response.json();
 
-        // Фіксуємо і друкуємо точну помилку в консоль Render, якщо запит не вдався
         if (!response.ok) {
             console.error('❌ Помилка від Groq API:', JSON.stringify(data));
             return text;
