@@ -102,6 +102,14 @@ async function translateText(text, targetLanguage) {
             })
         });
 
+        const data = await response.json();
+
+        // Фіксуємо і друкуємо точну помилку в консоль Render, якщо запит не вдався
+        if (!response.ok) {
+            console.error('❌ Помилка від Groq API:', JSON.stringify(data));
+            return text;
+        }
+
         const remReq = response.headers.get('x-ratelimit-remaining-requests');
         const remTok = response.headers.get('x-ratelimit-remaining-tokens');
         if (remReq) {
@@ -109,12 +117,11 @@ async function translateText(text, targetLanguage) {
             io.emit('groq-limits', currentGroqLimits);
         }
 
-        const data = await response.json();
         if (data.choices && data.choices[0] && data.choices[0].message) {
             return data.choices[0].message.content.trim();
         }
     } catch (error) {
-        console.error('Помилка перекладу Groq:', error);
+        console.error('❌ Помилка мережі при запиті до Groq:', error);
     }
     return text;
 }
@@ -192,11 +199,8 @@ io.on('connection', (socket) => {
                     id => activeSockets[id] && activeSockets[id].toLowerCase().trim() === cleanRecipient
                 );
 
-                let translatedTextForRecipient = originalText;
-                if (recipientSocketId && userLanguages[recipient]) {
-                    const recipientLang = userLanguages[recipient];
-                    translatedTextForRecipient = await translateText(originalText, recipientLang);
-                }
+                const recipientLang = userLanguages[recipient] || 'Spanish';
+                let translatedTextForRecipient = await translateText(originalText, recipientLang);
 
                 // Відправляємо відправнику його оригінальний текст
                 socket.emit('chatMessage', {
@@ -207,7 +211,7 @@ io.on('connection', (socket) => {
                     timestamp: timestamp
                 });
 
-                // Відправляємо отримувачу перекладений текст на його мову
+                // Відправляємо отримувачу перекладений текст
                 if (recipientSocketId && recipientSocketId !== socket.id) {
                     io.to(recipientSocketId).emit('chatMessage', {
                         user: sender,
