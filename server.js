@@ -78,7 +78,7 @@ function updateUsers() {
     io.emit('onlineCount', onlineNames.size);
 }
 
-// Список моделей для автоматичного резервного перебору (захист від закриття моделей)
+// Список моделей для автоматичного резервного перебору
 const AVAILABLE_MODELS = [
     "llama-3.3-70b-versatile",
     "llama-3.1-8b-instant",
@@ -124,14 +124,15 @@ async function translateText(text, targetLanguage) {
                     return data.choices[0].message.content.trim();
                 }
             } else {
-                console.warn(`⚠️ Модель ${modelName} не підійшла, перемикаємося на наступну...`);
+                // ДЕТАЛЬНЕ ЛОГУВАННЯ: друкуємо точний код статусу та відповідь Groq у консоль Render
+                console.error(`❌ Помилка Groq [Модель: ${modelName}] [Статус: ${response.status}]:`, JSON.stringify(data));
             }
         } catch (error) {
-            console.warn(`⚠️ Помилка мережі з моделлю ${modelName}:`, error.message);
+            console.error(`❌ Мережева помилка з моделлю ${modelName}:`, error.message);
         }
     }
 
-    console.error('❌ Усі резервні моделі Groq недоступні!');
+    console.error('❌ Усі резервні моделі Groq відхилили запит!');
     return text;
 }
 
