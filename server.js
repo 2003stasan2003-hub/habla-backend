@@ -78,11 +78,12 @@ function updateUsers() {
     io.emit('onlineCount', onlineNames.size);
 }
 
-// Список моделей для автоматичного резервного перебору
+// Оновлений список моделей, які гарантовано підтримуються різними типами ключів Groq
 const AVAILABLE_MODELS = [
-    "llama-3.3-70b-versatile",
-    "llama-3.1-8b-instant",
-    "mixtral-8x7b-32768"
+    "llama-3.1-70b-versatile",
+    "llama-3.2-3b-preview",
+    "llama-3.2-1b-preview",
+    "gemma2-9b-it"
 ];
 
 async function translateText(text, targetLanguage) {
@@ -121,10 +122,10 @@ async function translateText(text, targetLanguage) {
                 }
 
                 if (data.choices && data.choices[0] && data.choices[0].message) {
+                    console.log(`✅ Успішний переклад через модель: ${modelName}`);
                     return data.choices[0].message.content.trim();
                 }
             } else {
-                // ДЕТАЛЬНЕ ЛОГУВАННЯ: друкуємо точний код статусу та відповідь Groq у консоль Render
                 console.error(`❌ Помилка Groq [Модель: ${modelName}] [Статус: ${response.status}]:`, JSON.stringify(data));
             }
         } catch (error) {
