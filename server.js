@@ -83,29 +83,23 @@ async function getActiveModel(apiKey) {
     try {
         const response = await fetch('https://api.groq.com/openai/v1/models', {
             method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${apiKey}`
-            }
+            headers: { 'Authorization': `Bearer ${apiKey}` }
         });
         const data = await response.json();
         if (response.ok && data.data && data.data.length > 0) {
-            // Фільтруємо: шукаємо тільки чатові моделі і відкидаємо guard/whisper/embed
             const chatModels = data.data.filter(m => {
                 const id = m.id.toLowerCase();
-                const isChat = id.includes('llama') || id.includes('mixtral') || id.includes('gemma');
-                const isSystem = id.includes('guard') || id.includes('whisper') || id.includes('embed') || id.includes('tool');
+                const isChat = id.includes('llama') || id.includes('mixtral') || id.includes('gemma') || id.includes('gpt') || id.includes('qwen') || id.includes('allam');
+                const isSystem = id.includes('guard') || id.includes('whisper') || id.includes('embed') || id.includes('tool') || id.includes('audio') || id.includes('orpheus') || id.includes('tts');
                 return isChat && !isSystem;
             });
 
-            if (chatModels.length > 0) {
-                return chatModels[0].id;
-            }
+            if (chatModels.length > 0) return chatModels[0].id;
             return data.data[0].id;
         }
     } catch (e) {
         console.error("Помилка отримання списку моделей:", e.message);
     }
-    // Надійний запасний варіант
     return "llama-3.1-70b-versatile";
 }
 
@@ -187,6 +181,15 @@ io.on('connection', (socket) => {
         }
 
         updateUsers();
+    });
+
+    // Миттєве оновлення мови на сервері за мілісекунди
+    socket.on('update-language', (newLang) => {
+        const username = activeSockets[socket.id];
+        if (username && newLang) {
+            userLanguages[username] = newLang;
+            console.log(`🌐 Користувач ${username} оновив мову на льоту: ${newLang}`);
+        }
     });
 
     socket.on('update-customization', ({ targetName, color, avatar }) => {
