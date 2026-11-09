@@ -78,62 +78,77 @@ function updateUsers() {
     io.emit('onlineCount', onlineNames.size);
 }
 
-// Оновлений список моделей, які гарантовано підтримуються різними типами ключів Groq
-const AVAILABLE_MODELS = [
-    "llama-3.1-70b-versatile",
-    "llama-3.2-3b-preview",
-    "llama-3.2-1b-preview",
-    "gemma2-9b-it"
-];
+// Функція динамічного отримання першої доступної активної моделі напряму з API Groq
+async function getActiveModel(apiKey) {
+    try {
+        const response = await fetch('https://api.groq.com/openai/v1/models', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${apiKey}`
+            }
+        });
+        const data = await response.json();
+        if (response.ok && data.data && data.data.length > 0) {
+            // Шукаємо модель для чату (наприклад, яка містить llama)
+            const chatModel = data.data.find(m => m.id && m.id.toLowerCase().includes('llama'));
+            if (chatModel) return chatModel.id;
+            return data.data[0].id;
+        }
+    } catch (e) {
+        console.error("Помилка отримання списку моделей:", e.message);
+    }
+    // Запасний універсальний варіант
+    return "llama-3.3-70b-versatile";
+}
 
 async function translateText(text, targetLanguage) {
     const apiKey = process.env.GROQ_API_KEY;
     if (!apiKey || !text || !targetLanguage) return text;
 
-    for (const modelName of AVAILABLE_MODELS) {
-        try {
-            const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKey}`
-                },
-                body: JSON.stringify({
-                    model: modelName,
-                    messages: [
-                        {
-                            role: "system",
-                            content: `You are a professional translator. Translate the given text accurately and naturally into ${targetLanguage}. Return ONLY the translated text without any extra notes or formatting.`
-                        },
-                        { role: "user", content: text }
-                    ],
-                    max_tokens: 250
-                })
-            });
+    // Автоматично дізнаємося, яка модель зараз підтримується цим ключем
+    const modelName = await getActiveModel(apiKey);
 
-            const data = await response.json();
+    try {
+        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+                model: modelName,
+                messages: [
+                    {
+                        role: "system",
+                        content: `You are a professional translator. Translate the given text accurately and naturally into ${targetLanguage}. Return ONLY the translated text without any extra notes or formatting.`
+                    },
+                    { role: "user", content: text }
+                ],
+                max_tokens: 250
+            })
+        });
 
-            if (response.ok) {
-                const remReq = response.headers.get('x-ratelimit-remaining-requests');
-                const remTok = response.headers.get('x-ratelimit-remaining-tokens');
-                if (remReq) {
-                    currentGroqLimits = { requests: remReq, tokens: remTok };
-                    io.emit('groq-limits', currentGroqLimits);
-                }
+        const data = await response.json();
 
-                if (data.choices && data.choices[0] && data.choices[0].message) {
-                    console.log(`✅ Успішний переклад через модель: ${modelName}`);
-                    return data.choices[0].message.content.trim();
-                }
-            } else {
-                console.error(`❌ Помилка Groq [Модель: ${modelName}] [Статус: ${response.status}]:`, JSON.stringify(data));
+        if (response.ok) {
+            const remReq = response.headers.get('x-ratelimit-remaining-requests');
+            const remTok = response.headers.get('x-ratelimit-remaining-tokens');
+            if (remReq) {
+                currentGroqLimits = { requests: remReq, tokens: remTok };
+                io.emit('groq-limits', currentGroqLimits);
             }
-        } catch (error) {
-            console.error(`❌ Мережева помилка з моделлю ${modelName}:`, error.message);
+
+            if (data.choices && data.choices[0] && data.choices[0].message) {
+                console.log(`✅ Успішний переклад через динамічну модель: ${modelName}`);
+                return data.choices[0].message.content.trim();
+            }
+        } else {
+            console.error(`❌ Помилка Groq [Модель: ${modelName}] [Статус: ${response.status}]:`, JSON.stringify(data));
         }
+    } catch (error) {
+        console.error(`❌ Мережева помилка з моделлю ${modelName}:`, error.message);
     }
 
-    console.error('❌ Усі резервні моделі Groq відхилили запит!');
     return text;
 }
 
