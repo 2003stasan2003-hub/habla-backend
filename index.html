@@ -66,6 +66,30 @@
             background-color: #0e1621;
         }
 
+        /* Кнопка відкриття меню у верхньому лівому кутку */
+        .top-menu-btn {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            background: rgba(23, 33, 43, 0.8);
+            border: 1px solid #2b5278;
+            color: #00ffcc;
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            cursor: pointer;
+            z-index: 40;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            transition: background 0.2s, border-color 0.2s;
+        }
+        .top-menu-btn:active {
+            background: #2b5278;
+        }
+
         .side-menu {
             position: fixed;
             top: 0;
@@ -353,7 +377,7 @@
             background: rgba(255, 59, 48, 0.4);
         }
 
-        /* Мінімалістичний головний екран */
+        /* Оптимізований мінімалістичний головний екран */
         #app-container {
             flex: 1;
             display: flex;
@@ -361,6 +385,7 @@
             position: relative;
             overflow: hidden;
             background: #0e1621;
+            width: 100%;
         }
 
         .main-screen {
@@ -371,6 +396,9 @@
             justify-content: center;
             position: relative;
             padding: 20px;
+            width: 100%;
+            max-width: 480px;
+            margin: 0 auto;
         }
 
         .neon-mic-btn {
@@ -408,15 +436,18 @@
             filter: drop-shadow(0 0 6px rgba(0,255,204,0.5));
         }
 
-        /* Нижня панель навігації (Home, Contacts, QR, Settings) */
+        /* Оптимізована нижня панель навігації */
         .bottom-nav-bar {
             background: #17212b;
             border-top: 1px solid #2b5278;
-            padding: 8px 12px;
+            padding: 10px 16px;
             display: flex;
             justify-content: space-around;
             align-items: center;
             z-index: 50;
+            width: 100%;
+            flex-shrink: 0;
+            padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
         }
 
         .nav-item {
@@ -429,7 +460,7 @@
             gap: 4px;
             cursor: pointer;
             font-size: 1.2rem;
-            padding: 6px 12px;
+            padding: 6px 16px;
             border-radius: 8px;
             transition: color 0.2s, background 0.2s;
         }
@@ -517,6 +548,11 @@
 
     <div id="menu-overlay" class="menu-overlay"></div>
 
+    <!-- Кнопка відкриття меню у верхньому лівому кутку -->
+    <button id="top-menu-toggle" class="top-menu-btn" title="Меню">
+        ☰
+    </button>
+
     <div id="contact-modal">
         <div class="modal-header">
             <span id="modal-contact-title" class="modal-title">Контакт</span>
@@ -537,7 +573,7 @@
         <button id="modal-delete-btn" class="modal-btn-delete">🗑 Видалити контакт</button>
     </div>
 
-    <!-- Сайдбар (меню з налаштуваннями, QR-кодом та контактами) -->
+    <!-- Сайдбар (меню) -->
     <div id="side-menu" class="side-menu">
         
         <div id="panel-main" class="sidebar-panel active">
@@ -670,7 +706,7 @@
 
     </div>
 
-    <!-- Мінімалістичний головний екран -->
+    <!-- Оптимізований мінімалістичний головний екран -->
     <div id="app-container">
         <main class="main-screen">
             <button id="mic-button" class="neon-mic-btn">
@@ -682,7 +718,7 @@
         </main>
     </div>
 
-    <!-- Нижня панель навігації (працює як перемикач розділів та відкриття сайдбару) -->
+    <!-- Нижня панель навігації (Home, Contacts, QR, Settings) -->
     <nav class="bottom-nav-bar">
         <button class="nav-item active" id="nav-home" title="Home">
             <span>🏠</span>
@@ -832,7 +868,6 @@
             location.reload();
         });
 
-        // Ручне оновлення програми через Service Worker
         const updateAppBtn = document.getElementById('update-app-btn');
         if (updateAppBtn) {
             updateAppBtn.addEventListener('click', async () => {
@@ -906,7 +941,7 @@
             Spanish: { settings: "Configuración", profile: "Tu perfil", onlineUsersTitle: "Contactos", interfaceLang: "Idioma de la interfaz", voiceOver: "Locución de traducción", enableSound: "Activar sonido", apiStatus: "Estado API Groq", shareApp: "Compartir App", nativeShare: "📤 Поділитися", copyLink: "📋 Copiar enlace", addPlaceholder: "Додати за ніком...", addBtn: "Додати", adminPanel: "Панель Адміністратора", forceTranslate: "Примусовий переклад", enableForce: "Увімкнути переклад" },
             English: { settings: "Settings", profile: "Your profile", onlineUsersTitle: "Contacts", interfaceLang: "Interface language", voiceOver: "Translation voiceover", enableSound: "Enable sound", apiStatus: "Groq API Status", shareApp: "Share App", nativeShare: "📤 Поділитися", copyLink: "📋 Copy Link", addPlaceholder: "Додати за ніком...", addBtn: "Додати", adminPanel: "Admin Panel", forceTranslate: "Forced translation", enableForce: "Enable translation" },
             Ukrainian: { settings: "Налаштування", profile: "Ваш профіль", onlineUsersTitle: "Контакти", interfaceLang: "Мова інтерфейсу", voiceOver: "Озвучування перекладу", enableSound: "Увімкнути звук", apiStatus: "Статус API Groq", shareApp: "Поділитися додатком", nativeShare: "📤 Поділитися", copyLink: "📋 Копіювати посилання", addPlaceholder: "Додати за ніком...", addBtn: "Додати", adminPanel: "Панель Адміністратора", forceTranslate: "Примусовий переклад", enableForce: "Увімкнути переклад" },
-            German: { settings: "Einstellungen", profile: "Ihr Profil", onlineUsersTitle: "Kontakte", interfaceLang: "Sprache", voiceOver: "Sprachausgabe", enableSound: "Ton", apiStatus: "API-Status", shareApp: "App teilen", nativeShare: "📤 Поділитися", copyLink: "📋 Link kopieren", addPlaceholder: "Додати за ніком...", addBtn: "Додати", noContacts: "Keine", online: "Online", adminPanel: "Admin-Panel", forceTranslate: "Erzwungene Übersetzung", enableForce: "Übersetzung aktivieren" },
+            German: { settings: "Einstellungen", profile: "Ihr Profil", onlineUsersTitle: "Kontakte", interfaceLang: "Sprache", voiceOver: "Sprachausgabe", enableSound: "Ton", apiStatus: "API-Status", shareApp: "App teilen", nativeShare: "📤 Поділитися", copyLink: "📋 Link kopieren", addPlaceholder: "Додати за ніком...", addBtn: "Додати", adminPanel: "Admin-Panel", forceTranslate: "Erzwungene Übersetzung", enableForce: "Übersetzung aktivieren" },
             French: { settings: "Paramètres", profile: "Profil", onlineUsersTitle: "Contacts", interfaceLang: "Langue", voiceOver: "Voix", enableSound: "Son", apiStatus: "Statut API", shareApp: "Partager", nativeShare: "📤 Поділитися", copyLink: "📋 Copier", addPlaceholder: "Додати за ніком...", addBtn: "Додати", adminPanel: "Panneau Admin", forceTranslate: "Traduction forcée", enableForce: "Activer la traduction" }
         };
 
@@ -923,8 +958,14 @@
         const btnOpenAdmin = document.getElementById('btn-open-admin');
         const btnBackFromSettings = document.getElementById('btn-back-from-settings');
         const btnBackFromAdmin = document.getElementById('btn-back-from-admin');
+        const topMenuToggle = document.getElementById('top-menu-toggle');
 
-        // Логіка нижньої панелі навігації (Home, Contacts, QR, Settings) для відкриття відповідних панелей у сайдбарі
+        topMenuToggle.addEventListener('click', () => {
+            showMainPanel();
+            sideMenu.classList.add('open');
+            menuOverlay.classList.add('active');
+        });
+
         const navHome = document.getElementById('nav-home');
         const navContacts = document.getElementById('nav-contacts');
         const navQr = document.getElementById('nav-qr');
