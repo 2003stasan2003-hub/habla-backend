@@ -163,6 +163,7 @@
             text-align: center;
         }
 
+        /* Стилі для повзунка (тумблера) */
         .switch {
             position: relative;
             display: inline-block;
@@ -489,6 +490,118 @@
             background: rgba(255, 59, 48, 0.4);
         }
 
+        /* Стилі для нового головного екрана (робочого столу) з неоновою кнопкою та верхньою панеллю */
+        #app-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+            background: #0e1621;
+        }
+
+        #top-notification-panel {
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 400px;
+            background: rgba(23, 33, 43, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 255, 204, 0.3);
+            border-radius: 12px;
+            padding: 10px 14px;
+            text-align: center;
+            z-index: 50;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            transition: opacity 0.3s ease;
+        }
+        #top-notification-panel.hidden {
+            display: none;
+        }
+        #notification-text {
+            font-size: 0.85rem;
+            color: #b1c3d1;
+        }
+
+        .main-screen {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            padding: 20px;
+        }
+
+        .share-btn-top {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: #17212b;
+            border: 1px solid #2b5278;
+            color: #00ffcc;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 60;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .share-btn-top:hover {
+            transform: scale(1.05);
+            border-color: #00ffcc;
+        }
+
+        .neon-mic-btn {
+            background: radial-gradient(circle, rgba(0,255,204,0.15) 0%, rgba(14,22,33,0.95) 80%);
+            border: 2px solid #00ffcc;
+            border-radius: 50%;
+            width: 210px;
+            height: 210px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 0 25px rgba(0,255,204,0.35), inset 0 0 20px rgba(0,255,204,0.2);
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+            outline: none;
+        }
+        .neon-mic-btn:active {
+            transform: scale(0.96);
+            box-shadow: 0 0 15px rgba(0,255,204,0.5);
+        }
+
+        #active-contact-name {
+            color: #ffffff;
+            font-size: 1.15rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            text-shadow: 0 0 8px rgba(0,255,204,0.6);
+            letter-spacing: 0.5px;
+        }
+
+        .mic-icon-placeholder svg {
+            stroke: #00ffcc;
+            filter: drop-shadow(0 0 6px rgba(0,255,204,0.5));
+        }
+
+        .brand-name {
+            margin-top: 24px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #00ffcc;
+            letter-spacing: 1px;
+            text-shadow: 0 0 10px rgba(0,255,204,0.4);
+        }
+
         #chat-messages {
             flex: 1;
             overflow-y: auto;
@@ -497,6 +610,7 @@
             flex-direction: column;
             gap: 12px;
             background: #0e1621;
+            display: none; /* Можна задіяти за потреби виведення історії */
         }
 
         .message {
@@ -583,7 +697,7 @@
             border-color: #00ffcc;
         }
 
-        .mic-button {
+        .mic-button-input {
             position: absolute;
             right: 10px;
             background: none;
@@ -593,7 +707,7 @@
             padding: 6px;
         }
 
-        .mic-button.listening {
+        .mic-button-input.listening {
             background-color: rgba(255, 59, 48, 0.2);
             border-radius: 50%;
         }
@@ -775,12 +889,37 @@
 
     </div>
 
+    <!-- Оновлений головний робочий стіл -->
+    <div id="app-container">
+        <!-- Верхня напівпрозора панель сповіщень -->
+        <div id="top-notification-panel" class="hidden">
+            <span id="notification-text"></span>
+        </div>
+
+        <main class="main-screen">
+            <!-- Кнопка Поділитися у правому верхньому кутку -->
+            <button id="share-button-top" class="share-btn-top" aria-label="Share" title="Поділитися">
+                <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
+            </button>
+
+            <!-- Центральна неонова кнопка мікрофона з іменем співрозмовника -->
+            <button id="mic-button" class="neon-mic-btn">
+                <span id="active-contact-name">Maksim</span>
+                <div class="mic-icon-placeholder">
+                    <svg viewBox="0 0 24 24" width="48" height="48" stroke="#00ffcc" stroke-width="2" fill="none"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v1a7 7 0 0 1-14 0v-1"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+                </div>
+            </button>
+
+            <div class="brand-name">Habla</div>
+        </main>
+    </div>
+
     <div id="chat-messages"></div>
 
     <div class="input-container">
         <div class="input-wrapper">
             <input type="text" id="message-input" placeholder="Escribe un mensaje..." autocomplete="off">
-            <button id="mic-btn" class="mic-button" title="Entrada de voz">🎤</button>
+            <button id="mic-btn" class="mic-button-input" title="Entrada de voz">🎤</button>
         </div>
         <button id="send-btn" class="send-button" title="Enviar">➤</button>
     </div>
@@ -934,6 +1073,18 @@
         document.getElementById('app-url-text').textContent = currentAppUrl;
         document.getElementById('qr-code-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(currentAppUrl)}`;
 
+        const shareButtonTop = document.getElementById('share-button-top');
+        shareButtonTop.addEventListener('click', async () => {
+            if (navigator.share) {
+                try {
+                    await navigator.share({ title: 'Habla Mobile 3.0', url: currentAppUrl });
+                } catch (err) { console.log(err); }
+            } else {
+                navigator.clipboard.writeText(currentAppUrl);
+                alert('Посилання скопійовано!');
+            }
+        });
+
         document.getElementById('native-share-btn').addEventListener('click', async () => {
             if (navigator.share) {
                 try {
@@ -959,16 +1110,7 @@
             speechSynthesis.onvoiceschanged = populateVoiceList;
         }
 
-        // Розширена мапа мовних кодів для ідеального озвучення без трансліту
-        const ttsLangMap = { 
-            'Ukrainian': 'uk-UA', 
-            'English': 'en-US', 
-            'Spanish': 'es-ES', 
-            'German': 'de-DE', 
-            'French': 'fr-FR',
-            'Polish': 'pl-PL',
-            'Italian': 'it-IT'
-        };
+        const ttsLangMap = { 'Ukrainian': 'uk-UA', 'English': 'en-US', 'Spanish': 'es-ES', 'German': 'de-DE', 'French': 'fr-FR' };
 
         function speakText(textToSpeech) {
             if (!('speechSynthesis' in window)) return;
@@ -1074,10 +1216,6 @@
             const newLang = interfaceLangSelect.value;
             localStorage.setItem('habla_interface_lang', newLang);
             updateInterfaceTexts();
-            
-            // ✨ МИТТЄВА СИНХРОНІЗАЦІЯ МОВИ НА СЕРВЕРІ ЗА МІЛІСЕКУНДИ
-            socket.emit('update-language', newLang);
-
             if (!forceTranslateToggle.checked) {
                 joinWithLanguage();
             }
