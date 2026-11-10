@@ -490,7 +490,7 @@
             background: rgba(255, 59, 48, 0.4);
         }
 
-        /* Стилі для нового головного екрана (робочого столу) з неоновою кнопкою та верхньою панеллю */
+        /* Стилі для головного екрана з неоновою кнопкою та верхньою панеллю */
         #app-container {
             flex: 1;
             display: flex;
@@ -602,6 +602,47 @@
             text-shadow: 0 0 10px rgba(0,255,204,0.4);
         }
 
+        /* Стилі для нижньої панелі навігації (Home, Contacts, QR, Settings) */
+        .bottom-nav-bar {
+            background: #17212b;
+            border-top: 1px solid #2b5278;
+            padding: 8px 12px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 50;
+        }
+
+        .nav-item {
+            background: none;
+            border: none;
+            color: #89a1b2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 6px 12px;
+            border-radius: 8px;
+            transition: color 0.2s, background 0.2s;
+        }
+
+        .nav-item span {
+            font-size: 1.3rem;
+        }
+
+        .nav-item small {
+            font-size: 0.7rem;
+            font-weight: 500;
+        }
+
+        .nav-item.active, .nav-item:hover {
+            color: #00ffcc;
+            background: rgba(0, 255, 204, 0.08);
+            text-shadow: 0 0 6px rgba(0,255,204,0.4);
+        }
+
         #chat-messages {
             flex: 1;
             overflow-y: auto;
@@ -610,7 +651,7 @@
             flex-direction: column;
             gap: 12px;
             background: #0e1621;
-            display: none; /* Можна задіяти за потреби виведення історії */
+            display: none;
         }
 
         .message {
@@ -889,7 +930,7 @@
 
     </div>
 
-    <!-- Оновлений головний робочий стіл -->
+    <!-- Головний робочий стіл із верхньою панеллю та неоновою кнопкою -->
     <div id="app-container">
         <!-- Верхня напівпрозора панель сповіщень -->
         <div id="top-notification-panel" class="hidden">
@@ -913,6 +954,26 @@
             <div class="brand-name">Habla</div>
         </main>
     </div>
+
+    <!-- Нижня панель навігації (Home, Contacts, QR, Settings) -->
+    <nav class="bottom-nav-bar">
+        <button class="nav-item active" id="nav-home" title="Home">
+            <span>🏠</span>
+            <small>Home</small>
+        </button>
+        <button class="nav-item" id="nav-contacts" title="Contacts">
+            <span>👤</span>
+            <small>Contacts</small>
+        </button>
+        <button class="nav-item" id="nav-qr" title="QR Code">
+            <span>⊞</span>
+            <small>QR</small>
+        </button>
+        <button class="nav-item" id="nav-settings" title="Settings">
+            <span>⚙️</span>
+            <small>Settings</small>
+        </button>
+    </nav>
 
     <div id="chat-messages"></div>
 
