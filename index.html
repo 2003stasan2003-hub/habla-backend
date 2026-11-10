@@ -26,143 +26,6 @@
             -webkit-touch-callout: none;
         }
 
-        header {
-            background: #17212b;
-            border-bottom: 1px solid #0f1621;
-            padding: 12px 16px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            z-index: 10;
-        }
-
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
-
-        .menu-btn {
-            background: none;
-            border: none;
-            color: #89a1b2;
-            font-size: 1.5rem;
-            cursor: pointer;
-            padding: 2px 6px;
-            border-radius: 6px;
-            transition: color 0.2s;
-        }
-
-        .menu-btn:hover {
-            color: #00ffcc;
-        }
-
-        .logo {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: #ffffff;
-            letter-spacing: 0.3px;
-        }
-
-        .online-status {
-            font-size: 0.8rem;
-            color: #89a1b2;
-            background: #242f3d;
-            padding: 4px 10px;
-            border-radius: 14px;
-            cursor: pointer;
-        }
-
-        .top-stories-strip {
-            background: #17212b;
-            border-bottom: 1px solid #0f1621;
-            padding: 12px 16px;
-            display: flex;
-            gap: 16px;
-            overflow-x: auto;
-            white-space: nowrap;
-            scrollbar-width: none;
-        }
-        .top-stories-strip::-webkit-scrollbar {
-            display: none;
-        }
-
-        .story-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 6px;
-            cursor: pointer;
-            flex-shrink: 0;
-            transition: transform 0.2s;
-            user-select: none;
-        }
-
-        .story-item:hover {
-            transform: scale(1.05);
-        }
-
-        .story-avatar-wrapper {
-            position: relative;
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            padding: 2px;
-            background: linear-gradient(135deg, #00ffcc 0%, #2b5278 100%);
-        }
-
-        .story-avatar {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            background: #242f3d;
-            color: #ffffff;
-            font-weight: bold;
-            font-size: 1.1rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
-
-        .story-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 50%;
-        }
-
-        .story-dot {
-            position: absolute;
-            bottom: 2px;
-            right: 2px;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            border: 2px solid #17212b;
-        }
-        .story-dot.online { background-color: #3acc6e; }
-        .story-dot.offline { background-color: #89a1b2; }
-
-        @keyframes redPulse {
-            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.7); }
-            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(255, 59, 48, 0); }
-            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 48, 0); }
-        }
-        .story-dot.unread {
-            background-color: #ff3b30 !important;
-            animation: redPulse 1.5s infinite;
-        }
-
-        .story-name {
-            font-size: 0.75rem;
-            color: #b1c3d1;
-            max-width: 64px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            text-align: center;
-        }
-
         /* Стилі для повзунка (тумблера) */
         .switch {
             position: relative;
@@ -490,7 +353,7 @@
             background: rgba(255, 59, 48, 0.4);
         }
 
-        /* Стилі для головного екрана */
+        /* Мінімалістичний головний екран */
         #app-container {
             flex: 1;
             display: flex;
@@ -498,32 +361,6 @@
             position: relative;
             overflow: hidden;
             background: #0e1621;
-        }
-
-        #top-notification-panel {
-            position: absolute;
-            top: 12px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 90%;
-            max-width: 400px;
-            background: rgba(23, 33, 43, 0.75);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(0, 255, 204, 0.3);
-            border-radius: 12px;
-            padding: 10px 14px;
-            text-align: center;
-            z-index: 50;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            transition: opacity 0.3s ease;
-        }
-        #top-notification-panel.hidden {
-            display: none;
-        }
-        #notification-text {
-            font-size: 0.85rem;
-            color: #b1c3d1;
         }
 
         .main-screen {
@@ -536,34 +373,12 @@
             padding: 20px;
         }
 
-        .share-btn-top {
-            position: absolute;
-            top: 16px;
-            right: 16px;
-            background: #17212b;
-            border: 1px solid #2b5278;
-            color: #00ffcc;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            z-index: 60;
-            transition: transform 0.2s, border-color 0.2s;
-        }
-        .share-btn-top:hover {
-            transform: scale(1.05);
-            border-color: #00ffcc;
-        }
-
         .neon-mic-btn {
             background: radial-gradient(circle, rgba(0,255,204,0.15) 0%, rgba(14,22,33,0.95) 80%);
             border: 2px solid #00ffcc;
             border-radius: 50%;
-            width: 210px;
-            height: 210px;
+            width: 220px;
+            height: 220px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -593,16 +408,7 @@
             filter: drop-shadow(0 0 6px rgba(0,255,204,0.5));
         }
 
-        .brand-name {
-            margin-top: 24px;
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #00ffcc;
-            letter-spacing: 1px;
-            text-shadow: 0 0 10px rgba(0,255,204,0.4);
-        }
-
-        /* Стилі для нижньої панелі навігації */
+        /* Нижня панель навігації (Home, Contacts, QR, Settings) */
         .bottom-nav-bar {
             background: #17212b;
             border-top: 1px solid #2b5278;
@@ -647,11 +453,10 @@
             flex: 1;
             overflow-y: auto;
             padding: 16px;
-            display: flex;
+            display: none;
             flex-direction: column;
             gap: 12px;
             background: #0e1621;
-            display: none;
         }
 
         .message {
@@ -706,82 +511,9 @@
             padding: 2px 4px;
         }
         .speak-btn:hover { opacity: 1; }
-
-        .input-container {
-            background: #17212b;
-            padding: 12px 16px;
-            border-top: 1px solid #0f1621;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .input-wrapper {
-            flex: 1;
-            position: relative;
-            display: flex;
-            align-items: center;
-        }
-
-        #message-input {
-            width: 100%;
-            background: #242f3d;
-            border: 1px solid #2b5278;
-            color: #fff;
-            padding: 12px 45px 12px 16px;
-            border-radius: 24px;
-            outline: none;
-            font-size: 0.95rem;
-        }
-
-        #message-input:focus {
-            border-color: #00ffcc;
-        }
-
-        .mic-button-input {
-            position: absolute;
-            right: 10px;
-            background: none;
-            border: none;
-            font-size: 1.2rem;
-            cursor: pointer;
-            padding: 6px;
-        }
-
-        .mic-button-input.listening {
-            background-color: rgba(255, 59, 48, 0.2);
-            border-radius: 50%;
-        }
-
-        .send-button {
-            background: #2b5278;
-            color: #00ffcc;
-            border: none;
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            font-weight: bold;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-        }
     </style>
 </head>
 <body>
-
-    <header>
-        <div class="header-left">
-            <button id="menu-btn" class="menu-btn" title="Menu">☰</button>
-            <div class="logo">Habla Mobile</div>
-        </div>
-        <div id="online-count" class="online-status" title="Online">Online: 1</div>
-    </header>
-
-    <div id="top-stories-strip" class="top-stories-strip">
-        <span style="color: #89a1b2; font-size: 0.85rem; padding: 4px;">Cargando...</span>
-    </div>
 
     <div id="menu-overlay" class="menu-overlay"></div>
 
@@ -805,6 +537,7 @@
         <button id="modal-delete-btn" class="modal-btn-delete">🗑 Видалити контакт</button>
     </div>
 
+    <!-- Сайдбар (меню з налаштуваннями, QR-кодом та контактами) -->
     <div id="side-menu" class="side-menu">
         
         <div id="panel-main" class="sidebar-panel active">
@@ -867,7 +600,6 @@
                 </button>
             </div>
 
-            <!-- Додана кнопка ручного оновлення програми -->
             <div class="menu-section">
                 <label>Оновлення програми</label>
                 <button id="update-app-btn" class="sidebar-nav-btn" style="background: #242f3d; border-color: #00ffcc; color: #00ffcc; width: 100%; justify-content: center;">
@@ -938,32 +670,19 @@
 
     </div>
 
-    <!-- Головний робочий стіл -->
+    <!-- Мінімалістичний головний екран -->
     <div id="app-container">
-        <!-- Верхня напівпрозора панель сповіщень -->
-        <div id="top-notification-panel" class="hidden">
-            <span id="notification-text"></span>
-        </div>
-
         <main class="main-screen">
-            <!-- Кнопка Поділитися у правому верхньому кутку -->
-            <button id="share-button-top" class="share-btn-top" aria-label="Share" title="Поділитися">
-                <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
-            </button>
-
-            <!-- Центральна неонова кнопка мікрофона з іменем співрозмовника -->
             <button id="mic-button" class="neon-mic-btn">
                 <span id="active-contact-name">Maksim</span>
                 <div class="mic-icon-placeholder">
                     <svg viewBox="0 0 24 24" width="48" height="48" stroke="#00ffcc" stroke-width="2" fill="none"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v1a7 7 0 0 1-14 0v-1"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
                 </div>
             </button>
-
-            <div class="brand-name">Habla</div>
         </main>
     </div>
 
-    <!-- Нижня панель навігації (Home, Contacts, QR, Settings) -->
+    <!-- Нижня панель навігації (працює як перемикач розділів та відкриття сайдбару) -->
     <nav class="bottom-nav-bar">
         <button class="nav-item active" id="nav-home" title="Home">
             <span>🏠</span>
@@ -985,16 +704,7 @@
 
     <div id="chat-messages"></div>
 
-    <div class="input-container">
-        <div class="input-wrapper">
-            <input type="text" id="message-input" placeholder="Escribe un mensaje..." autocomplete="off">
-            <button id="mic-btn" class="mic-button-input" title="Entrada de voz">🎤</button>
-        </div>
-        <button id="send-btn" class="send-button" title="Enviar">➤</button>
-    </div>
-
     <script>
-        // Реєстрація Service Worker для PWA та фонових процесів
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/sw.js')
@@ -1010,8 +720,6 @@
         let localAddedContacts = JSON.parse(localStorage.getItem('habla_local_contacts') || '[]');
         let contactColors = JSON.parse(localStorage.getItem('habla_contact_colors') || '{}');
         let contactAvatars = JSON.parse(localStorage.getItem('habla_contact_avatars') || '{}');
-        let unreadSenders = new Set();
-        let unreadCounts = {};
         let activeContactForModal = null;
         let selectedModalColor = '#00ffcc';
 
@@ -1025,7 +733,6 @@
             localStorage.setItem('habla_contact_colors', JSON.stringify(contactColors));
             localStorage.setItem('habla_contact_avatars', JSON.stringify(contactAvatars));
             updateProfileDisplay();
-            renderStories(lastUsersData, lastIsAdmin);
         });
 
         function getDeviceLanguage() {
@@ -1102,19 +809,6 @@
             }
         });
 
-        function updateAppBadge() {
-            const totalUnread = Object.values(unreadCounts).reduce((a, b) => a + b, 0);
-            if ('setAppBadge' in navigator) {
-                if (totalUnread > 0) {
-                    navigator.setAppBadge(totalUnread).catch(err => console.log('Badge error:', err));
-                } else {
-                    if ('clearAppBadge' in navigator) {
-                        navigator.clearAppBadge().catch(err => console.log('Clear badge error:', err));
-                    }
-                }
-            }
-        }
-
         const userDisplay = document.getElementById('user-display');
         const userAvatarLarge = document.getElementById('user-avatar-large');
 
@@ -1138,7 +832,7 @@
             location.reload();
         });
 
-        // Логіка ручного оновлення програми через Service Worker
+        // Ручне оновлення програми через Service Worker
         const updateAppBtn = document.getElementById('update-app-btn');
         if (updateAppBtn) {
             updateAppBtn.addEventListener('click', async () => {
@@ -1170,18 +864,6 @@
         const currentAppUrl = window.location.origin;
         document.getElementById('app-url-text').textContent = currentAppUrl;
         document.getElementById('qr-code-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(currentAppUrl)}`;
-
-        const shareButtonTop = document.getElementById('share-button-top');
-        shareButtonTop.addEventListener('click', async () => {
-            if (navigator.share) {
-                try {
-                    await navigator.share({ title: 'Habla Mobile 3.0', url: currentAppUrl });
-                } catch (err) { console.log(err); }
-            } else {
-                navigator.clipboard.writeText(currentAppUrl);
-                alert('Посилання скопійовано!');
-            }
-        });
 
         document.getElementById('native-share-btn').addEventListener('click', async () => {
             if (navigator.share) {
@@ -1220,50 +902,20 @@
             window.speechSynthesis.speak(utterance);
         }
 
-        function playNotificationSound() {
-            try {
-                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.15);
-                gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.3);
-            } catch (e) {
-                console.log('Audio context blocked', e);
-            }
-        }
-
         const translations = {
-            Spanish: { settings: "Configuración", profile: "Tu perfil", onlineUsersTitle: "Contactos", interfaceLang: "Idioma de la interfaz", voiceOver: "Locución de traducción", enableSound: "Activar sonido", apiStatus: "Estado API Groq", shareApp: "Compartir App", nativeShare: "📤 Поділитися", copyLink: "📋 Copiar enlace", placeholder: "Escribe un mensaje...", addPlaceholder: "Додати за ніком...", addBtn: "Додати", noContacts: "Sin contactos", online: "En línea", adminPanel: "Панель Адміністратора", forceTranslate: "Примусовий переклад", enableForce: "Увімкнути переклад" },
-            English: { settings: "Settings", profile: "Your profile", onlineUsersTitle: "Contacts", interfaceLang: "Interface language", voiceOver: "Translation voiceover", enableSound: "Enable sound", apiStatus: "Groq API Status", shareApp: "Share App", nativeShare: "📤 Поділитися", copyLink: "📋 Copy Link", placeholder: "Type a message...", addPlaceholder: "Додати за ніком...", addBtn: "Додати", noContacts: "No contacts", online: "Online", adminPanel: "Admin Panel", forceTranslate: "Forced translation", enableForce: "Enable translation" },
-            Ukrainian: { settings: "Налаштування", profile: "Ваш профіль", onlineUsersTitle: "Контакти", interfaceLang: "Мова інтерфейсу", voiceOver: "Озвучування перекладу", enableSound: "Увімкнути звук", apiStatus: "Статус API Groq", shareApp: "Поділитися додатком", nativeShare: "📤 Поділитися", copyLink: "📋 Копіювати посилання", placeholder: "Введіть повідомлення...", addPlaceholder: "Додати за ніком...", addBtn: "Додати", noContacts: "Немає контактів", online: "Онлайн", adminPanel: "Панель Адміністратора", forceTranslate: "Примусовий переклад", enableForce: "Увімкнути переклад" },
-            German: { settings: "Einstellungen", profile: "Ihr Profil", onlineUsersTitle: "Kontakte", interfaceLang: "Sprache", voiceOver: "Sprachausgabe", enableSound: "Ton", apiStatus: "API-Status", shareApp: "App teilen", nativeShare: "📤 Поділитися", copyLink: "📋 Link kopieren", placeholder: "Nachricht...", addPlaceholder: "Додати за ніком...", addBtn: "Додати", noContacts: "Keine", online: "Online", adminPanel: "Admin-Panel", forceTranslate: "Erzwungene Übersetzung", enableForce: "Übersetzung aktivieren" },
-            French: { settings: "Paramètres", profile: "Profil", onlineUsersTitle: "Contacts", interfaceLang: "Langue", voiceOver: "Voix", enableSound: "Son", apiStatus: "Statut API", shareApp: "Partager", nativeShare: "📤 Поділитися", copyLink: "📋 Copier", placeholder: "Message...", addPlaceholder: "Додати за ніком...", addBtn: "Додати", noContacts: "Aucun", online: "En ligne", adminPanel: "Panneau Admin", forceTranslate: "Traduction forcée", enableForce: "Activer la traduction" }
+            Spanish: { settings: "Configuración", profile: "Tu perfil", onlineUsersTitle: "Contactos", interfaceLang: "Idioma de la interfaz", voiceOver: "Locución de traducción", enableSound: "Activar sonido", apiStatus: "Estado API Groq", shareApp: "Compartir App", nativeShare: "📤 Поділитися", copyLink: "📋 Copiar enlace", addPlaceholder: "Додати за ніком...", addBtn: "Додати", adminPanel: "Панель Адміністратора", forceTranslate: "Примусовий переклад", enableForce: "Увімкнути переклад" },
+            English: { settings: "Settings", profile: "Your profile", onlineUsersTitle: "Contacts", interfaceLang: "Interface language", voiceOver: "Translation voiceover", enableSound: "Enable sound", apiStatus: "Groq API Status", shareApp: "Share App", nativeShare: "📤 Поділитися", copyLink: "📋 Copy Link", addPlaceholder: "Додати за ніком...", addBtn: "Додати", adminPanel: "Admin Panel", forceTranslate: "Forced translation", enableForce: "Enable translation" },
+            Ukrainian: { settings: "Налаштування", profile: "Ваш профіль", onlineUsersTitle: "Контакти", interfaceLang: "Мова інтерфейсу", voiceOver: "Озвучування перекладу", enableSound: "Увімкнути звук", apiStatus: "Статус API Groq", shareApp: "Поділитися додатком", nativeShare: "📤 Поділитися", copyLink: "📋 Копіювати посилання", addPlaceholder: "Додати за ніком...", addBtn: "Додати", adminPanel: "Панель Адміністратора", forceTranslate: "Примусовий переклад", enableForce: "Увімкнути переклад" },
+            German: { settings: "Einstellungen", profile: "Ihr Profil", onlineUsersTitle: "Kontakte", interfaceLang: "Sprache", voiceOver: "Sprachausgabe", enableSound: "Ton", apiStatus: "API-Status", shareApp: "App teilen", nativeShare: "📤 Поділитися", copyLink: "📋 Link kopieren", addPlaceholder: "Додати за ніком...", addBtn: "Додати", noContacts: "Keine", online: "Online", adminPanel: "Admin-Panel", forceTranslate: "Erzwungene Übersetzung", enableForce: "Übersetzung aktivieren" },
+            French: { settings: "Paramètres", profile: "Profil", onlineUsersTitle: "Contacts", interfaceLang: "Langue", voiceOver: "Voix", enableSound: "Son", apiStatus: "Statut API", shareApp: "Partager", nativeShare: "📤 Поділитися", copyLink: "📋 Copier", addPlaceholder: "Додати за ніком...", addBtn: "Додати", adminPanel: "Panneau Admin", forceTranslate: "Traduction forcée", enableForce: "Activer la traduction" }
         };
 
-        const messageInput = document.getElementById('message-input');
-        const sendBtn = document.getElementById('send-btn');
-        const chatMessages = document.getElementById('chat-messages');
-        const onlineCount = document.getElementById('online-count');
-        const micBtn = document.getElementById('mic-btn');
-        
-        const menuBtn = document.getElementById('menu-btn');
-        const closeMenuBtn = document.getElementById('close-menu-btn');
-        const closeMenuBtn2 = document.getElementById('close-menu-btn-2');
-        const closeMenuBtn3 = document.getElementById('close-menu-btn-3');
-        const sideMenu = document.getElementById('side-menu');
-        const menuOverlay = document.getElementById('menu-overlay');
-        const topStoriesStrip = document.getElementById('top-stories-strip');
         const soundToggle = document.getElementById('sound-toggle');
         const newContactInput = document.getElementById('new-contact-input');
         const addContactBtn = document.getElementById('add-contact-btn');
 
+        const sideMenu = document.getElementById('side-menu');
+        const menuOverlay = document.getElementById('menu-overlay');
         const panelMain = document.getElementById('panel-main');
         const panelSettings = document.getElementById('panel-settings');
         const panelAdmin = document.getElementById('panel-admin');
@@ -1271,6 +923,46 @@
         const btnOpenAdmin = document.getElementById('btn-open-admin');
         const btnBackFromSettings = document.getElementById('btn-back-from-settings');
         const btnBackFromAdmin = document.getElementById('btn-back-from-admin');
+
+        // Логіка нижньої панелі навігації (Home, Contacts, QR, Settings) для відкриття відповідних панелей у сайдбарі
+        const navHome = document.getElementById('nav-home');
+        const navContacts = document.getElementById('nav-contacts');
+        const navQr = document.getElementById('nav-qr');
+        const navSettings = document.getElementById('nav-settings');
+        const navItems = document.querySelectorAll('.nav-item');
+
+        function setActiveNav(selectedItem) {
+            navItems.forEach(item => item.classList.remove('active'));
+            selectedItem.classList.add('active');
+        }
+
+        navHome.addEventListener('click', () => {
+            setActiveNav(navHome);
+            sideMenu.classList.remove('open');
+            menuOverlay.classList.remove('active');
+        });
+
+        navContacts.addEventListener('click', () => {
+            setActiveNav(navContacts);
+            showMainPanel();
+            sideMenu.classList.add('open');
+            menuOverlay.classList.add('active');
+        });
+
+        navQr.addEventListener('click', () => {
+            setActiveNav(navQr);
+            showMainPanel();
+            sideMenu.classList.add('open');
+            menuOverlay.classList.add('active');
+        });
+
+        navSettings.addEventListener('click', () => {
+            setActiveNav(navSettings);
+            panelMain.classList.remove('active');
+            panelSettings.classList.add('active');
+            sideMenu.classList.add('open');
+            menuOverlay.classList.add('active');
+        });
 
         const contactModal = document.getElementById('contact-modal');
         const modalContactTitle = document.getElementById('modal-contact-title');
@@ -1280,7 +972,6 @@
         const modalAvatarInput = document.getElementById('modal-avatar-input');
         const colorCircles = document.querySelectorAll('.color-circle');
 
-        let currentOnlineCount = 1;
         let lastUsersData = [];
         let lastIsAdmin = false;
 
@@ -1299,15 +990,11 @@
             document.getElementById('label-share-app').textContent = t.shareApp;
             document.getElementById('native-share-btn').textContent = t.nativeShare;
             document.getElementById('copy-link-btn').textContent = t.copyLink;
-            messageInput.placeholder = t.placeholder;
             newContactInput.placeholder = t.addPlaceholder;
             addContactBtn.textContent = t.addBtn;
-            onlineCount.textContent = `${t.online}: ${currentOnlineCount}`;
 
             btnOpenAdmin.innerHTML = `<span>🔑</span> ${t.adminPanel}`;
             btnOpenSettings.innerHTML = `<span>⚙️</span> ${t.settings}`;
-
-            renderStories(lastUsersData, lastIsAdmin);
         }
 
         interfaceLangSelect.addEventListener('change', () => {
@@ -1322,16 +1009,6 @@
         updateInterfaceTexts();
         updateProfileDisplay();
         joinWithLanguage();
-
-        function openMenu() { 
-            sideMenu.classList.add('open'); 
-            menuOverlay.classList.add('active'); 
-            showMainPanel();
-        }
-        function closeMenu() { 
-            sideMenu.classList.remove('open'); 
-            menuOverlay.classList.remove('active'); 
-        }
 
         function showMainPanel() {
             panelMain.classList.add('active');
@@ -1352,14 +1029,8 @@
         btnBackFromSettings.addEventListener('click', showMainPanel);
         btnBackFromAdmin.addEventListener('click', showMainPanel);
 
-        menuBtn.addEventListener('click', openMenu);
-        onlineCount.addEventListener('click', openMenu);
-        closeMenuBtn.addEventListener('click', closeMenu);
-        closeMenuBtn2.addEventListener('click', closeMenu);
-        closeMenuBtn3.addEventListener('click', closeMenu);
-        
         menuOverlay.addEventListener('click', () => {
-            closeMenu();
+            sideMenu.classList.remove('open');
             contactModal.classList.remove('active');
             menuOverlay.classList.remove('active');
         });
@@ -1429,7 +1100,6 @@
             contactModal.classList.remove('active');
             menuOverlay.classList.remove('active');
             updateProfileDisplay();
-            renderStories(lastUsersData, lastIsAdmin);
         });
 
         modalDeleteBtn.addEventListener('click', () => {
@@ -1447,14 +1117,9 @@
                     color: '#00ffcc',
                     avatar: ''
                 });
-                
-                if (selectedRecipientName === activeContactForModal) {
-                    selectedRecipientName = null;
-                }
 
                 contactModal.classList.remove('active');
                 menuOverlay.classList.remove('active');
-                renderStories(lastUsersData, lastIsAdmin);
             }
         });
 
@@ -1467,71 +1132,16 @@
                     localStorage.setItem('habla_local_contacts', JSON.stringify(localAddedContacts));
                 }
                 newContactInput.value = '';
-                renderStories(lastUsersData, lastIsAdmin);
             }
         });
 
         newContactInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') addContactBtn.click(); });
-
-        function sendMessage() {
-            const text = messageInput.value.trim();
-            if (!text) return;
-            socket.emit('chatMessage', { 
-                text: text, 
-                user: username, 
-                recipientName: selectedRecipientName 
-            });
-            messageInput.value = '';
-        }
-
-        sendBtn.addEventListener('click', sendMessage);
-        messageInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
-
-        socket.on('chatMessage', (data) => {
-            const messageDiv = document.createElement('div');
-            messageDiv.classList.add('message');
-            const isSelf = data.user === username;
-            messageDiv.classList.add(isSelf ? 'outgoing' : 'incoming');
-            if (data.isPrivate) messageDiv.classList.add('private');
-
-            let authorLabel = escapeHtml(data.user);
-            if (data.isPrivate) authorLabel += ` 🔒`;
-
-            messageDiv.innerHTML = `
-                <div class="author"><span>${authorLabel}</span></div>
-                <div>${escapeHtml(data.text)}</div>
-                <div class="msg-footer"><button class="speak-btn" title="🔊">🔊</button></div>
-            `;
-
-            messageDiv.querySelector('.speak-btn').addEventListener('click', () => speakText(data.text));
-            chatMessages.appendChild(messageDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-
-            if (soundToggle.checked) speakText(data.text);
-
-            if (!isSelf) {
-                playNotificationSound();
-                if (selectedRecipientName !== data.user) {
-                    unreadSenders.add(data.user);
-                    unreadCounts[data.user] = (unreadCounts[data.user] || 0) + 1;
-                    updateAppBadge();
-                    renderStories(lastUsersData, lastIsAdmin);
-                }
-            }
-        });
 
         socket.on('groq-limits', (limits) => {
             const reqVal = parseInt(limits.requests, 10);
             const tokVal = parseInt(limits.tokens, 10);
             if (!isNaN(reqVal)) document.getElementById('req-value').textContent = reqVal;
             if (!isNaN(tokVal)) document.getElementById('tok-value').textContent = tokVal;
-        });
-
-        socket.on('onlineCount', (count) => {
-            currentOnlineCount = count;
-            const lang = interfaceLangSelect.value;
-            const t = translations[lang] || translations.Spanish;
-            onlineCount.textContent = `${t.online}: ${count}`;
         });
 
         socket.on('update-users', ({ users, isAdmin }) => {
@@ -1543,126 +1153,11 @@
             } else {
                 btnOpenAdmin.style.display = 'none';
             }
-
-            renderStories(users, isAdmin);
         });
-
-        function renderStories(users, isAdmin) {
-            topStoriesStrip.innerHTML = '';
-            const lang = interfaceLangSelect.value;
-            const t = translations[lang] || translations.Spanish;
-
-            let userMap = new Map();
-            users.forEach(u => userMap.set(u.name, u));
-
-            let combinedUsers = [];
-            localAddedContacts.forEach(name => {
-                if (userMap.has(name)) {
-                    combinedUsers.push(userMap.get(name));
-                } else {
-                    combinedUsers.push({ name: name, isOnline: false, myAdd: true, theirAdd: false, isMutual: false });
-                }
-            });
-
-            if (combinedUsers.length === 0) {
-                topStoriesStrip.innerHTML = `<span style="color: #89a1b2; font-size: 0.85rem; padding: 4px;">${t.noContacts}</span>`;
-                return;
-            }
-
-            combinedUsers.sort((a, b) => {
-                const indexA = recentContactsOrder.indexOf(a.name);
-                const indexB = recentContactsOrder.indexOf(b.name);
-                if (indexA !== -1 && indexB !== -1) return indexA - indexB;
-                if (indexA !== -1) return -1;
-                if (indexB !== -1) return 1;
-                return 0;
-            });
-
-            combinedUsers.forEach(user => {
-                const story = document.createElement('div');
-                story.classList.add('story-item');
-
-                const firstLetter = user.name.charAt(0).toUpperCase();
-                let statusBadgeText = '';
-                if (isAdmin && user.isMutual) statusBadgeText = ' ⭐';
-
-                const customColor = contactColors[user.name] || '#00ffcc';
-                const customAvatarUrl = contactAvatars[user.name];
-
-                const isUnread = unreadSenders.has(user.name);
-                let dotClass = user.isOnline ? 'online' : 'offline';
-                if (isUnread) {
-                    dotClass = 'unread';
-                }
-
-                let avatarInnerHtml = '';
-                if (customAvatarUrl) {
-                    avatarInnerHtml = `<img src="${escapeHtml(customAvatarUrl)}" alt="">`;
-                } else {
-                    avatarInnerHtml = `<div class="story-avatar" style="background: ${customColor}; color: #0e1621; width:100%; height:100%; display:flex; align-items:center; justify-content:center; border-radius:50%; font-weight:bold; font-size:1.1rem;">${firstLetter}</div>`;
-                }
-
-                story.innerHTML = `
-                    <div class="story-avatar-wrapper" style="${selectedRecipientName === user.name ? `border: 2px solid ${customColor};` : ''}">
-                        <div class="story-avatar">${avatarInnerHtml}</div>
-                        <div class="story-dot ${dotClass}"></div>
-                    </div>
-                    <span class="story-name">${escapeHtml(user.name)}${statusBadgeText}</span>
-                `;
-
-                let pressTimer = null;
-
-                story.addEventListener('touchstart', (e) => {
-                    pressTimer = setTimeout(() => {
-                        triggerSettings(user.name, e);
-                    }, 500);
-                });
-
-                story.addEventListener('touchend', () => { clearTimeout(pressTimer); });
-                story.addEventListener('touchmove', () => { clearTimeout(pressTimer); });
-
-                story.addEventListener('contextmenu', (e) => {
-                    triggerSettings(user.name, e);
-                });
-
-                story.addEventListener('click', () => {
-                    selectedRecipientName = user.name;
-                    unreadSenders.delete(user.name);
-                    delete unreadCounts[user.name];
-                    updateAppBadge();
-                    recentContactsOrder = recentContactsOrder.filter(n => n !== user.name);
-                    recentContactsOrder.unshift(user.name);
-                    localStorage.setItem('habla_recent_contacts', JSON.stringify(recentContactsOrder));
-                    renderStories(lastUsersData, lastIsAdmin);
-                });
-
-                topStoriesStrip.appendChild(story);
-            });
-        }
 
         function escapeHtml(text) {
             const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
             return text.replace(/[&<>"']/g, function(m) { return map[m]; });
-        }
-
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SpeechRecognition) {
-            micBtn.style.display = 'none';
-        } else {
-            const recognition = new SpeechRecognition();
-            recognition.interimResults = false;
-            let isListening = false;
-
-            micBtn.addEventListener('click', () => {
-                if (isListening) { recognition.stop(); return; }
-                const activeLang = forceTranslateToggle.checked ? targetLangSelect.value : interfaceLangSelect.value;
-                recognition.lang = ttsLangMap[activeLang] || 'es-ES';
-                try { recognition.start(); } catch (e) { console.error(e); }
-            });
-
-            recognition.onstart = () => { isListening = true; micBtn.classList.add('listening'); };
-            recognition.onresult = (event) => { messageInput.value += (messageInput.value ? ' ' : '') + event.results[0][0].transcript; };
-            recognition.onend = () => { isListening = false; micBtn.classList.remove('listening'); };
         }
     </script>
 </body>
