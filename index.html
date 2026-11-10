@@ -59,7 +59,7 @@
             border-radius: 50%;
         }
         input:checked + .slider {
-            background-color: #4a6fa5;
+            background-color: #89a1b2;
         }
         input:checked + .slider:before {
             transform: translateX(20px);
@@ -207,7 +207,7 @@
             width: 40px;
             height: 40px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #4a6fa5 0%, #2b5278 100%);
+            background: linear-gradient(135deg, #89a1b2 0%, #2b5278 100%);
             color: #0e1621;
             font-weight: bold;
             display: flex;
@@ -377,7 +377,7 @@
             background: rgba(255, 59, 48, 0.4);
         }
 
-        /* Оптимізований мінімалістичний головний екран у єдиному сіро-синьому стилі */
+        /* Головний екран */
         #app-container {
             flex: 1;
             display: flex;
@@ -402,7 +402,7 @@
             gap: 20px;
         }
 
-        /* Верхній інформаційний блок у мінімалістичному стилі */
+        /* Верхній інформаційний блок */
         .info-card {
             background: rgba(23, 33, 43, 0.7);
             border: 1px solid #2b5278;
@@ -417,10 +417,10 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
 
-        /* Велика кнопка мікрофона з одним тонким сірим колом без неону */
+        /* Велика кнопка мікрофона з тонким сірим обведенням */
         .neon-mic-btn {
             background: transparent;
-            border: 1px solid #4a6fa5;
+            border: 1px solid #89a1b2;
             border-radius: 50%;
             width: 210px;
             height: 210px;
@@ -435,7 +435,7 @@
         }
         .neon-mic-btn:active {
             transform: scale(0.96);
-            border-color: #89a1b2;
+            border-color: #f5f5f5;
         }
 
         #active-contact-name {
@@ -451,7 +451,7 @@
             fill: none;
         }
 
-        /* Оптимізована нижня панель навігації */
+        /* Повністю мінімалістична сіра нижня панель навігації */
         .bottom-nav-bar {
             background: #17212b;
             border-top: 1px solid #2b5278;
@@ -491,7 +491,7 @@
 
         .nav-item.active, .nav-item:hover {
             color: #f5f5f5;
-            background: rgba(43, 82, 120, 0.3);
+            background: transparent;
         }
 
         #chat-messages {
@@ -526,11 +526,11 @@
             background: #2b5278;
             color: #fff;
             align-self: flex-end;
-            border-right: 3px solid #4a6fa5;
+            border-right: 3px solid #89a1b2;
         }
 
         .message.private {
-            border: 1px dashed #4a6fa5;
+            border: 1px dashed #89a1b2;
         }
 
         .message .author {
@@ -574,9 +574,9 @@
         </div>
         <div style="font-size: 0.8rem; color: #89a1b2;">Колір фону іконки:</div>
         <div class="color-palette" id="color-palette">
-            <div class="color-circle" style="background: #4a6fa5;" data-color="#4a6fa5"></div>
-            <div class="color-circle" style="background: #2b5278;" data-color="#2b5278"></div>
             <div class="color-circle" style="background: #89a1b2;" data-color="#89a1b2"></div>
+            <div class="color-circle" style="background: #2b5278;" data-color="#2b5278"></div>
+            <div class="color-circle" style="background: #4a6fa5;" data-color="#4a6fa5"></div>
             <div class="color-circle" style="background: #ff3b30;" data-color="#ff3b30"></div>
             <div class="color-circle" style="background: #7928ca;" data-color="#7928ca"></div>
             <div class="color-circle" style="background: #0056b3;" data-color="#0056b3"></div>
@@ -720,7 +720,7 @@
 
     </div>
 
-    <!-- Головний екран із єдиним тонким контуром та інформаційною карткою зверху -->
+    <!-- Головний екран -->
     <div id="app-container">
         <main class="main-screen">
             <div class="info-card">
@@ -736,7 +736,7 @@
         </main>
     </div>
 
-    <!-- Нижня панель навігації (Home, Contacts, QR, Settings) -->
+    <!-- Нижня панель навігації у мінімалістичному сірому стилі -->
     <nav class="bottom-nav-bar">
         <button class="nav-item active" id="nav-home" title="Home">
             <span>🏠</span>
@@ -775,7 +775,7 @@
         let contactColors = JSON.parse(localStorage.getItem('habla_contact_colors') || '{}');
         let contactAvatars = JSON.parse(localStorage.getItem('habla_contact_avatars') || '{}');
         let activeContactForModal = null;
-        let selectedModalColor = '#4a6fa5';
+        let selectedModalColor = '#89a1b2';
 
         socket.on('sync-customizations', (customizations) => {
             contactColors = {};
@@ -868,7 +868,7 @@
 
         function updateProfileDisplay() {
             userDisplay.textContent = username;
-            const customColor = contactColors[username] || '#4a6fa5';
+            const customColor = contactColors[username] || '#89a1b2';
             const customAvatarUrl = contactAvatars[username];
             
             if (customAvatarUrl) {
@@ -1110,7 +1110,7 @@
                 modalDeleteBtn.style.display = 'block';
             }
 
-            selectedModalColor = contactColors[targetName] || '#4a6fa5';
+            selectedModalColor = contactColors[targetName] || '#89a1b2';
             colorCircles.forEach(c => {
                 if (c.getAttribute('data-color') === selectedModalColor) {
                     c.classList.add('selected');
@@ -1173,7 +1173,7 @@
                 
                 socket.emit('update-customization', {
                     targetName: activeContactForModal,
-                    color: '#4a6fa5',
+                    color: '#89a1b2',
                     avatar: ''
                 });
 
