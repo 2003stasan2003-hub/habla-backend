@@ -490,7 +490,7 @@
             background: rgba(255, 59, 48, 0.4);
         }
 
-        /* Стилі для головного екрана з неоновою кнопкою та верхньою панеллю */
+        /* Стилі для головного екрана */
         #app-container {
             flex: 1;
             display: flex;
@@ -602,7 +602,7 @@
             text-shadow: 0 0 10px rgba(0,255,204,0.4);
         }
 
-        /* Стилі для нижньої панелі навігації (Home, Contacts, QR, Settings) */
+        /* Стилі для нижньої панелі навігації */
         .bottom-nav-bar {
             background: #17212b;
             border-top: 1px solid #2b5278;
@@ -867,6 +867,14 @@
                 </button>
             </div>
 
+            <!-- Додана кнопка ручного оновлення програми -->
+            <div class="menu-section">
+                <label>Оновлення програми</label>
+                <button id="update-app-btn" class="sidebar-nav-btn" style="background: #242f3d; border-color: #00ffcc; color: #00ffcc; width: 100%; justify-content: center;">
+                    🔄 Перевірити оновлення
+                </button>
+            </div>
+
             <div class="menu-section">
                 <label for="interface-lang" id="label-interface-lang">Мова інтерфейсу:</label>
                 <select id="interface-lang" class="lang-select">
@@ -930,7 +938,7 @@
 
     </div>
 
-    <!-- Головний робочий стіл із верхньою панеллю та неоновою кнопкою -->
+    <!-- Головний робочий стіл -->
     <div id="app-container">
         <!-- Верхня напівпрозора панель сповіщень -->
         <div id="top-notification-panel" class="hidden">
@@ -1129,6 +1137,35 @@
             localStorage.removeItem('habla_username');
             location.reload();
         });
+
+        // Логіка ручного оновлення програми через Service Worker
+        const updateAppBtn = document.getElementById('update-app-btn');
+        if (updateAppBtn) {
+            updateAppBtn.addEventListener('click', async () => {
+                updateAppBtn.textContent = '⏳ Перевірка...';
+                try {
+                    if ('serviceWorker' in navigator) {
+                        const registration = await navigator.serviceWorker.getRegistration();
+                        if (registration) {
+                            await registration.update();
+                            if (registration.waiting) {
+                                registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+                            }
+                        }
+                    }
+                    if ('caches' in window) {
+                        const cacheNames = await caches.keys();
+                        await Promise.all(cacheNames.map(name => caches.delete(name)));
+                    }
+                    setTimeout(() => {
+                        window.location.reload(true);
+                    }, 500);
+                } catch (err) {
+                    console.error('Помилка оновлення:', err);
+                    window.location.reload(true);
+                }
+            });
+        }
 
         const currentAppUrl = window.location.origin;
         document.getElementById('app-url-text').textContent = currentAppUrl;
