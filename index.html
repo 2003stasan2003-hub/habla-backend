@@ -73,10 +73,12 @@
         .main-screen { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; padding: 20px; width: 100%; max-width: 480px; margin: 0 auto; gap: 16px; }
         
         .messages-stack-container { width: 100%; max-width: 340px; display: flex; flex-direction: column; gap: 8px; justify-content: flex-end; min-height: 120px; margin-bottom: 10px; }
+        
+        /* Картка повідомлення з динаміком */
         .message-card {
             background: rgba(23, 33, 43, 0.9); border: 1px solid #2b5278; border-radius: 14px;
             padding: 12px 14px; color: #f5f5f5; font-size: 0.9rem; line-height: 1.35; position: relative;
-            transition: all 0.3s ease; opacity: 1; transform: translateY(0);
+            transition: all 0.3s ease; opacity: 1; transform: translateY(0); padding-right: 36px;
         }
         .message-card.sent { border-color: #89a1b2; background: rgba(43, 82, 120, 0.4); align-self: flex-end; }
         .message-card.received { border-color: #2b5278; align-self: flex-start; }
@@ -84,6 +86,14 @@
         .message-card.older-2 { opacity: 0.45; transform: scale(0.92); }
         .message-card.fade-out { opacity: 0; transform: translateY(-20px) scale(0.85); }
         .message-sender-tag { font-size: 0.7rem; color: #89a1b2; margin-bottom: 4px; font-weight: 600; }
+        
+        /* Кнопка динаміка прослуховування */
+        .message-tts-btn {
+            position: absolute; right: 8px; bottom: 8px; background: none; border: none;
+            color: #89a1b2; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;
+        }
+        .message-tts-btn:hover { color: #f5f5f5; }
+        .message-tts-btn svg { width: 18px; height: 18px; fill: currentColor; }
 
         .neon-mic-btn {
             background: transparent; border: 1px solid #89a1b2; border-radius: 50%;
@@ -470,6 +480,19 @@
             });
         }
 
+        // Озвучування через браузер
+        const ttsLangMap = { 'Ukrainian': 'uk-UA', 'English': 'en-US', 'Spanish': 'es-ES', 'German': 'de-DE', 'French': 'fr-FR' };
+        function speakText(textToSpeech) {
+            if (!('speechSynthesis' in window)) return;
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(textToSpeech);
+            const activeLang = interfaceLangSelect.value;
+            utterance.lang = ttsLangMap[activeLang] || 'es-ES';
+            utterance.rate = 1.0;
+            utterance.pitch = 1.0;
+            window.speechSynthesis.speak(utterance);
+        }
+
         const messagesStack = document.getElementById('messages-stack');
         let displayedMessages = [];
 
@@ -485,8 +508,20 @@
             const textNode = document.createElement('div');
             textNode.textContent = text;
 
+            // Динамік для примусового прослуховування
+            const ttsBtn = document.createElement('button');
+            ttsBtn.className = 'message-tts-btn';
+            ttsBtn.title = 'Прослухати';
+            ttsBtn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>`;
+            ttsBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                speakText(text);
+            });
+
             card.appendChild(senderTag);
             card.appendChild(textNode);
+            card.appendChild(ttsBtn);
+
             messagesStack.appendChild(card);
             displayedMessages.push(card);
 
@@ -581,6 +616,11 @@
                 const isMySent = (data.sender === username);
                 addMessageToStack(data.text, data.sender || 'Контакт', isMySent);
                 if (data.sender && !isMySent) setRecipient(data.sender);
+
+                const soundToggle = document.getElementById('sound-toggle');
+                if (soundToggle && soundToggle.checked) {
+                    speakText(data.text);
+                }
             }
         });
 
