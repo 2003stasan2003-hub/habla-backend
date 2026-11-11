@@ -446,7 +446,115 @@
             height: 72px;
         }
 
-        /* Повністю однотонна сіра мінімалістична нижня панель навігації (як на другому зразку) */
+        /* Екран QR-кодів (прихований за замовчуванням, відкривається по кліку на QR) */
+        #qr-screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #0e1621;
+            z-index: 30;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            gap: 20px;
+            overflow-y: auto;
+        }
+        #qr-screen.active {
+            display: flex;
+        }
+
+        .qr-cards-wrapper {
+            display: flex;
+            gap: 16px;
+            width: 100%;
+            max-width: 400px;
+            justify-content: center;
+        }
+
+        .qr-card {
+            flex: 1;
+            background: rgba(23, 33, 43, 0.7);
+            border: 1px solid #89a1b2;
+            border-radius: 16px;
+            padding: 16px 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+        }
+
+        .qr-card-title {
+            color: #f5f5f5;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .qr-img-box {
+            background: #ffffff;
+            padding: 6px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .qr-img-box img {
+            width: 100px;
+            height: 100px;
+            display: block;
+        }
+
+        .copy-link-action-btn {
+            background: transparent;
+            border: 1px solid #89a1b2;
+            color: #89a1b2;
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.2s, color 0.2s, border-color 0.2s;
+            width: 100%;
+            justify-content: center;
+        }
+        .copy-link-action-btn:hover {
+            background: #89a1b2;
+            color: #0e1621;
+            border-color: #f5f5f5;
+        }
+
+        /* Оновлена кнопка iOS без неону, в єдиних сірих тонах */
+        .ios-download-btn {
+            background: transparent;
+            border: 1px solid #89a1b2;
+            color: #89a1b2;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: background 0.2s, color 0.2s, border-color 0.2s, transform 0.2s;
+            max-width: 320px;
+            width: 90%;
+            justify-content: center;
+            margin-top: 4px;
+        }
+        .ios-download-btn:hover, .ios-download-btn:active {
+            background: #89a1b2;
+            color: #0e1621;
+            border-color: #f5f5f5;
+            transform: scale(0.96);
+        }
+
+        /* Повністю однотонна сіра мінімалістична нижня панель навігації */
         .bottom-nav-bar {
             background: #17212b;
             border-top: 1px solid #2b5278;
@@ -488,7 +596,8 @@
             font-family: inherit;
         }
 
-        .nav-item:hover svg, .nav-item:hover small {
+        .nav-item:hover svg, .nav-item:hover small,
+        .nav-item.active svg, .nav-item.active small {
             color: #f5f5f5;
             stroke: #f5f5f5;
         }
@@ -732,9 +841,36 @@
             </button>
             <div style="color: #89a1b2; font-size: 1rem; font-weight: 500; letter-spacing: 0.5px; margin-top: 4px;">Habla</div>
         </main>
+
+        <!-- Екран QR-кодів (активується при натисканні на кнопку QR) -->
+        <div id="qr-screen">
+            <div class="qr-cards-wrapper">
+                <div class="qr-card">
+                    <div class="qr-card-title">Android App</div>
+                    <div class="qr-img-box">
+                        <img id="qr-android-img" src="" alt="Android QR">
+                    </div>
+                    <button class="copy-link-action-btn" id="copy-android-btn">
+                        📋 Copy Link
+                    </button>
+                </div>
+                <div class="qr-card">
+                    <div class="qr-card-title">PC App</div>
+                    <div class="qr-img-box">
+                        <img id="qr-pc-img" src="" alt="PC QR">
+                    </div>
+                    <button class="copy-link-action-btn" id="copy-pc-btn">
+                        📋 Copy Link
+                    </button>
+                </div>
+            </div>
+            <button class="ios-download-btn" id="ios-download-btn">
+                🍎 Download on iOS
+            </button>
+        </div>
     </div>
 
-    <!-- Нижня панель навігації у вигляді точних монохромних векторних іконок як на зразку -->
+    <!-- Нижня панель навігації -->
     <nav class="bottom-nav-bar">
         <button class="nav-item active" id="nav-home" title="Home">
             <svg viewBox="0 0 24 24" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
@@ -916,6 +1052,20 @@
         document.getElementById('app-url-text').textContent = currentAppUrl;
         document.getElementById('qr-code-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(currentAppUrl)}`;
 
+        // Генерація QR-кодів для Android та PC на екрані QR
+        document.getElementById('qr-android-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(currentAppUrl)}`;
+        document.getElementById('qr-pc-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(currentAppUrl)}`;
+
+        document.getElementById('copy-android-btn').addEventListener('click', () => {
+            navigator.clipboard.writeText(currentAppUrl).then(() => alert('Посилання Android скопійовано!'));
+        });
+        document.getElementById('copy-pc-btn').addEventListener('click', () => {
+            navigator.clipboard.writeText(currentAppUrl).then(() => alert('Посилання PC скопійовано!'));
+        });
+        document.getElementById('ios-download-btn').addEventListener('click', () => {
+            navigator.clipboard.writeText(currentAppUrl).then(() => alert('Посилання iOS скопійовано!'));
+        });
+
         document.getElementById('native-share-btn').addEventListener('click', async () => {
             if (navigator.share) {
                 try {
@@ -987,6 +1137,8 @@
         const navQr = document.getElementById('nav-qr');
         const navSettings = document.getElementById('nav-settings');
         const navItems = document.querySelectorAll('.nav-item');
+        const appContainer = document.getElementById('app-container');
+        const qrScreen = document.getElementById('qr-screen');
 
         function setActiveNav(selectedItem) {
             navItems.forEach(item => item.classList.remove('active'));
@@ -995,12 +1147,14 @@
 
         navHome.addEventListener('click', () => {
             setActiveNav(navHome);
+            qrScreen.classList.remove('active');
             sideMenu.classList.remove('open');
             menuOverlay.classList.remove('active');
         });
 
         navContacts.addEventListener('click', () => {
             setActiveNav(navContacts);
+            qrScreen.classList.remove('active');
             showMainPanel();
             sideMenu.classList.add('open');
             menuOverlay.classList.add('active');
@@ -1008,13 +1162,14 @@
 
         navQr.addEventListener('click', () => {
             setActiveNav(navQr);
-            showMainPanel();
-            sideMenu.classList.add('open');
-            menuOverlay.classList.add('active');
+            sideMenu.classList.remove('open');
+            menuOverlay.classList.remove('active');
+            qrScreen.classList.add('active');
         });
 
         navSettings.addEventListener('click', () => {
             setActiveNav(navSettings);
+            qrScreen.classList.remove('active');
             panelMain.classList.remove('active');
             panelSettings.classList.add('active');
             sideMenu.classList.add('open');
@@ -1082,9 +1237,6 @@
             panelMain.classList.remove('active');
             panelAdmin.classList.add('active');
         });
-
-        btnBackFromSettings.addEventListener('click', showMainPanel);
-        btnBackFromAdmin.addEventListener('click', showMainPanel);
 
         menuOverlay.addEventListener('click', () => {
             sideMenu.classList.remove('open');
