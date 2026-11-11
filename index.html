@@ -85,7 +85,7 @@
             width: 100%;
         }
         .lang-select option:disabled {
-            color: #555;
+            color: #666;
             background: #17212b;
         }
 
@@ -421,7 +421,7 @@
                         <option value="Ukrainian">Ukrainian</option>
                         <option value="German">German</option>
                         <option value="French">French</option>
-                        <option value="Russian" disabled>Russian (Unavailable)</option>
+                        <option value="Russian" disabled>Russian</option>
                     </select>
                 </div>
             </div>
@@ -648,13 +648,13 @@
 
         const interfaceLangSelect = document.getElementById('interface-lang');
         let savedInterfaceLang = localStorage.getItem('habla_interface_lang') || getDeviceLanguage();
-        if (savedInterfaceLang === 'Russian') savedInterfaceLang = 'Spanish'; // Захист від випадкового збереження
+        if (savedInterfaceLang === 'Russian') savedInterfaceLang = 'Spanish';
         interfaceLangSelect.value = savedInterfaceLang;
         applyLocalization(savedInterfaceLang);
 
         interfaceLangSelect.addEventListener('change', () => {
             const newLang = interfaceLangSelect.value;
-            if (newLang === 'Russian') return; // Блокування вибору російської
+            if (newLang === 'Russian') return;
             localStorage.setItem('habla_interface_lang', newLang);
             applyLocalization(newLang);
             socket.emit('update-language', newLang);
@@ -963,7 +963,7 @@
             alert('Зовнішній вигляд: Темна неон тема активована.');
         });
         document.getElementById('btn-data-storage').addEventListener('click', () => {
-            alert('Дані та пам'ять: Кеш успішно оптимізовано.');
+            alert('Дані та пам\'ять: Кеш успішно оптимізовано.');
         });
         document.getElementById('btn-help').addEventListener('click', () => {
             alert('Допомога: Habla Mobile 3.0 — голосовий перекладач та месенджер.');
@@ -1116,6 +1116,7 @@
                 delete contactColors[activeContactForModal];
                 delete contactAvatars[activeContactForModal];
                 
+                socket.emit('update-contextual', {}); // fix silent deletion
                 socket.emit('update-customization', {
                     targetName: activeContactForModal,
                     color: '#89a1b2',
