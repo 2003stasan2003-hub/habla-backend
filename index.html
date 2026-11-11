@@ -26,6 +26,24 @@
             -webkit-touch-callout: none;
         }
 
+        /* Індикатор оновлення свайпом (Pull-to-Refresh) */
+        #pull-refresh-indicator {
+            position: fixed;
+            top: -50px;
+            left: 0;
+            width: 100%;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #0e1621;
+            color: #89a1b2;
+            font-size: 0.85rem;
+            z-index: 100;
+            transition: transform 0.2s ease;
+            border-bottom: 1px solid #242f3d;
+        }
+
         .switch {
             position: relative;
             display: inline-block;
@@ -210,7 +228,7 @@
             gap: 20px;
         }
 
-        /* Ледь помітна рамочка для сповіщень зверху (як на макеті) */
+        /* Рамочка для сповіщень з перекладом */
         .notification-overlay-box {
             display: none;
             width: 100%;
@@ -222,7 +240,6 @@
             position: relative;
             box-shadow: 0 4px 20px rgba(0,0,0,0.5);
             margin-bottom: 10px;
-            animation: fadeIn 0.3s ease;
         }
         .notification-overlay-box.active {
             display: flex;
@@ -249,21 +266,10 @@
             justify-content: center;
             transition: color 0.2s;
         }
-        .notification-tts-btn:hover {
-            color: #f5f5f5;
-        }
-        .notification-tts-btn svg {
-            width: 18px;
-            height: 18px;
-            fill: currentColor;
-        }
+        .notification-tts-btn:hover { color: #f5f5f5; }
+        .notification-tts-btn svg { width: 18px; height: 18px; fill: currentColor; }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-6px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Велика кнопка мікрофона з ім'ям всередині */
+        /* Велика кнопка мікрофона (чиста, без Habla за замовчуванням) */
         .neon-mic-btn {
             background: transparent;
             border: 1px solid #89a1b2;
@@ -278,7 +284,7 @@
             transition: transform 0.2s, border-color 0.2s;
             position: relative;
             outline: none;
-            gap: 8px;
+            gap: 6px;
         }
         .neon-mic-btn:active {
             transform: scale(0.96);
@@ -290,18 +296,22 @@
             font-size: 1.05rem;
             font-weight: 600;
             letter-spacing: 0.5px;
+            display: none; /* З'являється тільки при виборі співрозмовника */
+        }
+        .selected-recipient-inside.active {
+            display: block;
         }
 
         .mic-icon-placeholder svg {
             stroke: #89a1b2;
             fill: none;
-            width: 48px;
-            height: 48px;
+            width: 54px;
+            height: 54px;
         }
 
-        /* Екран контактів */
+        /* Повністю адаптований повноноекранний екран контактів для мобільних */
         #contacts-screen {
-            position: absolute;
+            position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             background: #0e1621;
             z-index: 30;
@@ -312,6 +322,7 @@
             padding: 20px;
             gap: 16px;
             overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
         #contacts-screen.active {
             display: flex;
@@ -323,6 +334,7 @@
             display: flex;
             flex-direction: column;
             gap: 16px;
+            margin: auto;
         }
 
         .profile-card-box {
@@ -338,9 +350,7 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
             transition: border-color 0.2s;
         }
-        .profile-card-box:hover {
-            border-color: #f5f5f5;
-        }
+        .profile-card-box:hover { border-color: #f5f5f5; }
 
         .user-avatar-large {
             width: 50px;
@@ -356,24 +366,10 @@
             overflow: hidden;
             border: 2px solid #89a1b2;
         }
+        .user-avatar-large img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
 
-        .user-avatar-large img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 50%;
-        }
-
-        .user-badge {
-            color: #f5f5f5;
-            font-weight: 600;
-            font-size: 1rem;
-        }
-
-        .profile-subtitle {
-            font-size: 0.75rem;
-            color: #89a1b2;
-        }
+        .user-badge { color: #f5f5f5; font-weight: 600; font-size: 1rem; }
+        .profile-subtitle { font-size: 0.75rem; color: #89a1b2; }
 
         .saved-contacts-card {
             background: rgba(23, 33, 43, 0.7);
@@ -385,12 +381,7 @@
             gap: 12px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
-
-        .saved-contacts-title {
-            font-size: 0.85rem;
-            color: #89a1b2;
-            font-weight: 500;
-        }
+        .saved-contacts-title { font-size: 0.85rem; color: #89a1b2; font-weight: 500; }
 
         .contacts-grid {
             display: grid;
@@ -409,9 +400,7 @@
             cursor: pointer;
             transition: transform 0.2s;
         }
-        .contact-grid-item:hover {
-            transform: scale(1.05);
-        }
+        .contact-grid-item:hover { transform: scale(1.05); }
 
         .contact-grid-avatar {
             width: 44px;
@@ -427,31 +416,11 @@
             justify-content: center;
             overflow: hidden;
         }
-        .contact-grid-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 50%;
-        }
+        .contact-grid-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+        .contact-grid-name { font-size: 0.7rem; color: #89a1b2; text-align: center; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-        .contact-grid-name {
-            font-size: 0.7rem;
-            color: #89a1b2;
-            text-align: center;
-            width: 100%;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .contact-grid-item.active .contact-grid-avatar {
-            border-color: #f5f5f5;
-            box-shadow: 0 0 8px rgba(137, 161, 178, 0.5);
-        }
-        .contact-grid-item.active .contact-grid-name {
-            color: #f5f5f5;
-            font-weight: bold;
-        }
+        .contact-grid-item.active .contact-grid-avatar { border-color: #f5f5f5; box-shadow: 0 0 8px rgba(137, 161, 178, 0.5); }
+        .contact-grid-item.active .contact-grid-name { color: #f5f5f5; font-weight: bold; }
 
         .contacts-bottom-actions {
             display: flex;
@@ -462,53 +431,16 @@
             border-radius: 14px;
             padding: 10px;
         }
+        .action-icon-btn { background: none; border: none; color: #89a1b2; font-size: 1.2rem; cursor: pointer; padding: 6px; border-radius: 8px; transition: color 0.2s, background 0.2s; }
+        .action-icon-btn:hover { color: #f5f5f5; background: #242f3d; }
 
-        .action-icon-btn {
-            background: none;
-            border: none;
-            color: #89a1b2;
-            font-size: 1.2rem;
-            cursor: pointer;
-            padding: 6px;
-            border-radius: 8px;
-            transition: color 0.2s, background 0.2s;
-        }
-        .action-icon-btn:hover {
-            color: #f5f5f5;
-            background: #242f3d;
-        }
-
-        .add-contact-box {
-            display: flex;
-            gap: 6px;
-            margin-top: 4px;
-        }
-
-        .add-contact-input {
-            flex: 1;
-            background: #242f3d;
-            border: 1px solid #2b5278;
-            color: #fff;
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            outline: none;
-        }
-
-        .add-contact-btn {
-            background: #2b5278;
-            color: #fff;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 0.85rem;
-        }
+        .add-contact-box { display: flex; gap: 6px; margin-top: 4px; }
+        .add-contact-input { flex: 1; background: #242f3d; border: 1px solid #2b5278; color: #fff; padding: 8px 12px; border-radius: 8px; font-size: 0.85rem; outline: none; }
+        .add-contact-btn { background: #2b5278; color: #fff; border: none; padding: 8px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85rem; }
 
         /* Екран QR-кодів */
         #qr-screen {
-            position: absolute;
+            position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             background: #0e1621;
             z-index: 30;
@@ -520,102 +452,22 @@
             gap: 20px;
             overflow-y: auto;
         }
-        #qr-screen.active {
-            display: flex;
-        }
+        #qr-screen.active { display: flex; }
 
-        .qr-cards-wrapper {
-            display: flex;
-            gap: 16px;
-            width: 100%;
-            max-width: 400px;
-            justify-content: center;
-        }
+        .qr-cards-wrapper { display: flex; gap: 16px; width: 100%; max-width: 400px; justify-content: center; }
+        .qr-card { flex: 1; background: rgba(23, 33, 43, 0.7); border: 1px solid #89a1b2; border-radius: 16px; padding: 16px 12px; display: flex; flex-direction: column; align-items: center; gap: 12px; box-shadow: 0 6px 20px rgba(0,0,0,0.4); }
+        .qr-card-title { color: #f5f5f5; font-size: 1rem; font-weight: 600; }
+        .qr-img-box { background: #ffffff; padding: 6px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+        .qr-img-box img { width: 100px; height: 100px; display: block; }
+        .copy-link-action-btn { background: transparent; border: 1px solid #89a1b2; color: #89a1b2; padding: 8px 12px; border-radius: 10px; font-size: 0.8rem; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; width: 100%; justify-content: center; transition: background 0.2s, color 0.2s; }
+        .copy-link-action-btn:hover { background: #89a1b2; color: #0e1621; }
 
-        .qr-card {
-            flex: 1;
-            background: rgba(23, 33, 43, 0.7);
-            border: 1px solid #89a1b2;
-            border-radius: 16px;
-            padding: 16px 12px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 12px;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.4);
-        }
-
-        .qr-card-title {
-            color: #f5f5f5;
-            font-size: 1rem;
-            font-weight: 600;
-        }
-
-        .qr-img-box {
-            background: #ffffff;
-            padding: 6px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .qr-img-box img {
-            width: 100px;
-            height: 100px;
-            display: block;
-        }
-
-        .copy-link-action-btn {
-            background: transparent;
-            border: 1px solid #89a1b2;
-            color: #89a1b2;
-            padding: 8px 12px;
-            border-radius: 10px;
-            font-size: 0.8rem;
-            font-weight: 500;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            transition: background 0.2s, color 0.2s, border-color 0.2s;
-            width: 100%;
-            justify-content: center;
-        }
-        .copy-link-action-btn:hover {
-            background: #89a1b2;
-            color: #0e1621;
-            border-color: #f5f5f5;
-        }
-
-        .ios-download-btn {
-            background: transparent;
-            border: 1px solid #89a1b2;
-            color: #89a1b2;
-            padding: 12px 24px;
-            border-radius: 30px;
-            font-size: 0.95rem;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            transition: background 0.2s, color 0.2s, border-color 0.2s, transform 0.2s;
-            max-width: 320px;
-            width: 90%;
-            justify-content: center;
-            margin-top: 4px;
-        }
-        .ios-download-btn:hover, .ios-download-btn:active {
-            background: #89a1b2;
-            color: #0e1621;
-            border-color: #f5f5f5;
-            transform: scale(0.96);
-        }
+        .ios-download-btn { background: transparent; border: 1px solid #89a1b2; color: #89a1b2; padding: 12px 24px; border-radius: 30px; font-size: 0.95rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 10px; max-width: 320px; width: 90%; justify-content: center; margin-top: 4px; transition: background 0.2s, color 0.2s; }
+        .ios-download-btn:hover { background: #89a1b2; color: #0e1621; }
 
         /* Екран Налаштувань */
         #settings-screen {
-            position: absolute;
+            position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             background: #0e1621;
             z-index: 30;
@@ -627,86 +479,21 @@
             max-width: 480px;
             margin: 0 auto;
         }
-        #settings-screen.active {
-            display: flex;
-        }
+        #settings-screen.active { display: flex; }
 
-        .settings-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #242f3d;
-            padding-bottom: 12px;
-            font-weight: bold;
-            color: #89a1b2;
-            font-size: 1.1rem;
-        }
+        .settings-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #242f3d; padding-bottom: 12px; font-weight: bold; color: #89a1b2; font-size: 1.1rem; }
+        .settings-card { background: rgba(23, 33, 43, 0.7); border: 1px solid #89a1b2; border-radius: 14px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        .settings-row { display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding: 8px 0; color: #f5f5f5; font-size: 0.95rem; }
+        .settings-row:hover { color: #89a1b2; }
 
-        .settings-card {
-            background: rgba(23, 33, 43, 0.7);
-            border: 1px solid #89a1b2;
-            border-radius: 14px;
-            padding: 14px 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        }
+        .dropdown-arrow { font-size: 0.8rem; color: #89a1b2; transition: transform 0.2s; }
+        .dropdown-arrow.open { transform: rotate(180deg); }
 
-        .settings-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            padding: 8px 0;
-            color: #f5f5f5;
-            font-size: 0.95rem;
-        }
-        .settings-row:hover {
-            color: #89a1b2;
-        }
+        .sub-options-box { display: none; flex-direction: column; gap: 8px; padding-top: 6px; border-top: 1px solid #242f3d; }
+        .sub-options-box.active { display: flex; }
 
-        .dropdown-arrow {
-            font-size: 0.8rem;
-            color: #89a1b2;
-            transition: transform 0.2s;
-        }
-        .dropdown-arrow.open {
-            transform: rotate(180deg);
-        }
-
-        .sub-options-box {
-            display: none;
-            flex-direction: column;
-            gap: 8px;
-            padding-top: 6px;
-            border-top: 1px solid #242f3d;
-        }
-        .sub-options-box.active {
-            display: flex;
-        }
-
-        .sidebar-nav-btn {
-            background: #242f3d;
-            border: 1px solid #2b5278;
-            color: #f5f5f5;
-            padding: 12px 16px;
-            border-radius: 10px;
-            font-size: 0.95rem;
-            font-weight: 500;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            transition: background 0.2s, border-color 0.2s, color 0.2s;
-            width: 100%;
-            justify-content: center;
-        }
-        .sidebar-nav-btn:hover {
-            background: #2b5278;
-            border-color: #89a1b2;
-            color: #89a1b2;
-        }
+        .sidebar-nav-btn { background: #242f3d; border: 1px solid #2b5278; color: #f5f5f5; padding: 12px 16px; border-radius: 10px; font-size: 0.95rem; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 12px; width: 100%; justify-content: center; transition: background 0.2s; }
+        .sidebar-nav-btn:hover { background: #2b5278; color: #89a1b2; }
 
         /* Нижня панель навігації */
         .bottom-nav-bar {
@@ -722,42 +509,16 @@
             padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
         }
 
-        .nav-item {
-            background: none;
-            border: none;
-            color: #89a1b2;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-            cursor: pointer;
-            padding: 6px 16px;
-            border-radius: 8px;
-            transition: color 0.2s;
-        }
-
-        .nav-item svg {
-            width: 24px;
-            height: 24px;
-            stroke: #89a1b2;
-            fill: none;
-        }
-
-        .nav-item small {
-            font-size: 0.75rem;
-            font-weight: 500;
-            color: #89a1b2;
-            font-family: inherit;
-        }
-
-        .nav-item:hover svg, .nav-item:hover small,
-        .nav-item.active svg, .nav-item.active small {
-            color: #f5f5f5;
-            stroke: #f5f5f5;
-        }
+        .nav-item { background: none; border: none; color: #89a1b2; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; padding: 6px 16px; border-radius: 8px; transition: color 0.2s; }
+        .nav-item svg { width: 24px; height: 24px; stroke: #89a1b2; fill: none; }
+        .nav-item small { font-size: 0.75rem; font-weight: 500; color: #89a1b2; font-family: inherit; }
+        .nav-item:hover svg, .nav-item:hover small, .nav-item.active svg, .nav-item.active small { color: #f5f5f5; stroke: #f5f5f5; }
     </style>
 </head>
 <body>
+
+    <!-- Індикатор оновлення свайпом -->
+    <div id="pull-refresh-indicator">🔄 Потягніть, щоб оновити...</div>
 
     <div id="menu-overlay" class="menu-overlay"></div>
 
@@ -785,7 +546,6 @@
     <div id="app-container">
         <!-- Головний екран -->
         <main class="main-screen">
-            <!-- Рамочка для сповіщень з перекладом і кнопкою динаміка -->
             <div id="notification-box" class="notification-overlay-box">
                 <div id="notification-text" class="notification-text"></div>
                 <button id="notification-tts-btn" class="notification-tts-btn" title="Прослухати">
@@ -793,9 +553,9 @@
                 </button>
             </div>
 
-            <!-- Велика кнопка мікрофона з ім'ям всередині -->
+            <!-- Велика чиста кнопка мікрофона (ім'я з'являється всередині тільки при виборі) -->
             <button id="mic-button" class="neon-mic-btn" title="Натисніть для запису голосу">
-                <div id="selected-recipient-display" class="selected-recipient-inside">Habla</div>
+                <div id="selected-recipient-display" class="selected-recipient-inside"></div>
                 <div class="mic-icon-placeholder">
                     <svg viewBox="0 0 24 24" stroke="#89a1b2" stroke-width="2" fill="none"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v1a7 7 0 0 1-14 0v-1"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
                 </div>
@@ -815,9 +575,7 @@
 
                 <div class="saved-contacts-card">
                     <div class="saved-contacts-title" id="label-saved-contacts">Збережені контакти</div>
-                    <div class="contacts-grid" id="contacts-grid-container">
-                        <!-- Контакти заповнюються автоматично -->
-                    </div>
+                    <div class="contacts-grid" id="contacts-grid-container"></div>
                 </div>
 
                 <div class="contacts-bottom-actions">
@@ -838,26 +596,16 @@
             <div class="qr-cards-wrapper">
                 <div class="qr-card">
                     <div class="qr-card-title">Android App</div>
-                    <div class="qr-img-box">
-                        <img id="qr-android-img" src="" alt="Android QR">
-                    </div>
-                    <button class="copy-link-action-btn" id="copy-android-btn">
-                        📋 Copy Link
-                    </button>
+                    <div class="qr-img-box"><img id="qr-android-img" src="" alt="Android QR"></div>
+                    <button class="copy-link-action-btn" id="copy-android-btn">📋 Copy Link</button>
                 </div>
                 <div class="qr-card">
                     <div class="qr-card-title">PC App</div>
-                    <div class="qr-img-box">
-                        <img id="qr-pc-img" src="" alt="PC QR">
-                    </div>
-                    <button class="copy-link-action-btn" id="copy-pc-btn">
-                        📋 Copy Link
-                    </button>
+                    <div class="qr-img-box"><img id="qr-pc-img" src="" alt="PC QR"></div>
+                    <button class="copy-link-action-btn" id="copy-pc-btn">📋 Copy Link</button>
                 </div>
             </div>
-            <button class="ios-download-btn" id="ios-download-btn">
-                🍎 Download on iOS
-            </button>
+            <button class="ios-download-btn" id="ios-download-btn">🍎 Download on iOS</button>
         </div>
 
         <!-- Екран Налаштувань -->
@@ -868,9 +616,7 @@
             </div>
 
             <div class="settings-card">
-                <button id="update-app-btn" class="sidebar-nav-btn">
-                    🔄 Оновлення програми
-                </button>
+                <button id="update-app-btn" class="sidebar-nav-btn">🔄 Оновлення програми</button>
             </div>
 
             <div class="settings-card">
@@ -906,21 +652,13 @@
             </div>
 
             <div class="settings-card" style="gap: 8px;">
-                <div class="settings-row" id="btn-appearance" style="padding: 4px 0;">
-                    <span>🎨 Зовнішній вигляд</span>
-                </div>
-                <div class="settings-row" id="btn-data-storage" style="padding: 4px 0; border-top: 1px solid #242f3d; margin-top: 4px;">
-                    <span>💾 Дані та пам'ять</span>
-                </div>
-                <div class="settings-row" id="btn-help" style="padding: 4px 0; border-top: 1px solid #242f3d; margin-top: 4px;">
-                    <span>❓ Допомога</span>
-                </div>
+                <div class="settings-row" id="btn-appearance" style="padding: 4px 0;"><span>🎨 Зовнішній вигляд</span></div>
+                <div class="settings-row" id="btn-data-storage" style="padding: 4px 0; border-top: 1px solid #242f3d; margin-top: 4px;"><span>💾 Дані та пам'ять</span></div>
+                <div class="settings-row" id="btn-help" style="padding: 4px 0; border-top: 1px solid #242f3d; margin-top: 4px;"><span>❓ Допомога</span></div>
             </div>
             
             <div class="settings-card">
-                <button id="reset-user-btn" class="sidebar-nav-btn" style="background: rgba(255, 59, 48, 0.15); border-color: #ff3b30; color: #ff3b30;">
-                    🔄 Змінити нікнейм
-                </button>
+                <button id="reset-user-btn" class="sidebar-nav-btn" style="background: rgba(255, 59, 48, 0.15); border-color: #ff3b30; color: #ff3b30;">🔄 Змінити нікнейм</button>
             </div>
         </div>
     </div>
@@ -1078,6 +816,7 @@
                 itemDiv.addEventListener('click', () => {
                     selectedRecipientName = name;
                     selectedRecipientDisplay.textContent = name;
+                    selectedRecipientDisplay.classList.add('active');
                     contactsScreen.classList.remove('active');
                     setActiveNav(navHome);
                     renderContactsGrid(lastUsersData);
@@ -1162,6 +901,50 @@
         notificationTtsBtn.addEventListener('click', () => {
             if (lastReceivedText) {
                 speakText(lastReceivedText);
+            }
+        });
+
+        // Pull-to-Refresh жести (оживлення оновлення свайпом)
+        let touchStartY = 0;
+        const refreshIndicator = document.getElementById('pull-refresh-indicator');
+
+        window.addEventListener('touchstart', (e) => {
+            if (window.scrollY === 0) {
+                touchStartY = e.touches[0].clientY;
+            }
+        }, { passive: true });
+
+        window.addEventListener('touchmove', (e) => {
+            if (touchStartY > 0) {
+                const currentY = e.touches[0].clientY;
+                const diff = currentY - touchStartY;
+                if (diff > 0 && diff < 120) {
+                    refreshIndicator.style.transform = `translateY(${diff}px)`;
+                }
+            }
+        }, { passive: true });
+
+        window.addEventListener('touchend', async (e) => {
+            if (touchStartY > 0) {
+                const endY = e.changedTouches[0].clientY;
+                if (endY - touchStartY > 80) {
+                    refreshIndicator.textContent = '⏳ Оновлення програми...';
+                    refreshIndicator.style.transform = `translateY(50px)`;
+                    try {
+                        if ('serviceWorker' in navigator) {
+                            const reg = await navigator.serviceWorker.getRegistration();
+                            if (reg) await reg.update();
+                        }
+                        if ('caches' in window) {
+                            const keys = await caches.keys();
+                            await Promise.all(keys.map(k => caches.delete(k)));
+                        }
+                    } catch (err) {}
+                    setTimeout(() => window.location.reload(true), 400);
+                } else {
+                    refreshIndicator.style.transform = `translateY(0px)`;
+                }
+                touchStartY = 0;
             }
         });
 
