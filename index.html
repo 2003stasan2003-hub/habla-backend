@@ -188,32 +188,37 @@
             color: #89a1b2;
         }
 
-        .user-badge-container {
+        /* Стиль картки профілю */
+        .profile-card-box {
+            background: rgba(23, 33, 43, 0.7);
+            border: 1px solid #89a1b2;
+            border-radius: 16px;
+            padding: 16px;
             display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 12px;
-            background: #242f3d;
-            padding: 10px 14px;
-            border-radius: 10px;
+            gap: 8px;
             cursor: pointer;
-            border: 1px solid transparent;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
             transition: border-color 0.2s;
         }
-        .user-badge-container:hover {
-            border-color: #89a1b2;
+        .profile-card-box:hover {
+            border-color: #f5f5f5;
         }
 
         .user-avatar-large {
-            width: 40px;
-            height: 40px;
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
             background: linear-gradient(135deg, #89a1b2 0%, #2b5278 100%);
             color: #0e1621;
             font-weight: bold;
+            font-size: 1.2rem;
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
+            border: 2px solid #89a1b2;
         }
 
         .user-avatar-large img {
@@ -229,9 +234,119 @@
             font-size: 1rem;
         }
 
+        .profile-subtitle {
+            font-size: 0.75rem;
+            color: #89a1b2;
+        }
+
+        /* Сітка реальних збережених контактів */
+        .saved-contacts-card {
+            background: rgba(23, 33, 43, 0.7);
+            border: 1px solid #89a1b2;
+            border-radius: 16px;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .saved-contacts-title {
+            font-size: 0.85rem;
+            color: #89a1b2;
+            font-weight: 500;
+        }
+
+        .contacts-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            max-height: 220px;
+            overflow-y: auto;
+            padding-right: 2px;
+        }
+
+        .contact-grid-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .contact-grid-item:hover {
+            transform: scale(1.05);
+        }
+
+        .contact-grid-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: #242f3d;
+            border: 1px solid #89a1b2;
+            color: #f5f5f5;
+            font-weight: bold;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .contact-grid-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .contact-grid-name {
+            font-size: 0.7rem;
+            color: #89a1b2;
+            text-align: center;
+            width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .contact-grid-item.active .contact-grid-avatar {
+            border-color: #f5f5f5;
+            box-shadow: 0 0 8px rgba(137, 161, 178, 0.5);
+        }
+        .contact-grid-item.active .contact-grid-name {
+            color: #f5f5f5;
+            font-weight: bold;
+        }
+
+        /* Нижня панель дій у сайдбарі */
+        .sidebar-bottom-actions {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            border-top: 1px solid #242f3d;
+            padding-top: 12px;
+            margin-top: 4px;
+        }
+
+        .action-icon-btn {
+            background: none;
+            border: none;
+            color: #89a1b2;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 8px;
+            transition: color 0.2s, background 0.2s;
+        }
+        .action-icon-btn:hover {
+            color: #f5f5f5;
+            background: #242f3d;
+        }
+
         .add-contact-box {
             display: flex;
             gap: 6px;
+            margin-top: 4px;
         }
 
         .add-contact-input {
@@ -402,22 +517,16 @@
             gap: 20px;
         }
 
-        /* Верхній інформаційний блок */
-        .info-card {
-            background: rgba(23, 33, 43, 0.7);
-            border: 1px solid #2b5278;
-            border-radius: 12px;
-            padding: 14px 18px;
-            width: 90%;
-            max-width: 340px;
-            text-align: center;
-            font-size: 0.85rem;
+        /* Ім'я обраного співрозмовника над кнопкою мікрофона */
+        .selected-recipient-label {
             color: #89a1b2;
-            line-height: 1.4;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            font-size: 1rem;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            margin-bottom: -4px;
         }
 
-        /* Велика кнопка мікрофона з тонким сірим обведенням без тексту всередині */
+        /* Велика кнопка мікрофона */
         .neon-mic-btn {
             background: transparent;
             border: 1px solid #89a1b2;
@@ -438,7 +547,6 @@
             border-color: #f5f5f5;
         }
 
-        /* Збільшений розмір іконки мікрофона всередині кнопки */
         .mic-icon-placeholder svg {
             stroke: #89a1b2;
             fill: none;
@@ -446,7 +554,7 @@
             height: 72px;
         }
 
-        /* Екран QR-кодів (прихований за замовчуванням, відкривається по кліку на QR) */
+        /* Екран QR-кодів */
         #qr-screen {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -528,7 +636,6 @@
             border-color: #f5f5f5;
         }
 
-        /* Оновлена кнопка iOS без неону, в єдиних сірих тонах */
         .ios-download-btn {
             background: transparent;
             border: 1px solid #89a1b2;
@@ -554,7 +661,7 @@
             transform: scale(0.96);
         }
 
-        /* Повністю однотонна сіра мінімалістична нижня панель навігації */
+        /* Нижня панель навігації */
         .bottom-nav-bar {
             background: #17212b;
             border-top: 1px solid #2b5278;
@@ -601,69 +708,6 @@
             color: #f5f5f5;
             stroke: #f5f5f5;
         }
-
-        #chat-messages {
-            flex: 1;
-            overflow-y: auto;
-            padding: 16px;
-            display: none;
-            flex-direction: column;
-            gap: 12px;
-            background: #0e1621;
-        }
-
-        .message {
-            max-width: 80%;
-            padding: 10px 14px;
-            border-radius: 12px;
-            font-size: 0.95rem;
-            line-height: 1.4;
-            word-break: break-word;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-            position: relative;
-        }
-
-        .message.incoming {
-            background: #182533;
-            color: #f5f5f5;
-            align-self: flex-start;
-            border-left: 3px solid #2b5278;
-        }
-
-        .message.outgoing {
-            background: #2b5278;
-            color: #fff;
-            align-self: flex-end;
-            border-right: 3px solid #89a1b2;
-        }
-
-        .message.private {
-            border: 1px dashed #89a1b2;
-        }
-
-        .message .author {
-            font-size: 0.75rem;
-            color: #89a1b2;
-            margin-bottom: 4px;
-            font-weight: 600;
-        }
-
-        .msg-footer {
-            display: flex;
-            justify-content: flex-end;
-            margin-top: 4px;
-        }
-
-        .speak-btn {
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 0.85rem;
-            opacity: 0.7;
-            transition: opacity 0.2s;
-            padding: 2px 4px;
-        }
-        .speak-btn:hover { opacity: 1; }
     </style>
 </head>
 <body>
@@ -695,7 +739,7 @@
         <button id="modal-delete-btn" class="modal-btn-delete">🗑 Видалити контакт</button>
     </div>
 
-    <!-- Сайдбар (меню) -->
+    <!-- Сайдбар Contacts -->
     <div id="side-menu" class="side-menu">
         
         <div id="panel-main" class="sidebar-panel active">
@@ -704,45 +748,35 @@
                 <button id="close-menu-btn" class="close-menu-btn">✕</button>
             </div>
 
-            <div class="menu-section">
-                <label id="label-profile">Ваш профіль</label>
-                <div id="profile-settings-trigger" class="user-badge-container" title="Натисніть або клацніть правою кнопкою, щоб змінити стиль">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <div id="user-avatar-large" class="user-avatar-large">G</div>
-                        <div id="user-display" class="user-badge">Invitado</div>
-                    </div>
+            <!-- Блок профілю користувача -->
+            <div id="profile-settings-trigger" class="profile-card-box" title="Натисніть, щоб змінити налаштування профілю">
+                <div id="user-avatar-large" class="user-avatar-large">G</div>
+                <div style="text-align: center;">
+                    <div id="user-display" class="user-badge">Invitado</div>
+                    <div class="profile-subtitle">Profile Settings</div>
                 </div>
             </div>
 
-            <div class="menu-section">
-                <label id="label-share-app">Поділитися додатком</label>
-                <div style="background: #242f3d; padding: 10px; border-radius: 8px; border: 1px solid #2b5278; display: flex; flex-direction: column; gap: 8px; align-items: center; text-align: center;">
-                    <img id="qr-code-img" src="" alt="QR Code" style="width: 90px; height: 90px; background: #fff; padding: 4px; border-radius: 6px;">
-                    <div id="app-url-text" style="font-size: 0.75rem; color: #89a1b2; word-break: break-all;">---</div>
-                    <button id="native-share-btn" style="background: #2b5278; color: #fff; border: none; padding: 7px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.8rem; width: 100%;">
-                        📤 Поділитися
-                    </button>
-                    <button id="copy-link-btn" style="background: #17212b; color: #89a1b2; border: 1px solid #2b5278; padding: 5px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.8rem; width: 100%;">
-                        📋 Копіювати посилання
-                    </button>
+            <!-- Збережені контакти (Saved Contacts) із реальними співрозмовниками -->
+            <div class="saved-contacts-card">
+                <div class="saved-contacts-title" id="label-saved-contacts">Saved Contacts</div>
+                <div class="contacts-grid" id="contacts-grid-container">
+                    <!-- Заповнюється вашими реальними контактами -->
                 </div>
             </div>
 
-            <div class="menu-section">
-                <label id="label-online-users">Контакти</label>
-                <div class="add-contact-box">
-                    <input type="text" id="new-contact-input" class="add-contact-input" placeholder="Додати за ніком...">
-                    <button id="add-contact-btn" class="add-contact-btn">Додати</button>
-                </div>
+            <!-- Нижня панель дій у сайдбарі -->
+            <div class="sidebar-bottom-actions">
+                <button class="action-icon-btn" id="sidebar-add-btn" title="Додати контакт">➕</button>
+                <button class="action-icon-btn" id="sidebar-settings-btn" title="Налаштування">⚙️</button>
+                <button class="action-icon-btn" id="sidebar-call-btn" title="Зв'язок">📞</button>
             </div>
 
-            <button id="btn-open-settings" class="sidebar-nav-btn">
-                <span>⚙️</span> Налаштування
-            </button>
-
-            <button id="btn-open-admin" class="sidebar-nav-btn" style="display: none;">
-                <span>🔑</span> Панель Адміна (Groq)
-            </button>
+            <!-- Додавання контакту -->
+            <div class="add-contact-box" id="add-contact-box" style="display: none;">
+                <input type="text" id="new-contact-input" class="add-contact-input" placeholder="Додати за ніком...">
+                <button id="add-contact-btn" class="add-contact-btn">Додати</button>
+            </div>
         </div>
 
         <div id="panel-settings" class="sidebar-panel">
@@ -831,18 +865,18 @@
     <!-- Головний екран -->
     <div id="app-container">
         <main class="main-screen">
-            <div class="info-card">
-                Sine elementos vo man sapania la tecnica a ya lo denación. Solitando. tto. Налаштувати профіль
-            </div>
+            <div class="info-card" style="display:none;"></div>
+            <!-- Ім'я обраного співрозмовника над кнопкою -->
+            <div id="selected-recipient-display" class="selected-recipient-label">Habla</div>
+            
             <button id="mic-button" class="neon-mic-btn">
                 <div class="mic-icon-placeholder">
                     <svg viewBox="0 0 24 24" stroke="#89a1b2" stroke-width="2" fill="none"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v1a7 7 0 0 1-14 0v-1"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
                 </div>
             </button>
-            <div style="color: #89a1b2; font-size: 1rem; font-weight: 500; letter-spacing: 0.5px; margin-top: 4px;">Habla</div>
         </main>
 
-        <!-- Екран QR-кодів (активується при натисканні на кнопку QR) -->
+        <!-- Екран QR-кодів -->
         <div id="qr-screen">
             <div class="qr-cards-wrapper">
                 <div class="qr-card">
@@ -890,8 +924,6 @@
         </button>
     </nav>
 
-    <div id="chat-messages"></div>
-
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
@@ -904,7 +936,7 @@
         const socket = io();
 
         let selectedRecipientName = null;
-        let recentContactsOrder = JSON.parse(localStorage.getItem('habla_recent_contacts') || '[]');
+        let recentContactsOrder = JSON.parse(localStorage.getItem('habla_recent_contacts') || '["Максим", "Стасан", "notebook", "Марина"]');
         let localAddedContacts = JSON.parse(localStorage.getItem('habla_local_contacts') || '[]');
         let contactColors = JSON.parse(localStorage.getItem('habla_contact_colors') || '{}');
         let contactAvatars = JSON.parse(localStorage.getItem('habla_contact_avatars') || '{}');
@@ -921,6 +953,7 @@
             localStorage.setItem('habla_contact_colors', JSON.stringify(contactColors));
             localStorage.setItem('habla_contact_avatars', JSON.stringify(contactAvatars));
             updateProfileDisplay();
+            renderContactsGrid();
         });
 
         function getDeviceLanguage() {
@@ -934,7 +967,7 @@
 
         let username = localStorage.getItem('habla_username');
         if (!username) {
-            username = prompt("Introduce tu apodo / Introduce your nickname:") || "Invitado";
+            username = prompt("Introduce tu apodo / Introduce your nickname:") || "Стасан";
             username = username.trim();
             localStorage.setItem('habla_username', username);
         }
@@ -999,6 +1032,7 @@
 
         const userDisplay = document.getElementById('user-display');
         const userAvatarLarge = document.getElementById('user-avatar-large');
+        const selectedRecipientDisplay = document.getElementById('selected-recipient-display');
 
         function updateProfileDisplay() {
             userDisplay.textContent = username;
@@ -1013,6 +1047,64 @@
                 userAvatarLarge.style.background = customColor;
                 userAvatarLarge.style.color = '#0e1621';
             }
+        }
+
+        // Рендеринг сітки реальних контактів у сайдбарі
+        const contactsGridContainer = document.getElementById('contacts-grid-container');
+
+        function renderContactsGrid(onlineUsers = []) {
+            contactsGridContainer.innerHTML = '';
+            
+            let allContactsSet = new Set([...recentContactsOrder, ...localAddedContacts, ...onlineUsers]);
+            if (username) allContactsSet.delete(username);
+            let contactsList = Array.from(allContactsSet);
+
+            if (contactsList.length === 0) {
+                contactsList = ["Максим", "Стасан", "notebook", "Марина"];
+            }
+
+            contactsList.forEach(name => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'contact-grid-item';
+                if (selectedRecipientName === name) {
+                    itemDiv.classList.add('active');
+                }
+
+                const avatarDiv = document.createElement('div');
+                avatarDiv.className = 'contact-grid-avatar';
+                const customColor = contactColors[name] || '#2b5278';
+                const customAvatarUrl = contactAvatars[name];
+
+                if (customAvatarUrl) {
+                    avatarDiv.innerHTML = `<img src="${escapeHtml(customAvatarUrl)}" alt="">`;
+                } else {
+                    avatarDiv.textContent = name.charAt(0).toUpperCase();
+                    avatarDiv.style.background = customColor;
+                }
+
+                const nameDiv = document.createElement('div');
+                nameDiv.className = 'contact-grid-name';
+                nameDiv.textContent = name;
+
+                itemDiv.appendChild(avatarDiv);
+                itemDiv.appendChild(nameDiv);
+
+                // Вибір контакту — ім'я з'являється над кнопкою мікрофона
+                itemDiv.addEventListener('click', () => {
+                    selectedRecipientName = name;
+                    selectedRecipientDisplay.textContent = name;
+                    sideMenu.classList.remove('open');
+                    menuOverlay.classList.remove('active');
+                    renderContactsGrid(lastUsersData);
+                });
+
+                itemDiv.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                    triggerSettings(name, e);
+                });
+
+                contactsGridContainer.appendChild(itemDiv);
+            });
         }
 
         document.getElementById('reset-user-btn').addEventListener('click', () => {
@@ -1049,10 +1141,6 @@
         }
 
         const currentAppUrl = window.location.origin;
-        document.getElementById('app-url-text').textContent = currentAppUrl;
-        document.getElementById('qr-code-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(currentAppUrl)}`;
-
-        // Генерація QR-кодів для Android та PC на екрані QR
         document.getElementById('qr-android-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(currentAppUrl)}`;
         document.getElementById('qr-pc-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(currentAppUrl)}`;
 
@@ -1066,64 +1154,19 @@
             navigator.clipboard.writeText(currentAppUrl).then(() => alert('Посилання iOS скопійовано!'));
         });
 
-        document.getElementById('native-share-btn').addEventListener('click', async () => {
-            if (navigator.share) {
-                try {
-                    await navigator.share({ title: 'Habla Mobile 3.0', url: currentAppUrl });
-                } catch (err) { console.log(err); }
-            } else {
-                navigator.clipboard.writeText(currentAppUrl);
-                alert('Посилання скопійовано!');
-            }
-        });
-
-        document.getElementById('copy-link-btn').addEventListener('click', () => {
-            navigator.clipboard.writeText(currentAppUrl).then(() => alert('Посилання скопійовано!'));
-        });
-
-        let availableVoices = [];
-        function populateVoiceList() {
-            if (typeof speechSynthesis === 'undefined') return;
-            availableVoices = speechSynthesis.getVoices();
-        }
-        populateVoiceList();
-        if (typeof speechSynthesis !== 'undefined' && speechSynthesis.onvoiceschanged !== undefined) {
-            speechSynthesis.onvoiceschanged = populateVoiceList;
-        }
-
-        const ttsLangMap = { 'Ukrainian': 'uk-UA', 'English': 'en-US', 'Spanish': 'es-ES', 'German': 'de-DE', 'French': 'fr-FR' };
-
-        function speakText(textToSpeech) {
-            if (!('speechSynthesis' in window)) return;
-            const utterance = new SpeechSynthesisUtterance(textToSpeech);
-            const activeLang = forceTranslateToggle.checked ? targetLangSelect.value : interfaceLangSelect.value;
-            const selectedLangCode = ttsLangMap[activeLang] || 'es-ES';
-            utterance.lang = selectedLangCode;
-            window.speechSynthesis.cancel();
-            window.speechSynthesis.speak(utterance);
-        }
-
-        const translations = {
-            Spanish: { settings: "Configuración", profile: "Tu perfil", onlineUsersTitle: "Contactos", interfaceLang: "Idioma de la interfaz", voiceOver: "Locución de traducción", enableSound: "Activar sonido", apiStatus: "Estado API Groq", shareApp: "Compartir App", nativeShare: "📤 Поділитися", copyLink: "📋 Copiar enlace", addPlaceholder: "Додати за ніком...", addBtn: "Додати", adminPanel: "Панель Адміністратора", forceTranslate: "Примусовий переклад", enableForce: "Увімкнути переклад" },
-            English: { settings: "Settings", profile: "Your profile", onlineUsersTitle: "Contacts", interfaceLang: "Interface language", voiceOver: "Translation voiceover", enableSound: "Enable sound", apiStatus: "Groq API Status", shareApp: "Share App", nativeShare: "📤 Поділитися", copyLink: "📋 Copy Link", addPlaceholder: "Додати за ніком...", addBtn: "Додати", adminPanel: "Admin Panel", forceTranslate: "Forced translation", enableForce: "Enable translation" },
-            Ukrainian: { settings: "Налаштування", profile: "Ваш профіль", onlineUsersTitle: "Контакти", interfaceLang: "Мова інтерфейсу", voiceOver: "Озвучування перекладу", enableSound: "Увімкнути звук", apiStatus: "Статус API Groq", shareApp: "Поділитися додатком", nativeShare: "📤 Поділитися", copyLink: "📋 Копіювати посилання", addPlaceholder: "Додати за ніком...", addBtn: "Додати", adminPanel: "Панель Адміністратора", forceTranslate: "Примусовий переклад", enableForce: "Увімкнути переклад" },
-            German: { settings: "Einstellungen", profile: "Ihr Profil", onlineUsersTitle: "Kontakte", interfaceLang: "Sprache", voiceOver: "Sprachausgabe", enableSound: "Ton", apiStatus: "API-Status", shareApp: "App teilen", nativeShare: "📤 Поділитися", copyLink: "📋 Link kopieren", addPlaceholder: "Додати за ніком...", addBtn: "Додати", adminPanel: "Admin-Panel", forceTranslate: "Erzwungene Übersetzung", enableForce: "Übersetzung aktivieren" },
-            French: { settings: "Paramètres", profile: "Profil", onlineUsersTitle: "Contacts", interfaceLang: "Langue", voiceOver: "Voix", enableSound: "Son", apiStatus: "Statut API", shareApp: "Partager", nativeShare: "📤 Поділитися", copyLink: "📋 Copier", addPlaceholder: "Додати за ніком...", addBtn: "Додати", adminPanel: "Panneau Admin", forceTranslate: "Traduction forcée", enableForce: "Activer la traduction" }
-        };
-
-        const soundToggle = document.getElementById('sound-toggle');
         const newContactInput = document.getElementById('new-contact-input');
         const addContactBtn = document.getElementById('add-contact-btn');
+        const addContactBox = document.getElementById('add-contact-box');
+
+        document.getElementById('sidebar-add-btn').addEventListener('click', () => {
+            addContactBox.style.display = addContactBox.style.display === 'none' ? 'flex' : 'none';
+        });
 
         const sideMenu = document.getElementById('side-menu');
         const menuOverlay = document.getElementById('menu-overlay');
         const panelMain = document.getElementById('panel-main');
         const panelSettings = document.getElementById('panel-settings');
         const panelAdmin = document.getElementById('panel-admin');
-        const btnOpenSettings = document.getElementById('btn-open-settings');
-        const btnOpenAdmin = document.getElementById('btn-open-admin');
-        const btnBackFromSettings = document.getElementById('btn-back-from-settings');
-        const btnBackFromAdmin = document.getElementById('btn-back-from-admin');
         const topMenuToggle = document.getElementById('top-menu-toggle');
 
         topMenuToggle.addEventListener('click', () => {
@@ -1132,12 +1175,16 @@
             menuOverlay.classList.add('active');
         });
 
+        document.getElementById('sidebar-settings-btn').addEventListener('click', () => {
+            panelMain.classList.remove('active');
+            panelSettings.classList.add('active');
+        });
+
         const navHome = document.getElementById('nav-home');
         const navContacts = document.getElementById('nav-contacts');
         const navQr = document.getElementById('nav-qr');
         const navSettings = document.getElementById('nav-settings');
         const navItems = document.querySelectorAll('.nav-item');
-        const appContainer = document.getElementById('app-container');
         const qrScreen = document.getElementById('qr-screen');
 
         function setActiveNav(selectedItem) {
@@ -1156,6 +1203,7 @@
             setActiveNav(navContacts);
             qrScreen.classList.remove('active');
             showMainPanel();
+            renderContactsGrid(lastUsersData);
             sideMenu.classList.add('open');
             menuOverlay.classList.add('active');
         });
@@ -1185,28 +1233,10 @@
         const colorCircles = document.querySelectorAll('.color-circle');
 
         let lastUsersData = [];
-        let lastIsAdmin = false;
 
         function updateInterfaceTexts() {
             const lang = interfaceLangSelect.value;
-            const t = translations[lang] || translations.Spanish;
-
-            document.getElementById('label-profile').textContent = t.profile;
-            document.getElementById('label-online-users').textContent = t.onlineUsersTitle;
-            document.getElementById('label-interface-lang').textContent = t.interfaceLang;
-            document.getElementById('label-force-translate').textContent = t.forceTranslate;
-            document.getElementById('label-enable-force').textContent = t.enableForce;
-            document.getElementById('label-voice-over').textContent = t.voiceOver;
-            document.getElementById('label-enable-sound').textContent = t.enableSound;
-            document.getElementById('label-api-status').textContent = t.apiStatus;
-            document.getElementById('label-share-app').textContent = t.shareApp;
-            document.getElementById('native-share-btn').textContent = t.nativeShare;
-            document.getElementById('copy-link-btn').textContent = t.copyLink;
-            newContactInput.placeholder = t.addPlaceholder;
-            addContactBtn.textContent = t.addBtn;
-
-            btnOpenAdmin.innerHTML = `<span>🔑</span> ${t.adminPanel}`;
-            btnOpenSettings.innerHTML = `<span>⚙️</span> ${t.settings}`;
+            document.getElementById('label-saved-contacts').textContent = lang === 'Ukrainian' ? 'Збережені контакти' : (lang === 'Spanish' ? 'Contactos guardados' : 'Saved Contacts');
         }
 
         interfaceLangSelect.addEventListener('change', () => {
@@ -1220,6 +1250,7 @@
 
         updateInterfaceTexts();
         updateProfileDisplay();
+        renderContactsGrid();
         joinWithLanguage();
 
         function showMainPanel() {
@@ -1228,15 +1259,8 @@
             panelAdmin.classList.remove('active');
         }
 
-        btnOpenSettings.addEventListener('click', () => {
-            panelMain.classList.remove('active');
-            panelSettings.classList.add('active');
-        });
-
-        btnOpenAdmin.addEventListener('click', () => {
-            panelMain.classList.remove('active');
-            panelAdmin.classList.add('active');
-        });
+        document.getElementById('btn-back-from-settings').addEventListener('click', showMainPanel);
+        document.getElementById('btn-back-from-admin').addEventListener('click', showMainPanel);
 
         menuOverlay.addEventListener('click', () => {
             sideMenu.classList.remove('open');
@@ -1277,7 +1301,6 @@
 
         const profileSettingsTrigger = document.getElementById('profile-settings-trigger');
         profileSettingsTrigger.addEventListener('click', (e) => triggerSettings(username, e));
-        profileSettingsTrigger.addEventListener('contextmenu', (e) => triggerSettings(username, e));
 
         colorCircles.forEach(circle => {
             circle.addEventListener('click', () => {
@@ -1309,6 +1332,7 @@
             contactModal.classList.remove('active');
             menuOverlay.classList.remove('active');
             updateProfileDisplay();
+            renderContactsGrid(lastUsersData);
         });
 
         modalDeleteBtn.addEventListener('click', () => {
@@ -1329,6 +1353,7 @@
 
                 contactModal.classList.remove('active');
                 menuOverlay.classList.remove('active');
+                renderContactsGrid(lastUsersData);
             }
         });
 
@@ -1341,27 +1366,16 @@
                     localStorage.setItem('habla_local_contacts', JSON.stringify(localAddedContacts));
                 }
                 newContactInput.value = '';
+                addContactBox.style.display = 'none';
+                renderContactsGrid(lastUsersData);
             }
         });
 
         newContactInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') addContactBtn.click(); });
 
-        socket.on('groq-limits', (limits) => {
-            const reqVal = parseInt(limits.requests, 10);
-            const tokVal = parseInt(limits.tokens, 10);
-            if (!isNaN(reqVal)) document.getElementById('req-value').textContent = reqVal;
-            if (!isNaN(tokVal)) document.getElementById('tok-value').textContent = tokVal;
-        });
-
         socket.on('update-users', ({ users, isAdmin }) => {
             lastUsersData = users;
-            lastIsAdmin = isAdmin;
-            
-            if (isAdmin) {
-                btnOpenAdmin.style.display = 'flex';
-            } else {
-                btnOpenAdmin.style.display = 'none';
-            }
+            renderContactsGrid(users);
         });
 
         function escapeHtml(text) {
