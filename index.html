@@ -674,7 +674,6 @@
             });
         }
 
-        // Залізобетонна фіксація вибору співрозмовника
         let selectedRecipientName = localStorage.getItem('habla_selected_recipient') || null;
         let recentContactsOrder = JSON.parse(localStorage.getItem('habla_recent_contacts') || '["Максим", "Стасан", "notebook", "Марина"]');
         let localAddedContacts = JSON.parse(localStorage.getItem('habla_local_contacts') || '[]');
@@ -696,7 +695,6 @@
             }
         }
 
-        // Завантаження збереженого співрозмовника при старті
         if (selectedRecipientName) {
             setRecipient(selectedRecipientName);
         }
