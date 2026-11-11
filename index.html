@@ -523,7 +523,7 @@
     <nav class="bottom-nav-bar">
         <button class="nav-item active" id="nav-home" title="Home">
             <svg viewBox="0 0 24 24" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-            <small>Home</small>
+            <small data-i18n="tab_home">Home</small>
         </button>
         <button class="nav-item" id="nav-contacts" title="Contacts">
             <svg viewBox="0 0 24 24" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
@@ -531,10 +531,11 @@
         </button>
         <button class="nav-item" id="nav-qr" title="QR Code">
             <svg viewBox="0 0 24 24" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-            <small>QR</small>
+            <small data-i18n="tab_qr">QR</small>
         </button>
         <button class="nav-item" id="nav-settings" title="Settings">
-            <svg viewBox="0 0 24 24" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09A1.65 1.65 0 0 0-1.51 1z"></path></svg>
+            <!-- Абсолютно чиста й чітка шестерня без білих ліній/дуг -->
+            <svg viewBox="0 0 24 24" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
             <small data-i18n="tab_settings">Settings</small>
         </button>
     </nav>
@@ -550,6 +551,7 @@
 
         const socket = io();
 
+        // Повний словник перекладів для 5 мов (включаючи всі кнопки нижньої панелі)
         const translations = {
             Ukrainian: {
                 settings_title: "Налаштування",
@@ -564,8 +566,10 @@
                 saved_contacts: "Збережені контакти",
                 profile_settings: "Profile Settings",
                 add: "Додати",
-                tab_contacts: "Contacts",
-                tab_settings: "Settings",
+                tab_home: "Головна",
+                tab_contacts: "Контакти",
+                tab_qr: "QR",
+                tab_settings: "Налаштування",
                 icon_bg_color: "Колір фону іконки:",
                 avatar_url: "Посилання на фото-аватарку (URL):",
                 save: "💾 Зберегти",
@@ -584,7 +588,9 @@
                 saved_contacts: "Saved Contacts",
                 profile_settings: "Profile Settings",
                 add: "Add",
+                tab_home: "Home",
                 tab_contacts: "Contacts",
+                tab_qr: "QR",
                 tab_settings: "Settings",
                 icon_bg_color: "Icon background color:",
                 avatar_url: "Avatar photo link (URL):",
@@ -604,7 +610,9 @@
                 saved_contacts: "Contactos guardados",
                 profile_settings: "Ajustes de perfil",
                 add: "Añadir",
+                tab_home: "Inicio",
                 tab_contacts: "Contactos",
+                tab_qr: "QR",
                 tab_settings: "Ajustes",
                 icon_bg_color: "Color de fondo del icono:",
                 avatar_url: "Enlace de avatar (URL):",
@@ -624,7 +632,9 @@
                 saved_contacts: "Gespeicherte Kontakte",
                 profile_settings: "Profileinstellungen",
                 add: "Hinzufügen",
+                tab_home: "Start",
                 tab_contacts: "Kontakte",
+                tab_qr: "QR",
                 tab_settings: "Einstellungen",
                 icon_bg_color: "Symbolhintergrundfarbe:",
                 avatar_url: "Avatar-Link (URL):",
@@ -644,7 +654,9 @@
                 saved_contacts: "Contacts enregistrés",
                 profile_settings: "Paramètres du profil",
                 add: "Ajouter",
+                tab_home: "Accueil",
                 tab_contacts: "Contacts",
+                tab_qr: "QR",
                 tab_settings: "Paramètres",
                 icon_bg_color: "Couleur de fond de l'icône :",
                 avatar_url: "Lien d'avatar (URL) :",
@@ -750,7 +762,6 @@
 
         const contactsGridContainer = document.getElementById('contacts-grid-container');
 
-        // Безпечна функція рендерингу контактів у фоні
         function safeRenderContactsGrid(onlineUsers = []) {
             try {
                 if (!contactsGridContainer) return;
@@ -1112,7 +1123,6 @@
             setActiveNav(navHome);
         });
 
-        // Ізольована логіка відкриття екрана контактів
         navContacts.addEventListener('click', () => {
             const isCurrentlyOpen = contactsScreen && contactsScreen.classList.contains('active');
             closeAllScreens();
@@ -1122,7 +1132,6 @@
             } else {
                 setActiveNav(navContacts);
                 if (contactsScreen) contactsScreen.classList.add('active');
-                // Малювання контактів викликаємо окремо і безпечно
                 setTimeout(() => {
                     safeRenderContactsGrid(lastUsersData);
                 }, 10);
