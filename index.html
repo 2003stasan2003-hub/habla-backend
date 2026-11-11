@@ -186,13 +186,27 @@
         .selected-recipient-inside.active { display: block; }
         .mic-icon-placeholder svg { stroke: #89a1b2; fill: none; width: 54px; height: 54px; }
 
-        /* Екран контактів - гарантовано фіксований і видимий */
+        /* Екрани: за замовчуванням приховані, показуються тільки з класом active */
         #contacts-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #0e1621; z-index: 60; display: none; flex-direction: column;
             align-items: center; justify-content: center; padding: 20px; gap: 16px; overflow-y: auto;
         }
         #contacts-screen.active { display: flex !important; }
+
+        #qr-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #0e1621; z-index: 60; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; gap: 20px;
+        }
+        #qr-screen.active { display: flex !important; }
+
+        #settings-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #0e1621; z-index: 60; display: none; flex-direction: column;
+            padding: 30px 20px; gap: 12px; overflow-y: auto; max-width: 480px; margin: 0 auto;
+        }
+        #settings-screen.active { display: flex !important; }
+
         .contacts-wrapper-box { width: 100%; max-width: 380px; display: flex; flex-direction: column; gap: 16px; margin: auto; }
 
         .profile-card-box {
@@ -227,7 +241,6 @@
         .contact-grid-item.active .contact-grid-avatar { border-color: #f5f5f5; box-shadow: 0 0 8px rgba(137, 161, 178, 0.5); }
         .contact-grid-item.active .contact-grid-name { color: #f5f5f5; font-weight: bold; }
 
-        /* Стильна кнопка додавання контакту у сітці (кружечок з плюсиком) */
         .add-contact-grid-circle {
             width: 44px; height: 44px; border-radius: 50%; background: rgba(43, 82, 120, 0.4);
             border: 2px dashed #89a1b2; color: #89a1b2; font-size: 1.4rem;
@@ -242,7 +255,6 @@
         .action-icon-btn { background: none; border: none; color: #89a1b2; font-size: 1.2rem; cursor: pointer; padding: 6px; border-radius: 8px; }
         .action-icon-btn:hover { color: #f5f5f5; background: #242f3d; }
 
-        /* Повноекранне вікно додавання контакту у нашому стилі */
         #add-contact-fullscreen-modal {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -285,11 +297,6 @@
         .modal-btn-confirm { background: #2b5278; color: #fff; }
         .modal-btn-cancel { background: rgba(255, 59, 48, 0.2); border: 1px solid #ff3b30; color: #ff3b30; }
 
-        #qr-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #0e1621; z-index: 60; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; gap: 20px;
-        }
-        #qr-screen.active { display: flex !important; }
         .qr-cards-wrapper { display: flex; gap: 16px; width: 100%; max-width: 400px; justify-content: center; }
         .qr-card {
             flex: 1; background: rgba(23, 33, 43, 0.7); border: 1px solid #89a1b2; border-radius: 16px;
@@ -306,13 +313,6 @@
             background: transparent; border: 1px solid #89a1b2; color: #89a1b2; padding: 12px 24px;
             border-radius: 30px; font-size: 0.95rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 10px; max-width: 320px; width: 90%; justify-content: center; margin-top: 4px;
         }
-
-        #settings-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #0e1621; z-index: 60; display: none; flex-direction: column;
-            padding: 30px 20px; gap: 12px; overflow-y: auto; max-width: 480px; margin: 0 auto;
-        }
-        #settings-screen.active { display: flex !important; }
 
         .settings-header {
             display: flex; justify-content: space-between; align-items: center;
@@ -366,7 +366,6 @@
     <div id="pull-refresh-indicator">🔄 Потягніть, щоб оновити...</div>
     <div id="menu-overlay" class="menu-overlay"></div>
 
-    <!-- Модальне вікно налаштування контакту -->
     <div id="contact-modal">
         <div class="modal-header">
             <span id="modal-contact-title" class="modal-title">Контакт</span>
@@ -387,7 +386,6 @@
         <button id="modal-delete-btn" class="modal-btn-delete" data-i18n="delete_contact">🗑 Видалити контакт</button>
     </div>
 
-    <!-- Повноекранне вікно додавання контакту в нашому стилі -->
     <div id="add-contact-fullscreen-modal">
         <div class="add-modal-card">
             <div class="add-modal-icon-circle">➕</div>
@@ -436,11 +434,6 @@
                     <button class="action-icon-btn" id="sidebar-add-btn" title="Додати контакт">➕</button>
                     <button class="action-icon-btn" id="sidebar-settings-btn" title="Налаштування">⚙️</button>
                     <button class="action-icon-btn" id="sidebar-call-btn" title="Зв'язок">📞</button>
-                </div>
-
-                <div class="add-contact-box" id="add-contact-box" style="display: none;">
-                    <input type="text" id="new-contact-input" class="add-contact-input" placeholder="Додати за ніком...">
-                    <button id="add-contact-btn" class="add-contact-btn" data-i18n="add">Додати</button>
                 </div>
             </div>
         </div>
@@ -542,7 +535,7 @@
             <small>QR</small>
         </button>
         <button class="nav-item" id="nav-settings" title="Settings">
-            <svg viewBox="0 0 24 24" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+            <svg viewBox="0 0 24 24" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09A1.65 1.65 0 0 0-1.51 1z"></path></svg>
             <small data-i18n="tab_settings">Settings</small>
         </button>
     </nav>
@@ -764,7 +757,6 @@
             if (username) allContactsSet.delete(username);
             let contactsList = Array.from(allContactsSet);
 
-            // Рендеримо існуючі контакти
             contactsList.forEach(name => {
                 const itemDiv = document.createElement('div');
                 itemDiv.className = 'contact-grid-item';
@@ -795,7 +787,7 @@
                     selectedRecipientName = name;
                     selectedRecipientDisplay.textContent = name;
                     selectedRecipientDisplay.classList.add('active');
-                    contactsScreen.classList.remove('active');
+                    closeAllScreens();
                     setActiveNav(navHome);
                     renderContactsGrid(lastUsersData);
                 });
@@ -808,7 +800,6 @@
                 contactsGridContainer.appendChild(itemDiv);
             });
 
-            // Завжди додаємо у сітку кнопку-кружечок з плюсиком для швидкого додавання контакту
             const addGridItem = document.createElement('div');
             addGridItem.className = 'contact-grid-item';
             
@@ -831,7 +822,6 @@
             contactsGridContainer.appendChild(addGridItem);
         }
 
-        // Керування повноекранним модальним вікном додавання контакту
         const fullscreenModal = document.getElementById('add-contact-fullscreen-modal');
         const fullscreenInput = document.getElementById('fullscreen-contact-input');
         const fullscreenConfirmBtn = document.getElementById('fullscreen-confirm-btn');
@@ -1051,14 +1041,6 @@
             navigator.clipboard.writeText(currentAppUrl).then(() => alert('Посилання iOS скопійовано!'));
         });
 
-        const newContactInput = document.getElementById('new-contact-input');
-        const addContactBtn = document.getElementById('add-contact-btn');
-        const addContactBox = document.getElementById('add-contact-box');
-
-        document.getElementById('sidebar-add-btn').addEventListener('click', () => {
-            openFullscreenAddContactModal();
-        });
-
         const toggleLangDropdown = document.getElementById('toggle-lang-dropdown');
         const langOptionsBox = document.getElementById('lang-options-box');
         const langArrow = document.getElementById('lang-arrow');
@@ -1102,33 +1084,35 @@
             selectedItem.classList.add('active');
         }
 
-        navHome.addEventListener('click', () => {
-            setActiveNav(navHome);
+        // Залізобетонна функція повного очищення й закриття всіх екранів
+        function closeAllScreens() {
             qrScreen.classList.remove('active');
             contactsScreen.classList.remove('active');
             settingsScreen.classList.remove('active');
+        }
+
+        navHome.addEventListener('click', () => {
+            setActiveNav(navHome);
+            closeAllScreens();
         });
 
-        // Примусове відкриття екрана контактів
+        // Примусове відкриття екрана контактів без багів і залипань
         navContacts.addEventListener('click', () => {
             setActiveNav(navContacts);
-            qrScreen.classList.remove('active');
-            settingsScreen.classList.remove('active');
+            closeAllScreens();
             renderContactsGrid(lastUsersData);
             contactsScreen.classList.add('active');
         });
 
         navQr.addEventListener('click', () => {
             setActiveNav(navQr);
-            contactsScreen.classList.remove('active');
-            settingsScreen.classList.remove('active');
+            closeAllScreens();
             qrScreen.classList.add('active');
         });
 
         navSettings.addEventListener('click', () => {
             setActiveNav(navSettings);
-            qrScreen.classList.remove('active');
-            contactsScreen.classList.remove('active');
+            closeAllScreens();
             settingsScreen.classList.add('active');
         });
 
@@ -1138,7 +1122,7 @@
         });
 
         document.getElementById('sidebar-settings-btn').addEventListener('click', () => {
-            contactsScreen.classList.remove('active');
+            closeAllScreens();
             settingsScreen.classList.add('active');
             setActiveNav(navSettings);
         });
@@ -1246,22 +1230,6 @@
                 renderContactsGrid(lastUsersData);
             }
         });
-
-        addContactBtn.addEventListener('click', () => {
-            const targetName = newContactInput.value.trim();
-            if (targetName && targetName !== username) {
-                socket.emit('add-contact', targetName);
-                if (!localAddedContacts.includes(targetName)) {
-                    localAddedContacts.push(targetName);
-                    localStorage.setItem('habla_local_contacts', JSON.stringify(localAddedContacts));
-                }
-                newContactInput.value = '';
-                addContactBox.style.display = 'none';
-                renderContactsGrid(lastUsersData);
-            }
-        });
-
-        newContactInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') addContactBtn.click(); });
 
         socket.on('update-users', ({ users, isAdmin }) => {
             lastUsersData = users;
