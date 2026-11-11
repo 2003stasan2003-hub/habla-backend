@@ -84,6 +84,10 @@
             cursor: pointer;
             width: 100%;
         }
+        .lang-select option:disabled {
+            color: #555;
+            background: #17212b;
+        }
 
         .menu-overlay {
             position: fixed;
@@ -182,7 +186,6 @@
         .selected-recipient-inside.active { display: block; }
         .mic-icon-placeholder svg { stroke: #89a1b2; fill: none; width: 54px; height: 54px; }
 
-        /* Екран контактів */
         #contacts-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #0e1621; z-index: 60; display: none; flex-direction: column;
@@ -234,7 +237,6 @@
         .add-contact-input { flex: 1; background: #242f3d; border: 1px solid #2b5278; color: #fff; padding: 8px 12px; border-radius: 8px; font-size: 0.85rem; outline: none; }
         .add-contact-btn { background: #2b5278; color: #fff; border: none; padding: 8px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85rem; }
 
-        /* Екран QR-кодів */
         #qr-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #0e1621; z-index: 60; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; gap: 20px;
@@ -257,7 +259,6 @@
             border-radius: 30px; font-size: 0.95rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 10px; max-width: 320px; width: 90%; justify-content: center; margin-top: 4px;
         }
 
-        /* Екран Налаштувань */
         #settings-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #0e1621; z-index: 60; display: none; flex-direction: column;
@@ -288,7 +289,6 @@
             border-radius: 10px; font-size: 0.95rem; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 12px; width: 100%; justify-content: center;
         }
 
-        /* Нижня панель навігації */
         .bottom-nav-bar {
             position: fixed;
             bottom: 0;
@@ -421,6 +421,7 @@
                         <option value="Ukrainian">Ukrainian</option>
                         <option value="German">German</option>
                         <option value="French">French</option>
+                        <option value="Russian" disabled>Russian (Unavailable)</option>
                     </select>
                 </div>
             </div>
@@ -647,11 +648,13 @@
 
         const interfaceLangSelect = document.getElementById('interface-lang');
         let savedInterfaceLang = localStorage.getItem('habla_interface_lang') || getDeviceLanguage();
+        if (savedInterfaceLang === 'Russian') savedInterfaceLang = 'Spanish'; // Захист від випадкового збереження
         interfaceLangSelect.value = savedInterfaceLang;
         applyLocalization(savedInterfaceLang);
 
         interfaceLangSelect.addEventListener('change', () => {
             const newLang = interfaceLangSelect.value;
+            if (newLang === 'Russian') return; // Блокування вибору російської
             localStorage.setItem('habla_interface_lang', newLang);
             applyLocalization(newLang);
             socket.emit('update-language', newLang);
@@ -960,7 +963,7 @@
             alert('Зовнішній вигляд: Темна неон тема активована.');
         });
         document.getElementById('btn-data-storage').addEventListener('click', () => {
-            alert('Дані та пам\'ять: Кеш успішно оптимізовано.');
+            alert('Дані та пам'ять: Кеш успішно оптимізовано.');
         });
         document.getElementById('btn-help').addEventListener('click', () => {
             alert('Допомога: Habla Mobile 3.0 — голосовий перекладач та месенджер.');
