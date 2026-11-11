@@ -26,7 +26,6 @@
             -webkit-touch-callout: none;
         }
 
-        /* Індикатор оновлення свайпом (Pull-to-Refresh) */
         #pull-refresh-indicator {
             position: fixed;
             top: -50px;
@@ -51,11 +50,7 @@
             height: 24px;
             flex-shrink: 0;
         }
-        .switch input { 
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
+        .switch input { opacity: 0; width: 0; height: 0; }
         .slider {
             position: absolute;
             cursor: pointer;
@@ -75,13 +70,8 @@
             transition: 0.3s;
             border-radius: 50%;
         }
-        input:checked + .slider {
-            background-color: #89a1b2;
-        }
-        input:checked + .slider:before {
-            transform: translateX(20px);
-            background-color: #0e1621;
-        }
+        input:checked + .slider { background-color: #89a1b2; }
+        input:checked + .slider:before { transform: translateX(20px); background-color: #0e1621; }
 
         .lang-select {
             background: #242f3d;
@@ -106,8 +96,7 @@
 
         #contact-modal {
             position: fixed;
-            top: 50%;
-            left: 50%;
+            top: 50%; left: 50%;
             transform: translate(-50%, -50%);
             width: 320px;
             background: #17212b;
@@ -120,10 +109,7 @@
             gap: 12px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.7);
         }
-
-        #contact-modal.active {
-            display: flex;
-        }
+        #contact-modal.active { display: flex; }
 
         .modal-header {
             display: flex;
@@ -132,394 +118,191 @@
             border-bottom: 1px solid #242f3d;
             padding-bottom: 10px;
         }
+        .modal-title { color: #f5f5f5; font-weight: bold; font-size: 1.05rem; }
+        .modal-close-btn { background: none; border: none; color: #89a1b2; font-size: 1.2rem; cursor: pointer; }
 
-        .modal-title {
-            color: #f5f5f5;
-            font-weight: bold;
-            font-size: 1.05rem;
-        }
-
-        .modal-close-btn {
-            background: none;
-            border: none;
-            color: #89a1b2;
-            font-size: 1.2rem;
-            cursor: pointer;
-        }
-
-        .color-palette {
-            display: flex;
-            gap: 10px;
-            justify-content: space-between;
-            margin: 4px 0;
-        }
-
+        .color-palette { display: flex; gap: 10px; justifyContent: space-between; margin: 4px 0; }
         .color-circle {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            cursor: pointer;
-            border: 2px solid transparent;
-            transition: transform 0.2s, border-color 0.2s;
+            width: 32px; height: 32px; border-radius: 50%; cursor: pointer;
+            border: 2px solid transparent; transition: transform 0.2s, border-color 0.2s;
         }
         .color-circle:hover { transform: scale(1.15); }
         .color-circle.selected { border-color: #ffffff; }
 
         .modal-avatar-input {
-            width: 100%;
-            background: #242f3d;
-            border: 1px solid #2b5278;
-            color: #fff;
-            padding: 8px 10px;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            outline: none;
+            width: 100%; background: #242f3d; border: 1px solid #2b5278;
+            color: #fff; padding: 8px 10px; border-radius: 6px; font-size: 0.85rem; outline: none;
         }
-
         .modal-btn-save {
-            background: #2b5278;
-            color: #fff;
-            border: none;
-            padding: 10px;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            text-align: center;
-            font-size: 0.9rem;
+            background: #2b5278; color: #fff; border: none; padding: 10px;
+            border-radius: 8px; font-weight: bold; cursor: pointer; text-align: center; font-size: 0.9rem;
         }
-
         .modal-btn-delete {
-            background: rgba(255, 59, 48, 0.2);
-            border: 1px solid #ff3b30;
-            color: #ff3b30;
-            padding: 10px;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            text-align: center;
-            font-size: 0.9rem;
-            transition: background 0.2s;
-        }
-        .modal-btn-delete:hover {
-            background: rgba(255, 59, 48, 0.4);
+            background: rgba(255, 59, 48, 0.2); border: 1px solid #ff3b30; color: #ff3b30;
+            padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; text-align: center; font-size: 0.9rem;
         }
 
         #app-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            overflow: hidden;
-            background: #0e1621;
-            width: 100%;
+            flex: 1; display: flex; flex-direction: column; position: relative;
+            overflow: hidden; background: #0e1621; width: 100%;
         }
 
         .main-screen {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            padding: 20px;
-            width: 100%;
-            max-width: 480px;
-            margin: 0 auto;
-            gap: 20px;
+            flex: 1; display: flex; flex-direction: column; align-items: center;
+            justify-content: center; position: relative; padding: 20px; width: 100%;
+            max-width: 480px; margin: 0 auto; gap: 20px;
         }
 
-        /* Рамочка для сповіщень з перекладом */
         .notification-overlay-box {
-            display: none;
-            width: 100%;
-            max-width: 320px;
-            background: rgba(23, 33, 43, 0.85);
-            border: 1px solid #2b5278;
-            border-radius: 14px;
-            padding: 16px;
-            position: relative;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-            margin-bottom: 10px;
+            display: none; width: 100%; max-width: 320px;
+            background: rgba(23, 33, 43, 0.85); border: 1px solid #2b5278;
+            border-radius: 14px; padding: 16px; position: relative;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5); margin-bottom: 10px;
         }
-        .notification-overlay-box.active {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-        .notification-text {
-            color: #f5f5f5;
-            font-size: 0.9rem;
-            line-height: 1.4;
-            padding-right: 24px;
-        }
+        .notification-overlay-box.active { display: flex; flex-direction: column; gap: 8px; }
+        .notification-text { color: #f5f5f5; font-size: 0.9rem; line-height: 1.4; padding-right: 24px; }
         .notification-tts-btn {
-            position: absolute;
-            bottom: 12px;
-            right: 12px;
-            background: none;
-            border: none;
-            color: #89a1b2;
-            cursor: pointer;
-            padding: 4px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: color 0.2s;
+            position: absolute; bottom: 12px; right: 12px; background: none; border: none;
+            color: #89a1b2; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;
         }
         .notification-tts-btn:hover { color: #f5f5f5; }
         .notification-tts-btn svg { width: 18px; height: 18px; fill: currentColor; }
 
-        /* Велика кнопка мікрофона (чиста, без Habla за замовчуванням) */
         .neon-mic-btn {
-            background: transparent;
-            border: 1px solid #89a1b2;
-            border-radius: 50%;
-            width: 210px;
-            height: 210px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: transform 0.2s, border-color 0.2s;
-            position: relative;
-            outline: none;
-            gap: 6px;
+            background: transparent; border: 1px solid #89a1b2; border-radius: 50%;
+            width: 210px; height: 210px; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; cursor: pointer;
+            transition: transform 0.2s, border-color 0.2s; position: relative; outline: none; gap: 6px;
         }
-        .neon-mic-btn:active {
-            transform: scale(0.96);
-            border-color: #f5f5f5;
-        }
+        .neon-mic-btn:active { transform: scale(0.96); border-color: #f5f5f5; }
 
         .selected-recipient-inside {
-            color: #f5f5f5;
-            font-size: 1.05rem;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            display: none; /* З'являється тільки при виборі співрозмовника */
+            color: #f5f5f5; font-size: 1.05rem; font-weight: 600; letter-spacing: 0.5px; display: none;
         }
-        .selected-recipient-inside.active {
-            display: block;
-        }
+        .selected-recipient-inside.active { display: block; }
+        .mic-icon-placeholder svg { stroke: #89a1b2; fill: none; width: 54px; height: 54px; }
 
-        .mic-icon-placeholder svg {
-            stroke: #89a1b2;
-            fill: none;
-            width: 54px;
-            height: 54px;
-        }
-
-        /* Повністю адаптований повноноекранний екран контактів для мобільних */
         #contacts-screen {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: #0e1621;
-            z-index: 30;
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            gap: 16px;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #0e1621; z-index: 30; display: none; flex-direction: column;
+            align-items: center; justify-content: center; padding: 20px; gap: 16px; overflow-y: auto;
         }
-        #contacts-screen.active {
-            display: flex;
-        }
-
-        .contacts-wrapper-box {
-            width: 100%;
-            max-width: 380px;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            margin: auto;
-        }
+        #contacts-screen.active { display: flex; }
+        .contacts-wrapper-box { width: 100%; max-width: 380px; display: flex; flex-direction: column; gap: 16px; margin: auto; }
 
         .profile-card-box {
-            background: rgba(23, 33, 43, 0.7);
-            border: 1px solid #89a1b2;
-            border-radius: 16px;
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            transition: border-color 0.2s;
+            background: rgba(23, 33, 43, 0.7); border: 1px solid #89a1b2; border-radius: 16px;
+            padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer;
         }
-        .profile-card-box:hover { border-color: #f5f5f5; }
-
         .user-avatar-large {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
+            width: 50px; height: 50px; border-radius: 50%;
             background: linear-gradient(135deg, #89a1b2 0%, #2b5278 100%);
-            color: #0e1621;
-            font-weight: bold;
-            font-size: 1.2rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            border: 2px solid #89a1b2;
+            color: #0e1621; font-weight: bold; font-size: 1.2rem; display: flex;
+            align-items: center; justify-content: center; overflow: hidden; border: 2px solid #89a1b2;
         }
         .user-avatar-large img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
-
         .user-badge { color: #f5f5f5; font-weight: 600; font-size: 1rem; }
         .profile-subtitle { font-size: 0.75rem; color: #89a1b2; }
 
         .saved-contacts-card {
-            background: rgba(23, 33, 43, 0.7);
-            border: 1px solid #89a1b2;
-            border-radius: 16px;
-            padding: 14px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            background: rgba(23, 33, 43, 0.7); border: 1px solid #89a1b2; border-radius: 16px;
+            padding: 14px; display: flex; flex-direction: column; gap: 12px;
         }
         .saved-contacts-title { font-size: 0.85rem; color: #89a1b2; font-weight: 500; }
+        .contacts-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; max-height: 220px; overflow-y: auto; }
 
-        .contacts-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            max-height: 220px;
-            overflow-y: auto;
-            padding-right: 2px;
-        }
-
-        .contact-grid-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-        .contact-grid-item:hover { transform: scale(1.05); }
-
+        .contact-grid-item { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; }
         .contact-grid-avatar {
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            background: #242f3d;
-            border: 1px solid #89a1b2;
-            color: #f5f5f5;
-            font-weight: bold;
-            font-size: 0.95rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
+            width: 44px; height: 44px; border-radius: 50%; background: #242f3d;
+            border: 1px solid #89a1b2; color: #f5f5f5; font-weight: bold; font-size: 0.95rem;
+            display: flex; align-items: center; justify-content: center; overflow: hidden;
         }
         .contact-grid-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
         .contact-grid-name { font-size: 0.7rem; color: #89a1b2; text-align: center; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
         .contact-grid-item.active .contact-grid-avatar { border-color: #f5f5f5; box-shadow: 0 0 8px rgba(137, 161, 178, 0.5); }
         .contact-grid-item.active .contact-grid-name { color: #f5f5f5; font-weight: bold; }
 
         .contacts-bottom-actions {
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            background: rgba(23, 33, 43, 0.7);
-            border: 1px solid #89a1b2;
-            border-radius: 14px;
-            padding: 10px;
+            display: flex; justify-content: space-around; align-items: center;
+            background: rgba(23, 33, 43, 0.7); border: 1px solid #89a1b2; border-radius: 14px; padding: 10px;
         }
-        .action-icon-btn { background: none; border: none; color: #89a1b2; font-size: 1.2rem; cursor: pointer; padding: 6px; border-radius: 8px; transition: color 0.2s, background 0.2s; }
+        .action-icon-btn { background: none; border: none; color: #89a1b2; font-size: 1.2rem; cursor: pointer; padding: 6px; border-radius: 8px; }
         .action-icon-btn:hover { color: #f5f5f5; background: #242f3d; }
 
         .add-contact-box { display: flex; gap: 6px; margin-top: 4px; }
         .add-contact-input { flex: 1; background: #242f3d; border: 1px solid #2b5278; color: #fff; padding: 8px 12px; border-radius: 8px; font-size: 0.85rem; outline: none; }
         .add-contact-btn { background: #2b5278; color: #fff; border: none; padding: 8px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85rem; }
 
-        /* Екран QR-кодів */
         #qr-screen {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: #0e1621;
-            z-index: 30;
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            gap: 20px;
-            overflow-y: auto;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #0e1621; z-index: 30; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; gap: 20px;
         }
         #qr-screen.active { display: flex; }
-
         .qr-cards-wrapper { display: flex; gap: 16px; width: 100%; max-width: 400px; justify-content: center; }
-        .qr-card { flex: 1; background: rgba(23, 33, 43, 0.7); border: 1px solid #89a1b2; border-radius: 16px; padding: 16px 12px; display: flex; flex-direction: column; align-items: center; gap: 12px; box-shadow: 0 6px 20px rgba(0,0,0,0.4); }
+        .qr-card {
+            flex: 1; background: rgba(23, 33, 43, 0.7); border: 1px solid #89a1b2; border-radius: 16px;
+            padding: 16px 12px; display: flex; flex-direction: column; align-items: center; gap: 12px;
+        }
         .qr-card-title { color: #f5f5f5; font-size: 1rem; font-weight: 600; }
         .qr-img-box { background: #ffffff; padding: 6px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
         .qr-img-box img { width: 100px; height: 100px; display: block; }
-        .copy-link-action-btn { background: transparent; border: 1px solid #89a1b2; color: #89a1b2; padding: 8px 12px; border-radius: 10px; font-size: 0.8rem; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; width: 100%; justify-content: center; transition: background 0.2s, color 0.2s; }
-        .copy-link-action-btn:hover { background: #89a1b2; color: #0e1621; }
+        .copy-link-action-btn {
+            background: transparent; border: 1px solid #89a1b2; color: #89a1b2; padding: 8px 12px;
+            border-radius: 10px; font-size: 0.8rem; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; width: 100%; justify-content: center;
+        }
+        .ios-download-btn {
+            background: transparent; border: 1px solid #89a1b2; color: #89a1b2; padding: 12px 24px;
+            border-radius: 30px; font-size: 0.95rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 10px; max-width: 320px; width: 90%; justify-content: center; margin-top: 4px;
+        }
 
-        .ios-download-btn { background: transparent; border: 1px solid #89a1b2; color: #89a1b2; padding: 12px 24px; border-radius: 30px; font-size: 0.95rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 10px; max-width: 320px; width: 90%; justify-content: center; margin-top: 4px; transition: background 0.2s, color 0.2s; }
-        .ios-download-btn:hover { background: #89a1b2; color: #0e1621; }
-
-        /* Екран Налаштувань */
+        /* Налаштування з окремими картками для кожної кнопки */
         #settings-screen {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: #0e1621;
-            z-index: 30;
-            display: none;
-            flex-direction: column;
-            padding: 30px 20px;
-            gap: 16px;
-            overflow-y: auto;
-            max-width: 480px;
-            margin: 0 auto;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #0e1621; z-index: 30; display: none; flex-direction: column;
+            padding: 30px 20px; gap: 12px; overflow-y: auto; max-width: 480px; margin: 0 auto;
         }
         #settings-screen.active { display: flex; }
 
-        .settings-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #242f3d; padding-bottom: 12px; font-weight: bold; color: #89a1b2; font-size: 1.1rem; }
-        .settings-card { background: rgba(23, 33, 43, 0.7); border: 1px solid #89a1b2; border-radius: 14px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
-        .settings-row { display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding: 8px 0; color: #f5f5f5; font-size: 0.95rem; }
+        .settings-header {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid #242f3d; padding-bottom: 12px; font-weight: bold; color: #89a1b2; font-size: 1.1rem;
+        }
+        .settings-card {
+            background: rgba(23, 33, 43, 0.7); border: 1px solid #89a1b2; border-radius: 14px;
+            padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        .settings-row {
+            display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding: 4px 0; color: #f5f5f5; font-size: 0.95rem;
+        }
         .settings-row:hover { color: #89a1b2; }
-
         .dropdown-arrow { font-size: 0.8rem; color: #89a1b2; transition: transform 0.2s; }
         .dropdown-arrow.open { transform: rotate(180deg); }
 
         .sub-options-box { display: none; flex-direction: column; gap: 8px; padding-top: 6px; border-top: 1px solid #242f3d; }
         .sub-options-box.active { display: flex; }
 
-        .sidebar-nav-btn { background: #242f3d; border: 1px solid #2b5278; color: #f5f5f5; padding: 12px 16px; border-radius: 10px; font-size: 0.95rem; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 12px; width: 100%; justify-content: center; transition: background 0.2s; }
-        .sidebar-nav-btn:hover { background: #2b5278; color: #89a1b2; }
-
-        /* Нижня панель навігації */
-        .bottom-nav-bar {
-            background: #17212b;
-            border-top: 1px solid #2b5278;
-            padding: 10px 16px;
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            z-index: 50;
-            width: 100%;
-            flex-shrink: 0;
-            padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+        .sidebar-nav-btn {
+            background: #242f3d; border: 1px solid #2b5278; color: #f5f5f5; padding: 12px 16px;
+            border-radius: 10px; font-size: 0.95rem; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 12px; width: 100%; justify-content: center;
         }
 
-        .nav-item { background: none; border: none; color: #89a1b2; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; padding: 6px 16px; border-radius: 8px; transition: color 0.2s; }
+        .bottom-nav-bar {
+            background: #17212b; border-top: 1px solid #2b5278; padding: 10px 16px;
+            display: flex; justify-content: space-around; align-items: center; z-index: 50; width: 100%; flex-shrink: 0;
+            padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+        }
+        .nav-item {
+            background: none; border: none; color: #89a1b2; display: flex; flex-direction: column;
+            align-items: center; gap: 4px; cursor: pointer; padding: 6px 16px; border-radius: 8px;
+        }
         .nav-item svg { width: 24px; height: 24px; stroke: #89a1b2; fill: none; }
-        .nav-item small { font-size: 0.75rem; font-weight: 500; color: #89a1b2; font-family: inherit; }
-        .nav-item:hover svg, .nav-item:hover small, .nav-item.active svg, .nav-item.active small { color: #f5f5f5; stroke: #f5f5f5; }
+        .nav-item small { font-size: 0.75rem; font-weight: 500; color: #89a1b2; }
+        .nav-item:hover svg, .nav-item.active svg { color: #f5f5f5; stroke: #f5f5f5; }
     </style>
 </head>
 <body>
 
-    <!-- Індикатор оновлення свайпом -->
     <div id="pull-refresh-indicator">🔄 Потягніть, щоб оновити...</div>
-
     <div id="menu-overlay" class="menu-overlay"></div>
 
     <div id="contact-modal">
@@ -527,7 +310,7 @@
             <span id="modal-contact-title" class="modal-title">Контакт</span>
             <button id="close-contact-modal" class="modal-close-btn">✕</button>
         </div>
-        <div style="font-size: 0.8rem; color: #89a1b2;">Колір фону іконки:</div>
+        <div style="font-size: 0.8rem; color: #89a1b2;" data-i18n="icon_bg_color">Колір фону іконки:</div>
         <div class="color-palette" id="color-palette">
             <div class="color-circle" style="background: #89a1b2;" data-color="#89a1b2"></div>
             <div class="color-circle" style="background: #2b5278;" data-color="#2b5278"></div>
@@ -536,15 +319,13 @@
             <div class="color-circle" style="background: #7928ca;" data-color="#7928ca"></div>
             <div class="color-circle" style="background: #0056b3;" data-color="#0056b3"></div>
         </div>
-        <div style="font-size: 0.8rem; color: #89a1b2;">Посилання на фото-аватарку (URL):</div>
+        <div style="font-size: 0.8rem; color: #89a1b2;" data-i18n="avatar_url">Посилання на фото-аватарку (URL):</div>
         <input type="text" id="modal-avatar-input" class="modal-avatar-input" placeholder="https://...">
-        <button id="modal-save-btn" class="modal-btn-save">💾 Зберегти</button>
-        <button id="modal-delete-btn" class="modal-btn-delete">🗑 Видалити контакт</button>
+        <button id="modal-save-btn" class="modal-btn-save" data-i18n="save">💾 Зберегти</button>
+        <button id="modal-delete-btn" class="modal-btn-delete" data-i18n="delete_contact">🗑 Видалити контакт</button>
     </div>
 
-    <!-- Головний контейнер додатку -->
     <div id="app-container">
-        <!-- Головний екран -->
         <main class="main-screen">
             <div id="notification-box" class="notification-overlay-box">
                 <div id="notification-text" class="notification-text"></div>
@@ -553,7 +334,6 @@
                 </button>
             </div>
 
-            <!-- Велика чиста кнопка мікрофона (ім'я з'являється всередині тільки при виборі) -->
             <button id="mic-button" class="neon-mic-btn" title="Натисніть для запису голосу">
                 <div id="selected-recipient-display" class="selected-recipient-inside"></div>
                 <div class="mic-icon-placeholder">
@@ -562,19 +342,18 @@
             </button>
         </main>
 
-        <!-- Екран контактів -->
         <div id="contacts-screen">
             <div class="contacts-wrapper-box">
-                <div id="profile-settings-trigger" class="profile-card-box" title="Натисніть, щоб змінити налаштування профілю">
+                <div id="profile-settings-trigger" class="profile-card-box" title="Налаштування профілю">
                     <div id="user-avatar-large" class="user-avatar-large">G</div>
                     <div style="text-align: center;">
                         <div id="user-display" class="user-badge">Стасан</div>
-                        <div class="profile-subtitle">Profile Settings</div>
+                        <div class="profile-subtitle" data-i18n="profile_settings">Profile Settings</div>
                     </div>
                 </div>
 
                 <div class="saved-contacts-card">
-                    <div class="saved-contacts-title" id="label-saved-contacts">Збережені контакти</div>
+                    <div class="saved-contacts-title" id="label-saved-contacts" data-i18n="saved_contacts">Збережені контакти</div>
                     <div class="contacts-grid" id="contacts-grid-container"></div>
                 </div>
 
@@ -586,12 +365,11 @@
 
                 <div class="add-contact-box" id="add-contact-box" style="display: none;">
                     <input type="text" id="new-contact-input" class="add-contact-input" placeholder="Додати за ніком...">
-                    <button id="add-contact-btn" class="add-contact-btn">Додати</button>
+                    <button id="add-contact-btn" class="add-contact-btn" data-i18n="add">Додати</button>
                 </div>
             </div>
         </div>
 
-        <!-- Екран QR-кодів -->
         <div id="qr-screen">
             <div class="qr-cards-wrapper">
                 <div class="qr-card">
@@ -608,20 +386,20 @@
             <button class="ios-download-btn" id="ios-download-btn">🍎 Download on iOS</button>
         </div>
 
-        <!-- Екран Налаштувань -->
+        <!-- Налаштування з окремими картками для кожної кнопки -->
         <div id="settings-screen">
             <div class="settings-header">
-                <span>Налаштування</span>
+                <span data-i18n="settings_title">Налаштування</span>
                 <button id="close-settings-screen" style="background:none; border:none; color:#89a1b2; font-size:1.2rem; cursor:pointer;">✕</button>
             </div>
 
             <div class="settings-card">
-                <button id="update-app-btn" class="sidebar-nav-btn">🔄 Оновлення програми</button>
+                <button id="update-app-btn" class="sidebar-nav-btn">🔄 <span data-i18n="update_app">Оновлення програми</span></button>
             </div>
 
             <div class="settings-card">
                 <div class="settings-row" id="toggle-lang-dropdown">
-                    <span>Мова інтерфейсу</span>
+                    <span data-i18n="interface_lang">Мова інтерфейсу</span>
                     <span class="dropdown-arrow" id="lang-arrow">▼</span>
                 </div>
                 <div class="sub-options-box" id="lang-options-box">
@@ -637,12 +415,12 @@
 
             <div class="settings-card">
                 <div class="settings-row" id="toggle-voice-dropdown">
-                    <span>Озвучування перекладу</span>
+                    <span data-i18n="voice_over">Озвучування перекладу</span>
                     <span class="dropdown-arrow" id="voice-arrow">▼</span>
                 </div>
                 <div class="sub-options-box" id="voice-options-box">
                     <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0;">
-                        <span style="font-size: 0.85rem; color: #f5f5f5;">Примусово озвучувати</span>
+                        <span style="font-size: 0.85rem; color: #f5f5f5;" data-i18n="force_voice">Примусово озвучувати</span>
                         <label class="switch">
                             <input type="checkbox" id="sound-toggle" checked>
                             <span class="slider"></span>
@@ -651,19 +429,30 @@
                 </div>
             </div>
 
-            <div class="settings-card" style="gap: 8px;">
-                <div class="settings-row" id="btn-appearance" style="padding: 4px 0;"><span>🎨 Зовнішній вигляд</span></div>
-                <div class="settings-row" id="btn-data-storage" style="padding: 4px 0; border-top: 1px solid #242f3d; margin-top: 4px;"><span>💾 Дані та пам'ять</span></div>
-                <div class="settings-row" id="btn-help" style="padding: 4px 0; border-top: 1px solid #242f3d; margin-top: 4px;"><span>❓ Допомога</span></div>
+            <div class="settings-card">
+                <div class="settings-row" id="btn-appearance">
+                    <span data-i18n="appearance">🎨 Зовнішній вигляд</span>
+                </div>
+            </div>
+
+            <div class="settings-card">
+                <div class="settings-row" id="btn-data-storage">
+                    <span data-i18n="data_storage">💾 Дані та пам'ять</span>
+                </div>
+            </div>
+
+            <div class="settings-card">
+                <div class="settings-row" id="btn-help">
+                    <span data-i18n="help">❓ Допомога</span>
+                </div>
             </div>
             
             <div class="settings-card">
-                <button id="reset-user-btn" class="sidebar-nav-btn" style="background: rgba(255, 59, 48, 0.15); border-color: #ff3b30; color: #ff3b30;">🔄 Змінити нікнейм</button>
+                <button id="reset-user-btn" class="sidebar-nav-btn" style="background: rgba(255, 59, 48, 0.15); border-color: #ff3b30; color: #ff3b30;">🔄 <span data-i18n="change_nickname">Змінити нікнейм</span></button>
             </div>
         </div>
     </div>
 
-    <!-- Нижня панель навігації -->
     <nav class="bottom-nav-bar">
         <button class="nav-item active" id="nav-home" title="Home">
             <svg viewBox="0 0 24 24" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
@@ -671,7 +460,7 @@
         </button>
         <button class="nav-item" id="nav-contacts" title="Contacts">
             <svg viewBox="0 0 24 24" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-            <small>Contacts</small>
+            <small data-i18n="tab_contacts">Contacts</small>
         </button>
         <button class="nav-item" id="nav-qr" title="QR Code">
             <svg viewBox="0 0 24 24" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
@@ -679,7 +468,7 @@
         </button>
         <button class="nav-item" id="nav-settings" title="Settings">
             <svg viewBox="0 0 24 24" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-            <small>Settings</small>
+            <small data-i18n="tab_settings">Settings</small>
         </button>
     </nav>
 
@@ -693,6 +482,120 @@
         }
 
         const socket = io();
+
+        // Словник локалізації інтерфейсу
+        const translations = {
+            Ukrainian: {
+                settings_title: "Налаштування",
+                update_app: "Оновлення програми",
+                interface_lang: "Мова інтерфейсу",
+                voice_over: "Озвучування перекладу",
+                force_voice: "Примусово озвучувати",
+                appearance: "🎨 Зовнішній вигляд",
+                data_storage: "💾 Дані та пам'ять",
+                help: "❓ Допомога",
+                change_nickname: "Змінити нікнейм",
+                saved_contacts: "Збережені контакти",
+                profile_settings: "Profile Settings",
+                add: "Додати",
+                tab_contacts: "Contacts",
+                tab_settings: "Settings",
+                icon_bg_color: "Колір фону іконки:",
+                avatar_url: "Посилання на фото-аватарку (URL):",
+                save: "💾 Зберегти",
+                delete_contact: "🗑 Видалити контакт"
+            },
+            English: {
+                settings_title: "Settings",
+                update_app: "Update App",
+                interface_lang: "Interface Language",
+                voice_over: "Voice-over Translation",
+                force_voice: "Force voice-over",
+                appearance: "🎨 Appearance",
+                data_storage: "💾 Data & Storage",
+                help: "❓ Help",
+                change_nickname: "Change Nickname",
+                saved_contacts: "Saved Contacts",
+                profile_settings: "Profile Settings",
+                add: "Add",
+                tab_contacts: "Contacts",
+                tab_settings: "Settings",
+                icon_bg_color: "Icon background color:",
+                avatar_url: "Avatar photo link (URL):",
+                save: "💾 Save",
+                delete_contact: "🗑 Delete contact"
+            },
+            Spanish: {
+                settings_title: "Ajustes",
+                update_app: "Actualizar aplicación",
+                interface_lang: "Idioma de interfaz",
+                voice_over: "Voz de traducción",
+                force_voice: "Forzar voz",
+                appearance: "🎨 Apariencia",
+                data_storage: "💾 Datos y almacenamiento",
+                help: "❓ Ayuda",
+                change_nickname: "Cambiar apodo",
+                saved_contacts: "Contactos guardados",
+                profile_settings: "Ajustes de perfil",
+                add: "Añadir",
+                tab_contacts: "Contactos",
+                tab_settings: "Ajustes",
+                icon_bg_color: "Color de fondo del icono:",
+                avatar_url: "Enlace de avatar (URL):",
+                save: "💾 Guardar",
+                delete_contact: "🗑 Eliminar contacto"
+            },
+            German: {
+                settings_title: "Einstellungen",
+                update_app: "App aktualisieren",
+                interface_lang: "Benutzeroberflächensprache",
+                voice_over: "Übersetzungssprache",
+                force_voice: "Sprachausgabe erzwingen",
+                appearance: "🎨 Erscheinungsbild",
+                data_storage: "💾 Daten & Speicher",
+                help: "❓ Hilfe",
+                change_nickname: "Spitzname ändern",
+                saved_contacts: "Gespeicherte Kontakte",
+                profile_settings: "Profileinstellungen",
+                add: "Hinzufügen",
+                tab_contacts: "Kontakte",
+                tab_settings: "Einstellungen",
+                icon_bg_color: "Symbolhintergrundfarbe:",
+                avatar_url: "Avatar-Link (URL):",
+                save: "💾 Speichern",
+                delete_contact: "🗑 Kontakt löschen"
+            },
+            French: {
+                settings_title: "Paramètres",
+                update_app: "Mettre à jour l'application",
+                interface_lang: "Langue de l'interface",
+                voice_over: "Voix de traduction",
+                force_voice: "Forcer la voix",
+                appearance: "🎨 Apparence",
+                data_storage: "💾 Données et stockage",
+                help: "❓ Aide",
+                change_nickname: "Changer de pseudo",
+                saved_contacts: "Contacts enregistrés",
+                profile_settings: "Paramètres du profil",
+                add: "Ajouter",
+                tab_contacts: "Contacts",
+                tab_settings: "Paramètres",
+                icon_bg_color: "Couleur de fond de l'icône :",
+                avatar_url: "Lien d'avatar (URL) :",
+                save: "💾 Enregistrer",
+                delete_contact: "🗑 Supprimer le contact"
+            }
+        };
+
+        function applyLocalization(lang) {
+            const dict = translations[lang] || translations['Spanish'];
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (dict[key]) {
+                    el.textContent = dict[key];
+                }
+            });
+        }
 
         let selectedRecipientName = null;
         let recentContactsOrder = JSON.parse(localStorage.getItem('habla_recent_contacts') || '["Максим", "Стасан", "notebook", "Марина"]');
@@ -734,10 +637,12 @@
         const interfaceLangSelect = document.getElementById('interface-lang');
         let savedInterfaceLang = localStorage.getItem('habla_interface_lang') || getDeviceLanguage();
         interfaceLangSelect.value = savedInterfaceLang;
+        applyLocalization(savedInterfaceLang);
 
         interfaceLangSelect.addEventListener('change', () => {
             const newLang = interfaceLangSelect.value;
             localStorage.setItem('habla_interface_lang', newLang);
+            applyLocalization(newLang);
             socket.emit('update-language', newLang);
             joinWithLanguage();
         });
@@ -831,7 +736,6 @@
             });
         }
 
-        // Логіка мікрофона та запису
         let mediaRecorder;
         let audioChunks = [];
         let isRecording = false;
@@ -839,7 +743,7 @@
 
         micButton.addEventListener('click', async () => {
             if (!selectedRecipientName) {
-                alert('Будь ласка, спочатку оберіть співрозмовника в меню Контакти!');
+                alert('Будь ласка, оберіть співрозмовника у меню Контакти!');
                 return;
             }
 
@@ -882,7 +786,6 @@
             }
         });
 
-        // Інтегроване виведення перекладу в рамочку зверху
         const notificationBox = document.getElementById('notification-box');
         const notificationText = document.getElementById('notification-text');
         const notificationTtsBtn = document.getElementById('notification-tts-btn');
@@ -904,7 +807,6 @@
             }
         });
 
-        // Pull-to-Refresh жести (оживлення оновлення свайпом)
         let touchStartY = 0;
         const refreshIndicator = document.getElementById('pull-refresh-indicator');
 
