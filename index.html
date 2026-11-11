@@ -182,13 +182,13 @@
         .selected-recipient-inside.active { display: block; }
         .mic-icon-placeholder svg { stroke: #89a1b2; fill: none; width: 54px; height: 54px; }
 
-        /* Жорстко фіксований повноноекранний екран контактів */
+        /* Гарантовано фіксований і видимий екран контактів */
         #contacts-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #0e1621; z-index: 30; display: none; flex-direction: column;
+            background: #0e1621; z-index: 60; display: none; flex-direction: column;
             align-items: center; justify-content: center; padding: 20px; gap: 16px; overflow-y: auto;
         }
-        #contacts-screen.active { display: flex; }
+        #contacts-screen.active { display: flex !important; }
         .contacts-wrapper-box { width: 100%; max-width: 380px; display: flex; flex-direction: column; gap: 16px; margin: auto; }
 
         .profile-card-box {
@@ -236,9 +236,9 @@
 
         #qr-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #0e1621; z-index: 30; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; gap: 20px;
+            background: #0e1621; z-index: 60; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; gap: 20px;
         }
-        #qr-screen.active { display: flex; }
+        #qr-screen.active { display: flex !important; }
         .qr-cards-wrapper { display: flex; gap: 16px; width: 100%; max-width: 400px; justify-content: center; }
         .qr-card {
             flex: 1; background: rgba(23, 33, 43, 0.7); border: 1px solid #89a1b2; border-radius: 16px;
@@ -258,10 +258,10 @@
 
         #settings-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #0e1621; z-index: 30; display: none; flex-direction: column;
+            background: #0e1621; z-index: 60; display: none; flex-direction: column;
             padding: 30px 20px; gap: 12px; overflow-y: auto; max-width: 480px; margin: 0 auto;
         }
-        #settings-screen.active { display: flex; }
+        #settings-screen.active { display: flex !important; }
 
         .settings-header {
             display: flex; justify-content: space-between; align-items: center;
@@ -286,7 +286,6 @@
             border-radius: 10px; font-size: 0.95rem; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 12px; width: 100%; justify-content: center;
         }
 
-        /* Жорстко фіксована нижня панель навігації */
         .bottom-nav-bar {
             position: fixed;
             bottom: 0;
@@ -297,7 +296,7 @@
             display: flex;
             justify-content: space-around;
             align-items: center;
-            z-index: 50;
+            z-index: 70;
             width: 100%;
             flex-shrink: 0;
             padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
@@ -800,7 +799,6 @@
         const notificationTtsBtn = document.getElementById('notification-tts-btn');
         let lastReceivedText = '';
 
-        // Повністю чистий вивід перекладу без префіксів та дужок
         socket.on('incoming-message', (data) => {
             lastReceivedText = data.text;
             notificationText.textContent = data.text;
@@ -987,6 +985,7 @@
             settingsScreen.classList.remove('active');
         });
 
+        // Гарантоване примусове відкриття контактів без зсувів
         navContacts.addEventListener('click', () => {
             setActiveNav(navContacts);
             qrScreen.classList.remove('active');
