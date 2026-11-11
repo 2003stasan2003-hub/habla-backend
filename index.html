@@ -182,7 +182,7 @@
         .selected-recipient-inside.active { display: block; }
         .mic-icon-placeholder svg { stroke: #89a1b2; fill: none; width: 54px; height: 54px; }
 
-        /* Гарантовано фіксований і видимий екран контактів */
+        /* Екран контактів */
         #contacts-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #0e1621; z-index: 60; display: none; flex-direction: column;
@@ -234,6 +234,7 @@
         .add-contact-input { flex: 1; background: #242f3d; border: 1px solid #2b5278; color: #fff; padding: 8px 12px; border-radius: 8px; font-size: 0.85rem; outline: none; }
         .add-contact-btn { background: #2b5278; color: #fff; border: none; padding: 8px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85rem; }
 
+        /* Екран QR-кодів */
         #qr-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #0e1621; z-index: 60; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; gap: 20px;
@@ -256,6 +257,7 @@
             border-radius: 30px; font-size: 0.95rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 10px; max-width: 320px; width: 90%; justify-content: center; margin-top: 4px;
         }
 
+        /* Екран Налаштувань */
         #settings-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #0e1621; z-index: 60; display: none; flex-direction: column;
@@ -286,6 +288,7 @@
             border-radius: 10px; font-size: 0.95rem; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 12px; width: 100%; justify-content: center;
         }
 
+        /* Нижня панель навігації */
         .bottom-nav-bar {
             position: fixed;
             bottom: 0;
@@ -985,7 +988,6 @@
             settingsScreen.classList.remove('active');
         });
 
-        // Гарантоване примусове відкриття контактів без зсувів
         navContacts.addEventListener('click', () => {
             setActiveNav(navContacts);
             qrScreen.classList.remove('active');
