@@ -18,7 +18,7 @@ const io = new Server(server, {
 });
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '10mb' })); // Збільшуємо ліміт для передачі аудіо
 
 // Маршрут для запобігання засинанню сервера на Render
 app.get('/ping', (req, res) => {
@@ -78,7 +78,6 @@ function updateUsers() {
     io.emit('onlineCount', onlineNames.size);
 }
 
-// Інтелектуальний вибір активної чат-моделі з відсіюванням системних (guard, whisper тощо)
 async function getActiveModel(apiKey) {
     try {
         const response = await fetch('https://api.groq.com/openai/v1/models', {
@@ -89,11 +88,10 @@ async function getActiveModel(apiKey) {
         if (response.ok && data.data && data.data.length > 0) {
             const chatModels = data.data.filter(m => {
                 const id = m.id.toLowerCase();
-                const isChat = id.includes('llama') || id.includes('mixtral') || id.includes('gemma') || id.includes('gpt') || id.includes('qwen') || id.includes('allam');
-                const isSystem = id.includes('guard') || id.includes('whisper') || id.includes('embed') || id.includes('tool') || id.includes('audio') || id.includes('orpheus') || id.includes('tts');
+                const isChat = id.includes('llama') || id.includes('mixtral') || id.includes('gemma') || id.includes('gpt') || id.includes('qwen');
+                const isSystem = id.includes('guard') || id.includes('whisper') || id.includes('embed') || id.includes('tool') || id.includes('audio');
                 return isChat && !isSystem;
             });
-
             if (chatModels.length > 0) return chatModels[0].id;
             return data.data[0].id;
         }
@@ -140,14 +138,11 @@ async function translateText(text, targetLanguage) {
             }
 
             if (data.choices && data.choices[0] && data.choices[0].message) {
-                console.log(`✅ Успішний переклад через модель: ${modelName}`);
                 return data.choices[0].message.content.trim();
             }
-        } else {
-            console.error(`❌ Помилка Groq [Модель: ${modelName}] [Статус: ${response.status}]:`, JSON.stringify(data));
         }
     } catch (error) {
-        console.error(`❌ Мережева помилка з моделлю ${modelName}:`, error.message);
+        console.error(`❌ Помилка перекладу:`, error.message);
     }
 
     return text;
@@ -183,12 +178,10 @@ io.on('connection', (socket) => {
         updateUsers();
     });
 
-    // Миттєве оновлення мови на сервері за мілісекунди
     socket.on('update-language', (newLang) => {
         const username = activeSockets[socket.id];
         if (username && newLang) {
             userLanguages[username] = newLang;
-            console.log(`🌐 Користувач ${username} оновив мову на льоту: ${newLang}`);
         }
     });
 
@@ -220,53 +213,62 @@ io.on('connection', (socket) => {
         updateUsers();
     });
 
-    socket.on('chatMessage', async (data) => {
+    // Обробка голосового повідомлення з транскрипцією через Groq Whisper
+    socket.on('voice-message', async (data) => {
         try {
-            const sender = data.user;
-            const recipient = data.recipientName;
-            const originalText = data.text;
-            const timestamp = Date.now();
+            const sender = data.sender;
+            const recipient = data.recipient;
+            const audioBase64 = data.audio;
 
-            if (!originalText) return;
+            if (!audioBase64 || !recipient) return;
 
-            if (recipient) {
-                const cleanRecipient = recipient.toLowerCase().trim();
-                const recipientSocketId = Object.keys(activeSockets).find(
-                    id => activeSockets[id] && activeSockets[id].toLowerCase().trim() === cleanRecipient
-                );
+            // Конвертуємо Base64 аудіо в буфер для відправки до Groq Whisper API
+            const base64Data = audioBase64.split(';base64,').pop();
+            const audioBuffer = Buffer.from(base64Data, 'base64');
 
-                const recipientLang = userLanguages[recipient] || 'Spanish';
-                let translatedTextForRecipient = await translateText(originalText, recipientLang);
+            const apiKey = process.env.GROQ_API_KEY;
+            if (!apiKey) return;
 
-                socket.emit('chatMessage', {
-                    user: sender,
-                    text: originalText,
-                    recipientName: recipient,
-                    isPrivate: true,
-                    timestamp: timestamp
-                });
+            // Формуємо FormData для запиту до Groq Whisper
+            const formData = new FormData();
+            const blob = new Blob([audioBuffer], { type: 'audio/webm' });
+            formData.append('file', blob, 'audio.webm');
+            formData.append('model', 'whisper-large-v3');
 
-                if (recipientSocketId && recipientSocketId !== socket.id) {
-                    io.to(recipientSocketId).emit('chatMessage', {
-                        user: sender,
-                        text: translatedTextForRecipient,
-                        recipientName: sender,
-                        isPrivate: true,
-                        timestamp: timestamp
-                    });
-                }
-            } else {
-                const messageObj = {
-                    user: sender,
-                    text: originalText,
-                    isPrivate: false,
-                    timestamp: timestamp
-                };
-                socket.emit('chatMessage', messageObj);
-                socket.broadcast.emit('chatMessage', messageObj);
+            const transcriptionResponse = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${apiKey}` },
+                body: formData
+            });
+
+            const transcriptionData = await transcriptionResponse.json();
+            if (!transcriptionResponse.ok || !transcriptionData.text) {
+                console.error("❌ Помилка Whisper API:", transcriptionData);
+                return;
             }
+
+            const recognizedText = transcriptionData.text.trim();
+            console.log(`🎤 Розпізнано текст від ${sender}: ${recognizedText}`);
+
+            // Перекладаємо текст мовою отримувача
+            const recipientLang = userLanguages[recipient] || 'Spanish';
+            const translatedText = await translateText(recognizedText, recipientLang);
+
+            // Знаходимо сокет отримувача
+            const cleanRecipient = recipient.toLowerCase().trim();
+            const recipientSocketId = Object.keys(activeSockets).find(
+                id => activeSockets[id] && activeSockets[id].toLowerCase().trim() === cleanRecipient
+            );
+
+            // Відправляємо відправнику та отримувачу
+            socket.emit('incoming-message', { sender, text: recognizedText, isSelf: true });
+
+            if (recipientSocketId) {
+                io.to(recipientSocketId).emit('incoming-message', { sender, text: translatedText, isSelf: false });
+            }
+
         } catch (e) {
-            console.error("Помилка обробки повідомлення:", e);
+            console.error("❌ Помилка обробки голосового повідомлення:", e);
         }
     });
 
