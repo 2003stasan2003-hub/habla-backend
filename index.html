@@ -95,8 +95,9 @@
             background: rgba(0, 0, 0, 0.6);
             z-index: 99;
             display: none;
+            pointer-events: none;
         }
-        .menu-overlay.active { display: block; }
+        .menu-overlay.active { display: block; pointer-events: auto; }
 
         #contact-modal {
             position: fixed;
@@ -157,7 +158,6 @@
             max-width: 480px; margin: 0 auto; gap: 14px; padding-bottom: 80px;
         }
 
-        /* 1. Стрічка повідомлень */
         .messages-stack-container {
             width: 100%; max-width: 340px; display: flex; flex-direction: column;
             gap: 8px; justify-content: flex-end; min-height: 120px; margin-bottom: 6px;
@@ -174,7 +174,6 @@
         .message-card.fade-out { opacity: 0; transform: translateY(-20px) scale(0.85); }
         .message-sender-tag { font-size: 0.7rem; color: #89a1b2; margin-bottom: 4px; font-weight: 600; }
         
-        /* 2. Динамік для прослуховування */
         .message-tts-btn {
             position: absolute; right: 8px; bottom: 8px; background: none; border: none;
             color: #89a1b2; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;
@@ -182,7 +181,6 @@
         .message-tts-btn:hover { color: #f5f5f5; }
         .message-tts-btn svg { width: 18px; height: 18px; fill: currentColor; }
 
-        /* 3. Кнопка мікрофона з анімацією та секундоміром */
         .neon-mic-btn {
             background: transparent; border: 1px solid #89a1b2; border-radius: 50%;
             width: 180px; height: 180px; display: flex; flex-direction: column;
@@ -191,7 +189,7 @@
         }
         .neon-mic-btn:active { transform: scale(0.96); border-color: #f5f5f5; }
         .neon-mic-btn.recording {
-            border-color: #ff3b30;
+            border-color: #ff3b30 !important;
             box-shadow: 0 0 20px rgba(255, 59, 48, 0.6);
             animation: pulse-red 1.2s infinite;
         }
@@ -200,7 +198,7 @@
             70% { box-shadow: 0 0 0 18px rgba(255, 59, 48, 0); }
             100% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0); }
         }
-        .recording-timer { color: #ff3b30; font-weight: bold; font-size: 0.85rem; display: none; }
+        .recording-timer { color: #ff3b30; font-weight: bold; font-size: 0.9rem; display: none; }
         .recording-timer.active { display: block; }
 
         .selected-recipient-inside {
@@ -423,7 +421,6 @@
 
     <div id="app-container">
         <main class="main-screen">
-            <!-- 1. Стрічка повідомлень замість однієї плашки -->
             <div id="messages-stack" class="messages-stack-container"></div>
 
             <button id="mic-button" class="neon-mic-btn" title="Натисніть для запису голосу">
@@ -440,7 +437,7 @@
                 <div id="profile-settings-trigger" class="profile-card-box" title="Налаштування профілю">
                     <div id="user-avatar-large" class="user-avatar-large">G</div>
                     <div style="text-align: center;">
-                        <div id="user-display" class="user-badge">Стасан</div>
+                        <div id="user-display" class="user-badge">notebook</div>
                         <div class="profile-subtitle" data-i18n="profile_settings">Profile Settings</div>
                     </div>
                 </div>
@@ -711,6 +708,12 @@
                 selectedRecipientDisplay.textContent = name;
                 selectedRecipientDisplay.classList.add('active');
             }
+
+            // ОЧИЩАЄМО ЕКРАН ПРИ ЗМІНІ КОНТАКТУ, ЩОБ ПОВІДОМЛЕННЯ НЕ ПЕРЕМІШУВАЛИСЯ
+            const messagesStack = document.getElementById('messages-stack');
+            if (messagesStack) {
+                messagesStack.innerHTML = '';
+            }
         }
 
         if (selectedRecipientName) {
@@ -741,7 +744,7 @@
 
         let username = localStorage.getItem('habla_username');
         if (!username) {
-            username = prompt("Introduce tu apodo / Introduce your nickname:") || "Стасан";
+            username = prompt("Introduce tu apodo / Introduce your nickname:") || "notebook";
             username = username.trim();
             localStorage.setItem('habla_username', username);
         }
@@ -908,7 +911,7 @@
         });
 
         // ----------------------------------------------------
-        // ЛОГІКА СТРІЧКИ ПОВІДОМЛЕНЬ ТА ДИНАМІКА ПРОСЛУХОВУВАННЯ
+        // ЛОГІКА СТРІЧКИ ПОВІДОМЛЕНЬ
         // ----------------------------------------------------
         const messagesStack = document.getElementById('messages-stack');
         let displayedMessages = [];
@@ -960,16 +963,13 @@
         }
 
         // ----------------------------------------------------
-        // ЛОГІКА МІКРОФОНА: АНІМАЦІЯ ПУЛЬСАЦІЇ ТА СЕКУНДОМІР
+        // ЛОГІКА МІКРОФОНА: ПУЛЬСАЦІЯ ТА СЕКУНДОМІР
         // ----------------------------------------------------
         let mediaRecorder;
         let audioChunks = [];
         let isRecording = false;
-        let recordTimerInterval = null;
-        let recordSeconds = 0;
 
         const micButton = document.getElementById('mic-button');
-        const recordingTimer = document.getElementById('recording-timer');
 
         micButton.addEventListener('click', async () => {
             if (!selectedRecipientName) {
@@ -1006,14 +1006,17 @@
                     isRecording = true;
                     micButton.classList.add('recording');
                     
-                    recordSeconds = 0;
-                    recordingTimer.textContent = '🔴 00:00';
-                    recordingTimer.classList.add('active');
-                    recordTimerInterval = setInterval(() => {
+                    const recordingTimer = document.getElementById('recording-timer');
+                    let recordSeconds = 0;
+                    if (recordingTimer) {
+                        recordingTimer.textContent = '🔴 00:00';
+                        recordingTimer.classList.add('active');
+                    }
+                    window.recordTimerInterval = setInterval(() => {
                         recordSeconds++;
                         const mins = String(Math.floor(recordSeconds / 60)).padStart(2, '0');
                         const secs = String(recordSeconds % 60).padStart(2, '0');
-                        recordingTimer.textContent = `🔴 ${mins}:${secs}`;
+                        if (recordingTimer) recordingTimer.textContent = `🔴 ${mins}:${secs}`;
                     }, 1000);
 
                 } catch (err) {
@@ -1026,18 +1029,19 @@
                 }
                 isRecording = false;
                 micButton.classList.remove('recording');
-                recordingTimer.classList.remove('active');
-                if (recordTimerInterval) clearInterval(recordTimerInterval);
+                const recordingTimer = document.getElementById('recording-timer');
+                if (recordingTimer) recordingTimer.classList.remove('active');
+                if (window.recordTimerInterval) clearInterval(window.recordTimerInterval);
             }
         });
 
         socket.on('incoming-message', (data) => {
             if (data.text) {
                 const isMySent = (data.sender === username);
-                addMessageToStack(data.text, data.sender || 'Контакт', isMySent);
 
-                if (data.sender && !isMySent) {
-                    setRecipient(data.sender);
+                // Відображаємо тільки якщо це повідомлення вашого поточного співрозмовника або ваше
+                if (isMySent || data.sender === selectedRecipientName) {
+                    addMessageToStack(data.text, data.sender || 'Контакт', isMySent);
                 }
 
                 const soundToggle = document.getElementById('sound-toggle');
