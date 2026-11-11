@@ -186,7 +186,7 @@
         .selected-recipient-inside.active { display: block; }
         .mic-icon-placeholder svg { stroke: #89a1b2; fill: none; width: 54px; height: 54px; }
 
-        /* Екрани: за замовчуванням приховані, показуються тільки з класом active */
+        /* Екрани */
         #contacts-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #0e1621; z-index: 60; display: none; flex-direction: column;
@@ -751,6 +751,7 @@
         const contactsGridContainer = document.getElementById('contacts-grid-container');
 
         function renderContactsGrid(onlineUsers = []) {
+            if (!contactsGridContainer) return;
             contactsGridContainer.innerHTML = '';
             
             let allContactsSet = new Set([...recentContactsOrder, ...localAddedContacts, ...onlineUsers]);
@@ -828,18 +829,18 @@
         const fullscreenCancelBtn = document.getElementById('fullscreen-cancel-btn');
 
         function openFullscreenAddContactModal() {
-            fullscreenInput.value = '';
-            fullscreenModal.classList.add('active');
-            fullscreenInput.focus();
+            if (fullscreenInput) fullscreenInput.value = '';
+            if (fullscreenModal) fullscreenModal.classList.add('active');
+            if (fullscreenInput) fullscreenInput.focus();
         }
 
         function closeFullscreenAddContactModal() {
-            fullscreenModal.classList.remove('active');
+            if (fullscreenModal) fullscreenModal.classList.remove('active');
         }
 
-        fullscreenCancelBtn.addEventListener('click', closeFullscreenAddContactModal);
+        if (fullscreenCancelBtn) fullscreenCancelBtn.addEventListener('click', closeFullscreenAddContactModal);
         
-        fullscreenConfirmBtn.addEventListener('click', () => {
+        if (fullscreenConfirmBtn) fullscreenConfirmBtn.addEventListener('click', () => {
             const targetName = fullscreenInput.value.trim();
             if (targetName && targetName !== username) {
                 socket.emit('add-contact', targetName);
@@ -854,7 +855,7 @@
             }
         });
 
-        fullscreenInput.addEventListener('keypress', (e) => {
+        if (fullscreenInput) fullscreenInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') fullscreenConfirmBtn.click();
         });
 
@@ -913,10 +914,17 @@
         const notificationTtsBtn = document.getElementById('notification-tts-btn');
         let lastReceivedText = '';
 
+        // Оновлено: при отриманні повідомлення виводимо також ім'я відправника на кнопці
         socket.on('incoming-message', (data) => {
             lastReceivedText = data.text;
             notificationText.textContent = data.text;
             notificationBox.classList.add('active');
+
+            if (data.sender) {
+                selectedRecipientName = data.sender;
+                selectedRecipientDisplay.textContent = data.sender;
+                selectedRecipientDisplay.classList.add('active');
+            }
 
             if (data.text) {
                 speakText(data.text);
@@ -1084,11 +1092,10 @@
             selectedItem.classList.add('active');
         }
 
-        // Залізобетонна функція повного очищення й закриття всіх екранів
         function closeAllScreens() {
-            qrScreen.classList.remove('active');
-            contactsScreen.classList.remove('active');
-            settingsScreen.classList.remove('active');
+            if (qrScreen) qrScreen.classList.remove('active');
+            if (contactsScreen) contactsScreen.classList.remove('active');
+            if (settingsScreen) settingsScreen.classList.remove('active');
         }
 
         navHome.addEventListener('click', () => {
@@ -1096,34 +1103,33 @@
             closeAllScreens();
         });
 
-        // Примусове відкриття екрана контактів без багів і залипань
         navContacts.addEventListener('click', () => {
             setActiveNav(navContacts);
             closeAllScreens();
             renderContactsGrid(lastUsersData);
-            contactsScreen.classList.add('active');
+            if (contactsScreen) contactsScreen.classList.add('active');
         });
 
         navQr.addEventListener('click', () => {
             setActiveNav(navQr);
             closeAllScreens();
-            qrScreen.classList.add('active');
+            if (qrScreen) qrScreen.classList.add('active');
         });
 
         navSettings.addEventListener('click', () => {
             setActiveNav(navSettings);
             closeAllScreens();
-            settingsScreen.classList.add('active');
+            if (settingsScreen) settingsScreen.classList.add('active');
         });
 
         document.getElementById('close-settings-screen').addEventListener('click', () => {
-            settingsScreen.classList.remove('active');
+            if (settingsScreen) settingsScreen.classList.remove('active');
             setActiveNav(navHome);
         });
 
         document.getElementById('sidebar-settings-btn').addEventListener('click', () => {
             closeAllScreens();
-            settingsScreen.classList.add('active');
+            if (settingsScreen) settingsScreen.classList.add('active');
             setActiveNav(navSettings);
         });
 
