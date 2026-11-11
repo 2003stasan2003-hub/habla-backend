@@ -563,7 +563,7 @@
             transform: scale(0.96);
         }
 
-        /* Повноноекранний екран налаштувань (Settings) із випадаючими списками та стрілочками */
+        /* Повноноекранний екран налаштувань */
         #settings-screen {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -738,14 +738,14 @@
             <div class="info-card" style="display:none;"></div>
             <div id="selected-recipient-display" class="selected-recipient-label">Habla</div>
             
-            <button id="mic-button" class="neon-mic-btn">
+            <button id="mic-button" class="neon-mic-btn" title="Натисніть для запису голосу">
                 <div class="mic-icon-placeholder">
                     <svg viewBox="0 0 24 24" stroke="#89a1b2" stroke-width="2" fill="none"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v1a7 7 0 0 1-14 0v-1"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
                 </div>
             </button>
         </main>
 
-        <!-- Екран контактів (повноноекранний) -->
+        <!-- Екран контактів -->
         <div id="contacts-screen">
             <div class="contacts-wrapper-box">
                 <div id="profile-settings-trigger" class="profile-card-box" title="Натисніть, щоб змінити налаштування профілю">
@@ -776,7 +776,7 @@
             </div>
         </div>
 
-        <!-- Екран QR-кодів (повноноекранний) -->
+        <!-- Екран QR-кодів -->
         <div id="qr-screen">
             <div class="qr-cards-wrapper">
                 <div class="qr-card">
@@ -803,21 +803,19 @@
             </button>
         </div>
 
-        <!-- Повноноекранний екран Налаштувань (Settings) із випадаючими списками та стрілочками -->
+        <!-- Екран Налаштувань -->
         <div id="settings-screen">
             <div class="settings-header">
                 <span>Налаштування</span>
                 <button id="close-settings-screen" style="background:none; border:none; color:#89a1b2; font-size:1.2rem; cursor:pointer;">✕</button>
             </div>
 
-            <!-- Кнопка оновлення -->
             <div class="settings-card">
                 <button id="update-app-btn" class="sidebar-nav-btn">
                     🔄 Оновлення програми
                 </button>
             </div>
 
-            <!-- Мова інтерфейсу зі стрілочкою -->
             <div class="settings-card">
                 <div class="settings-row" id="toggle-lang-dropdown">
                     <span>Мова інтерфейсу</span>
@@ -834,7 +832,6 @@
                 </div>
             </div>
 
-            <!-- Озвучування перекладу зі стрілочкою та вкл/викл -->
             <div class="settings-card">
                 <div class="settings-row" id="toggle-voice-dropdown">
                     <span>Озвучування перекладу</span>
@@ -851,7 +848,6 @@
                 </div>
             </div>
 
-            <!-- Додаткові клікабельні кнопки налаштувань -->
             <div class="settings-card" style="gap: 8px;">
                 <div class="settings-row" id="btn-appearance" style="padding: 4px 0;">
                     <span>🎨 Зовнішній вигляд</span>
@@ -947,6 +943,7 @@
         interfaceLangSelect.addEventListener('change', () => {
             const newLang = interfaceLangSelect.value;
             localStorage.setItem('habla_interface_lang', newLang);
+            socket.emit('update-language', newLang);
             joinWithLanguage();
         });
 
@@ -982,7 +979,7 @@
             }
         }
 
-        /* Рендеринг реальних контактів */
+        // Рендеринг контактів
         const contactsGridContainer = document.getElementById('contacts-grid-container');
 
         function renderContactsGrid(onlineUsers = []) {
@@ -1039,6 +1036,88 @@
             });
         }
 
+        // Логіка роботи кнопки мікрофона (запис та відправка голосу на сервер)
+        let mediaRecorder;
+        let audioChunks = [];
+        let isRecording = false;
+        const micButton = document.getElementById('mic-button');
+
+        micButton.addEventListener('click', async () => {
+            if (!selectedRecipientName) {
+                alert('Будь ласка, спочатку оберіть співрозмовника в меню Контакти!');
+                return;
+            }
+
+            if (!isRecording) {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(stream);
+                    audioChunks = [];
+
+                    mediaRecorder.ondataavailable = (event) => {
+                        if (event.data.size > 0) audioChunks.push(event.data);
+                    };
+
+                    mediaRecorder.onstop = () => {
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                        const reader = new FileReader();
+                        reader.readAsDataURL(audioBlob);
+                        reader.onloadend = () => {
+                            const base64Audio = reader.result;
+                            socket.emit('voice-message', {
+                                sender: username,
+                                recipient: selectedRecipientName,
+                                audio: base64Audio
+                            });
+                            console.log(`🎤 Голосове повідомлення відправлено для ${selectedRecipientName}`);
+                        };
+                        stream.getTracks().forEach(track => track.stop());
+                    };
+
+                    mediaRecorder.start();
+                    isRecording = true;
+                    micButton.style.borderColor = '#ff3b30'; // Червона рамка під час запису
+                } catch (err) {
+                    console.error("Помилка мікрофона:", err);
+                    alert("Не вдалося отримати доступ до мікрофона.");
+                }
+            } else {
+                mediaRecorder.stop();
+                isRecording = false;
+                micButton.style.borderColor = '#89a1b2'; // Повертаємо сіру рамку
+            }
+        });
+
+        // Отримання перекладеного повідомлення від сервера
+        socket.on('incoming-message', (data) => {
+            console.log(`📩 Повідомлення від ${data.sender}: ${data.text}`);
+            alert(`[Переклад від ${data.sender}]: ${data.text}`);
+            if (data.text && document.getElementById('sound-toggle').checked) {
+                speakText(data.text);
+            }
+        });
+
+        let availableVoices = [];
+        function populateVoiceList() {
+            if (typeof speechSynthesis === 'undefined') return;
+            availableVoices = speechSynthesis.getVoices();
+        }
+        populateVoiceList();
+        if (typeof speechSynthesis !== 'undefined' && speechSynthesis.onvoiceschanged !== undefined) {
+            speechSynthesis.onvoiceschanged = populateVoiceList;
+        }
+
+        const ttsLangMap = { 'Ukrainian': 'uk-UA', 'English': 'en-US', 'Spanish': 'es-ES', 'German': 'de-DE', 'French': 'fr-FR' };
+
+        function speakText(textToSpeech) {
+            if (!('speechSynthesis' in window)) return;
+            const utterance = new SpeechSynthesisUtterance(textToSpeech);
+            const activeLang = interfaceLangSelect.value;
+            utterance.lang = ttsLangMap[activeLang] || 'es-ES';
+            window.speechSynthesis.cancel();
+            window.speechSynthesis.speak(utterance);
+        }
+
         document.getElementById('reset-user-btn').addEventListener('click', () => {
             localStorage.removeItem('habla_username');
             location.reload();
@@ -1066,7 +1145,6 @@
                         window.location.reload(true);
                     }, 500);
                 } catch (err) {
-                    console.error('Помилка оновлення:', err);
                     window.location.reload(true);
                 }
             });
@@ -1094,7 +1172,7 @@
             addContactBox.style.display = addContactBox.style.display === 'none' ? 'flex' : 'none';
         });
 
-        // Інтерактивні випадаючі списки в Налаштуваннях (зі стрілочками)
+        // Випадаючі списки налаштувань
         const toggleLangDropdown = document.getElementById('toggle-lang-dropdown');
         const langOptionsBox = document.getElementById('lang-options-box');
         const langArrow = document.getElementById('lang-arrow');
@@ -1113,7 +1191,6 @@
             voiceArrow.classList.toggle('open');
         });
 
-        // Кліки по додаткових кнопках налаштувань
         document.getElementById('btn-appearance').addEventListener('click', () => {
             alert('Зовнішній вигляд: Темна неон тема активована.');
         });
