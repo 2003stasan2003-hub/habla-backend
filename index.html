@@ -186,6 +186,7 @@
         .selected-recipient-inside.active { display: block; }
         .mic-icon-placeholder svg { stroke: #89a1b2; fill: none; width: 54px; height: 54px; }
 
+        /* Екран контактів - гарантовано фіксований і видимий */
         #contacts-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #0e1621; z-index: 60; display: none; flex-direction: column;
@@ -226,6 +227,14 @@
         .contact-grid-item.active .contact-grid-avatar { border-color: #f5f5f5; box-shadow: 0 0 8px rgba(137, 161, 178, 0.5); }
         .contact-grid-item.active .contact-grid-name { color: #f5f5f5; font-weight: bold; }
 
+        /* Стильна кнопка додавання контакту у сітці (кружечок з плюсиком) */
+        .add-contact-grid-circle {
+            width: 44px; height: 44px; border-radius: 50%; background: rgba(43, 82, 120, 0.4);
+            border: 2px dashed #89a1b2; color: #89a1b2; font-size: 1.4rem;
+            display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.2s, border-color 0.2s;
+        }
+        .add-contact-grid-circle:hover { transform: scale(1.1); border-color: #f5f5f5; color: #f5f5f5; }
+
         .contacts-bottom-actions {
             display: flex; justify-content: space-around; align-items: center;
             background: rgba(23, 33, 43, 0.7); border: 1px solid #89a1b2; border-radius: 14px; padding: 10px;
@@ -233,9 +242,48 @@
         .action-icon-btn { background: none; border: none; color: #89a1b2; font-size: 1.2rem; cursor: pointer; padding: 6px; border-radius: 8px; }
         .action-icon-btn:hover { color: #f5f5f5; background: #242f3d; }
 
-        .add-contact-box { display: flex; gap: 6px; margin-top: 4px; }
-        .add-contact-input { flex: 1; background: #242f3d; border: 1px solid #2b5278; color: #fff; padding: 8px 12px; border-radius: 8px; font-size: 0.85rem; outline: none; }
-        .add-contact-btn { background: #2b5278; color: #fff; border: none; padding: 8px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85rem; }
+        /* Повноекранне вікно додавання контакту у нашому стилі */
+        #add-contact-fullscreen-modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(14, 22, 33, 0.95);
+            z-index: 120;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+            gap: 20px;
+        }
+        #add-contact-fullscreen-modal.active { display: flex; }
+        .add-modal-card {
+            width: 100%; max-width: 340px;
+            background: rgba(23, 33, 43, 0.85);
+            border: 1px solid #2b5278;
+            border-radius: 16px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
+        .add-modal-icon-circle {
+            width: 64px; height: 64px; border-radius: 50%;
+            background: #2b5278; border: 2px solid #89a1b2;
+            color: #f5f5f5; font-size: 2rem; display: flex;
+            align-items: center; justify-content: center;
+        }
+        .add-modal-input {
+            width: 100%; background: #242f3d; border: 1px solid #2b5278;
+            color: #fff; padding: 12px 14px; border-radius: 10px; font-size: 0.95rem; outline: none; text-align: center;
+        }
+        .add-modal-actions { display: flex; gap: 10px; width: 100%; }
+        .modal-action-btn {
+            flex: 1; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 0.9rem; border: none; text-align: center;
+        }
+        .modal-btn-confirm { background: #2b5278; color: #fff; }
+        .modal-btn-cancel { background: rgba(255, 59, 48, 0.2); border: 1px solid #ff3b30; color: #ff3b30; }
 
         #qr-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -318,6 +366,7 @@
     <div id="pull-refresh-indicator">🔄 Потягніть, щоб оновити...</div>
     <div id="menu-overlay" class="menu-overlay"></div>
 
+    <!-- Модальне вікно налаштування контакту -->
     <div id="contact-modal">
         <div class="modal-header">
             <span id="modal-contact-title" class="modal-title">Контакт</span>
@@ -336,6 +385,19 @@
         <input type="text" id="modal-avatar-input" class="modal-avatar-input" placeholder="https://...">
         <button id="modal-save-btn" class="modal-btn-save" data-i18n="save">💾 Зберегти</button>
         <button id="modal-delete-btn" class="modal-btn-delete" data-i18n="delete_contact">🗑 Видалити контакт</button>
+    </div>
+
+    <!-- Повноекранне вікно додавання контакту в нашому стилі -->
+    <div id="add-contact-fullscreen-modal">
+        <div class="add-modal-card">
+            <div class="add-modal-icon-circle">➕</div>
+            <div style="font-weight: bold; font-size: 1.1rem; color: #f5f5f5;">Додати новий контакт</div>
+            <input type="text" id="fullscreen-contact-input" class="add-modal-input" placeholder="Введіть нікнейм...">
+            <div class="add-modal-actions">
+                <button id="fullscreen-cancel-btn" class="modal-action-btn modal-btn-cancel">Скасувати</button>
+                <button id="fullscreen-confirm-btn" class="modal-action-btn modal-btn-confirm">Додати</button>
+            </div>
+        </div>
     </div>
 
     <div id="app-container">
@@ -702,10 +764,7 @@
             if (username) allContactsSet.delete(username);
             let contactsList = Array.from(allContactsSet);
 
-            if (contactsList.length === 0) {
-                contactsList = ["Максим", "Стасан", "notebook", "Марина"];
-            }
-
+            // Рендеримо існуючі контакти
             contactsList.forEach(name => {
                 const itemDiv = document.createElement('div');
                 itemDiv.className = 'contact-grid-item';
@@ -748,7 +807,66 @@
 
                 contactsGridContainer.appendChild(itemDiv);
             });
+
+            // Завжди додаємо у сітку кнопку-кружечок з плюсиком для швидкого додавання контакту
+            const addGridItem = document.createElement('div');
+            addGridItem.className = 'contact-grid-item';
+            
+            const addCircle = document.createElement('div');
+            addCircle.className = 'add-contact-grid-circle';
+            addCircle.textContent = '+';
+            addCircle.title = 'Додати новий контакт';
+
+            const addName = document.createElement('div');
+            addName.className = 'contact-grid-name';
+            addName.textContent = 'Add';
+
+            addGridItem.appendChild(addCircle);
+            addGridItem.appendChild(addName);
+
+            addGridItem.addEventListener('click', () => {
+                openFullscreenAddContactModal();
+            });
+
+            contactsGridContainer.appendChild(addGridItem);
         }
+
+        // Керування повноекранним модальним вікном додавання контакту
+        const fullscreenModal = document.getElementById('add-contact-fullscreen-modal');
+        const fullscreenInput = document.getElementById('fullscreen-contact-input');
+        const fullscreenConfirmBtn = document.getElementById('fullscreen-confirm-btn');
+        const fullscreenCancelBtn = document.getElementById('fullscreen-cancel-btn');
+
+        function openFullscreenAddContactModal() {
+            fullscreenInput.value = '';
+            fullscreenModal.classList.add('active');
+            fullscreenInput.focus();
+        }
+
+        function closeFullscreenAddContactModal() {
+            fullscreenModal.classList.remove('active');
+        }
+
+        fullscreenCancelBtn.addEventListener('click', closeFullscreenAddContactModal);
+        
+        fullscreenConfirmBtn.addEventListener('click', () => {
+            const targetName = fullscreenInput.value.trim();
+            if (targetName && targetName !== username) {
+                socket.emit('add-contact', targetName);
+                if (!localAddedContacts.includes(targetName)) {
+                    localAddedContacts.push(targetName);
+                    localStorage.setItem('habla_local_contacts', JSON.stringify(localAddedContacts));
+                }
+                closeFullscreenAddContactModal();
+                renderContactsGrid(lastUsersData);
+            } else {
+                alert('Введіть коректне ім\'я контакту!');
+            }
+        });
+
+        fullscreenInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') fullscreenConfirmBtn.click();
+        });
 
         let mediaRecorder;
         let audioChunks = [];
@@ -938,7 +1056,7 @@
         const addContactBox = document.getElementById('add-contact-box');
 
         document.getElementById('sidebar-add-btn').addEventListener('click', () => {
-            addContactBox.style.display = addContactBox.style.display === 'none' ? 'flex' : 'none';
+            openFullscreenAddContactModal();
         });
 
         const toggleLangDropdown = document.getElementById('toggle-lang-dropdown');
@@ -991,6 +1109,7 @@
             settingsScreen.classList.remove('active');
         });
 
+        // Примусове відкриття екрана контактів
         navContacts.addEventListener('click', () => {
             setActiveNav(navContacts);
             qrScreen.classList.remove('active');
@@ -1116,7 +1235,6 @@
                 delete contactColors[activeContactForModal];
                 delete contactAvatars[activeContactForModal];
                 
-                socket.emit('update-contextual', {}); // fix silent deletion
                 socket.emit('update-customization', {
                     targetName: activeContactForModal,
                     color: '#89a1b2',
