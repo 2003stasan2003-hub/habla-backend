@@ -90,287 +90,6 @@
             background: #2b5278;
         }
 
-        .side-menu {
-            position: fixed;
-            top: 0;
-            left: -300px;
-            width: 300px;
-            height: 100%;
-            background: #17212b;
-            border-right: 1px solid #2b5278;
-            box-shadow: 5px 0 25px rgba(0, 0, 0, 0.6);
-            z-index: 100;
-            transition: left 0.3s ease;
-            display: flex;
-            flex-direction: column;
-            padding: 20px;
-            gap: 16px;
-            overflow-y: auto;
-        }
-
-        .side-menu.open {
-            left: 0;
-        }
-
-        .menu-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #242f3d;
-            padding-bottom: 12px;
-        }
-
-        .menu-title {
-            color: #89a1b2;
-            font-size: 1.1rem;
-            font-weight: bold;
-        }
-
-        .close-menu-btn {
-            background: none;
-            border: none;
-            color: #89a1b2;
-            font-size: 1.3rem;
-            cursor: pointer;
-        }
-
-        .sidebar-panel {
-            display: none;
-            flex-direction: column;
-            gap: 16px;
-        }
-        .sidebar-panel.active {
-            display: flex;
-        }
-
-        .sidebar-nav-btn {
-            background: #242f3d;
-            border: 1px solid #2b5278;
-            color: #f5f5f5;
-            padding: 12px 16px;
-            border-radius: 10px;
-            font-size: 0.95rem;
-            font-weight: 500;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            transition: background 0.2s, border-color 0.2s, color 0.2s;
-        }
-        .sidebar-nav-btn:hover {
-            background: #2b5278;
-            border-color: #89a1b2;
-            color: #89a1b2;
-        }
-
-        .back-btn {
-            background: none;
-            border: none;
-            color: #89a1b2;
-            font-size: 0.95rem;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 2px 0;
-            margin-bottom: 4px;
-        }
-
-        .menu-section {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .menu-section label {
-            font-size: 0.8rem;
-            color: #89a1b2;
-        }
-
-        /* Стиль картки профілю */
-        .profile-card-box {
-            background: rgba(23, 33, 43, 0.7);
-            border: 1px solid #89a1b2;
-            border-radius: 16px;
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            transition: border-color 0.2s;
-        }
-        .profile-card-box:hover {
-            border-color: #f5f5f5;
-        }
-
-        .user-avatar-large {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #89a1b2 0%, #2b5278 100%);
-            color: #0e1621;
-            font-weight: bold;
-            font-size: 1.2rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            border: 2px solid #89a1b2;
-        }
-
-        .user-avatar-large img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 50%;
-        }
-
-        .user-badge {
-            color: #f5f5f5;
-            font-weight: 600;
-            font-size: 1rem;
-        }
-
-        .profile-subtitle {
-            font-size: 0.75rem;
-            color: #89a1b2;
-        }
-
-        /* Сітка реальних збережених контактів */
-        .saved-contacts-card {
-            background: rgba(23, 33, 43, 0.7);
-            border: 1px solid #89a1b2;
-            border-radius: 16px;
-            padding: 14px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        }
-
-        .saved-contacts-title {
-            font-size: 0.85rem;
-            color: #89a1b2;
-            font-weight: 500;
-        }
-
-        .contacts-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            max-height: 220px;
-            overflow-y: auto;
-            padding-right: 2px;
-        }
-
-        .contact-grid-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-        .contact-grid-item:hover {
-            transform: scale(1.05);
-        }
-
-        .contact-grid-avatar {
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            background: #242f3d;
-            border: 1px solid #89a1b2;
-            color: #f5f5f5;
-            font-weight: bold;
-            font-size: 0.95rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
-        .contact-grid-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 50%;
-        }
-
-        .contact-grid-name {
-            font-size: 0.7rem;
-            color: #89a1b2;
-            text-align: center;
-            width: 100%;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .contact-grid-item.active .contact-grid-avatar {
-            border-color: #f5f5f5;
-            box-shadow: 0 0 8px rgba(137, 161, 178, 0.5);
-        }
-        .contact-grid-item.active .contact-grid-name {
-            color: #f5f5f5;
-            font-weight: bold;
-        }
-
-        /* Нижня панель дій у сайдбарі */
-        .sidebar-bottom-actions {
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            border-top: 1px solid #242f3d;
-            padding-top: 12px;
-            margin-top: 4px;
-        }
-
-        .action-icon-btn {
-            background: none;
-            border: none;
-            color: #89a1b2;
-            font-size: 1.2rem;
-            cursor: pointer;
-            padding: 6px;
-            border-radius: 8px;
-            transition: color 0.2s, background 0.2s;
-        }
-        .action-icon-btn:hover {
-            color: #f5f5f5;
-            background: #242f3d;
-        }
-
-        .add-contact-box {
-            display: flex;
-            gap: 6px;
-            margin-top: 4px;
-        }
-
-        .add-contact-input {
-            flex: 1;
-            background: #242f3d;
-            border: 1px solid #2b5278;
-            color: #fff;
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            outline: none;
-        }
-
-        .add-contact-btn {
-            background: #2b5278;
-            color: #fff;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 0.85rem;
-        }
-
         .lang-select {
             background: #242f3d;
             color: #f5f5f5;
@@ -492,7 +211,7 @@
             background: rgba(255, 59, 48, 0.4);
         }
 
-        /* Головний екран */
+        /* Головний контейнер */
         #app-container {
             flex: 1;
             display: flex;
@@ -552,6 +271,216 @@
             fill: none;
             width: 72px;
             height: 72px;
+        }
+
+        /* Екран контактів (на весь екран, як QR-код) */
+        #contacts-screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #0e1621;
+            z-index: 30;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            gap: 16px;
+            overflow-y: auto;
+        }
+        #contacts-screen.active {
+            display: flex;
+        }
+
+        .contacts-wrapper-box {
+            width: 100%;
+            max-width: 380px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* Картка профілю на весь екран контактів */
+        .profile-card-box {
+            background: rgba(23, 33, 43, 0.7);
+            border: 1px solid #89a1b2;
+            border-radius: 16px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            transition: border-color 0.2s;
+        }
+        .profile-card-box:hover {
+            border-color: #f5f5f5;
+        }
+
+        .user-avatar-large {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #89a1b2 0%, #2b5278 100%);
+            color: #0e1621;
+            font-weight: bold;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border: 2px solid #89a1b2;
+        }
+
+        .user-avatar-large img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .user-badge {
+            color: #f5f5f5;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .profile-subtitle {
+            font-size: 0.75rem;
+            color: #89a1b2;
+        }
+
+        /* Збережені контакти */
+        .saved-contacts-card {
+            background: rgba(23, 33, 43, 0.7);
+            border: 1px solid #89a1b2;
+            border-radius: 16px;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .saved-contacts-title {
+            font-size: 0.85rem;
+            color: #89a1b2;
+            font-weight: 500;
+        }
+
+        .contacts-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            max-height: 220px;
+            overflow-y: auto;
+            padding-right: 2px;
+        }
+
+        .contact-grid-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .contact-grid-item:hover {
+            transform: scale(1.05);
+        }
+
+        .contact-grid-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: #242f3d;
+            border: 1px solid #89a1b2;
+            color: #f5f5f5;
+            font-weight: bold;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .contact-grid-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .contact-grid-name {
+            font-size: 0.7rem;
+            color: #89a1b2;
+            text-align: center;
+            width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .contact-grid-item.active .contact-grid-avatar {
+            border-color: #f5f5f5;
+            box-shadow: 0 0 8px rgba(137, 161, 178, 0.5);
+        }
+        .contact-grid-item.active .contact-grid-name {
+            color: #f5f5f5;
+            font-weight: bold;
+        }
+
+        /* Панель дій в екрані контактів */
+        .contacts-bottom-actions {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            background: rgba(23, 33, 43, 0.7);
+            border: 1px solid #89a1b2;
+            border-radius: 14px;
+            padding: 10px;
+        }
+
+        .action-icon-btn {
+            background: none;
+            border: none;
+            color: #89a1b2;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 8px;
+            transition: color 0.2s, background 0.2s;
+        }
+        .action-icon-btn:hover {
+            color: #f5f5f5;
+            background: #242f3d;
+        }
+
+        .add-contact-box {
+            display: flex;
+            gap: 6px;
+            margin-top: 4px;
+        }
+
+        .add-contact-input {
+            flex: 1;
+            background: #242f3d;
+            border: 1px solid #2b5278;
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            outline: none;
+        }
+
+        .add-contact-btn {
+            background: #2b5278;
+            color: #fff;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.85rem;
         }
 
         /* Екран QR-кодів */
@@ -661,6 +590,62 @@
             transform: scale(0.96);
         }
 
+        /* Налаштування в налаштуваннях */
+        #settings-screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #0e1621;
+            z-index: 30;
+            display: none;
+            flex-direction: column;
+            padding: 30px 20px;
+            gap: 16px;
+            overflow-y: auto;
+            max-width: 480px;
+            margin: 0 auto;
+        }
+        #settings-screen.active {
+            display: flex;
+        }
+
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #242f3d;
+            padding-bottom: 12px;
+            font-weight: bold;
+            color: #89a1b2;
+        }
+
+        .menu-section {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .menu-section label {
+            font-size: 0.8rem;
+            color: #89a1b2;
+        }
+
+        .sidebar-nav-btn {
+            background: #242f3d;
+            border: 1px solid #2b5278;
+            color: #f5f5f5;
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: background 0.2s, border-color 0.2s, color 0.2s;
+            width: 100%;
+            justify-content: center;
+        }
+
         /* Нижня панель навігації */
         .bottom-nav-bar {
             background: #17212b;
@@ -714,7 +699,7 @@
 
     <div id="menu-overlay" class="menu-overlay"></div>
 
-    <!-- Кнопка відкриття меню у верхньому лівому кутку -->
+    <!-- Кнопка відкриття меню у верхньому лівому кутку (для налаштувань) -->
     <button id="top-menu-toggle" class="top-menu-btn" title="Меню">
         ☰
     </button>
@@ -739,129 +724,6 @@
         <button id="modal-delete-btn" class="modal-btn-delete">🗑 Видалити контакт</button>
     </div>
 
-    <!-- Сайдбар Contacts -->
-    <div id="side-menu" class="side-menu">
-        
-        <div id="panel-main" class="sidebar-panel active">
-            <div class="menu-header">
-                <span class="menu-title" id="menu-title-text">Habla Menu</span>
-                <button id="close-menu-btn" class="close-menu-btn">✕</button>
-            </div>
-
-            <!-- Блок профілю користувача -->
-            <div id="profile-settings-trigger" class="profile-card-box" title="Натисніть, щоб змінити налаштування профілю">
-                <div id="user-avatar-large" class="user-avatar-large">G</div>
-                <div style="text-align: center;">
-                    <div id="user-display" class="user-badge">Invitado</div>
-                    <div class="profile-subtitle">Profile Settings</div>
-                </div>
-            </div>
-
-            <!-- Збережені контакти (Saved Contacts) із реальними співрозмовниками -->
-            <div class="saved-contacts-card">
-                <div class="saved-contacts-title" id="label-saved-contacts">Saved Contacts</div>
-                <div class="contacts-grid" id="contacts-grid-container">
-                    <!-- Заповнюється вашими реальними контактами -->
-                </div>
-            </div>
-
-            <!-- Нижня панель дій у сайдбарі -->
-            <div class="sidebar-bottom-actions">
-                <button class="action-icon-btn" id="sidebar-add-btn" title="Додати контакт">➕</button>
-                <button class="action-icon-btn" id="sidebar-settings-btn" title="Налаштування">⚙️</button>
-                <button class="action-icon-btn" id="sidebar-call-btn" title="Зв'язок">📞</button>
-            </div>
-
-            <!-- Додавання контакту -->
-            <div class="add-contact-box" id="add-contact-box" style="display: none;">
-                <input type="text" id="new-contact-input" class="add-contact-input" placeholder="Додати за ніком...">
-                <button id="add-contact-btn" class="add-contact-btn">Додати</button>
-            </div>
-        </div>
-
-        <div id="panel-settings" class="sidebar-panel">
-            <div class="menu-header">
-                <button id="btn-back-from-settings" class="back-btn">← Назад</button>
-                <button id="close-menu-btn-2" class="close-menu-btn">✕</button>
-            </div>
-
-            <div class="menu-section">
-                <label id="label-profile-settings">Керування профілем</label>
-                <button id="reset-user-btn" class="sidebar-nav-btn" style="background: rgba(255, 59, 48, 0.15); border-color: #ff3b30; color: #ff3b30; width: 100%; justify-content: center;">
-                    🔄 Змінити нікнейм
-                </button>
-            </div>
-
-            <div class="menu-section">
-                <label>Оновлення програми</label>
-                <button id="update-app-btn" class="sidebar-nav-btn" style="background: #242f3d; border-color: #2b5278; color: #89a1b2; width: 100%; justify-content: center;">
-                    🔄 Перевірити оновлення
-                </button>
-            </div>
-
-            <div class="menu-section">
-                <label for="interface-lang" id="label-interface-lang">Мова інтерфейсу:</label>
-                <select id="interface-lang" class="lang-select">
-                    <option value="Spanish">Spanish</option>
-                    <option value="English">English</option>
-                    <option value="Ukrainian">Ukrainian</option>
-                    <option value="German">German</option>
-                    <option value="French">French</option>
-                </select>
-            </div>
-
-            <div class="menu-section">
-                <label id="label-force-translate">Примусовий переклад</label>
-                <div style="display: flex; justify-content: space-between; align-items: center; background: #242f3d; padding: 10px; border-radius: 8px; border: 1px solid #2b5278; margin-bottom: 8px;">
-                    <span id="label-enable-force" style="font-size: 0.85rem; color: #f5f5f5;">Увімкнути переклад</span>
-                    <label class="switch">
-                        <input type="checkbox" id="force-translate-toggle">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-                <div id="target-lang-container" style="display: none; flex-direction: column; gap: 6px;">
-                    <select id="target-lang" class="lang-select">
-                        <option value="Ukrainian">Ukrainian</option>
-                        <option value="Spanish">Spanish</option>
-                        <option value="English">English</option>
-                        <option value="German">German</option>
-                        <option value="French">French</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="menu-section">
-                <label id="label-voice-over">Озвучування перекладу</label>
-                <div style="display: flex; justify-content: space-between; align-items: center; background: #242f3d; padding: 10px; border-radius: 8px; border: 1px solid #2b5278;">
-                    <span id="label-enable-sound" style="font-size: 0.85rem; color: #f5f5f5;">Увімкнути звук</span>
-                    <input type="checkbox" id="sound-toggle" style="width: 18px; height: 18px; accent-color: #2b5278;">
-                </div>
-            </div>
-        </div>
-
-        <div id="panel-admin" class="sidebar-panel">
-            <div class="menu-header">
-                <button id="btn-back-from-admin" class="back-btn">← Назад</button>
-                <button id="close-menu-btn-3" class="close-menu-btn">✕</button>
-            </div>
-
-            <div class="menu-section">
-                <label id="label-api-status">Статус API Groq</label>
-                <div style="display: flex; gap: 8px;">
-                    <div id="req-box" style="flex: 1; background: #242f3d; padding: 10px; border-radius: 8px; border: 1px solid #2b5278; text-align: center;">
-                        <div style="font-size: 0.7rem; color: #89a1b2; margin-bottom: 2px;">REQS</div>
-                        <div id="req-value" style="font-size: 1rem; font-weight: bold; color: #f5f5f5;">---</div>
-                    </div>
-                    <div id="tok-box" style="flex: 1; background: #242f3d; padding: 10px; border-radius: 8px; border: 1px solid #2b5278; text-align: center;">
-                        <div style="font-size: 0.7rem; color: #89a1b2; margin-bottom: 2px;">TOKENS</div>
-                        <div id="tok-value" style="font-size: 1rem; font-weight: bold; color: #f5f5f5;">---</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-    </div>
-
     <!-- Головний екран -->
     <div id="app-container">
         <main class="main-screen">
@@ -875,6 +737,41 @@
                 </div>
             </button>
         </main>
+
+        <!-- Екран контактів (тепер на весь екран, як QR-код) -->
+        <div id="contacts-screen">
+            <div class="contacts-wrapper-box">
+                <!-- Блок профілю користувача -->
+                <div id="profile-settings-trigger" class="profile-card-box" title="Натисніть, щоб змінити налаштування профілю">
+                    <div id="user-avatar-large" class="user-avatar-large">G</div>
+                    <div style="text-align: center;">
+                        <div id="user-display" class="user-badge">Стасан</div>
+                        <div class="profile-subtitle">Profile Settings</div>
+                    </div>
+                </div>
+
+                <!-- Збережені контакти (Saved Contacts) із реальними співрозмовниками -->
+                <div class="saved-contacts-card">
+                    <div class="saved-contacts-title" id="label-saved-contacts">Збережені контакти</div>
+                    <div class="contacts-grid" id="contacts-grid-container">
+                        <!-- Заповнюється вашими реальними контактами -->
+                    </div>
+                </div>
+
+                <!-- Нижня панель дій -->
+                <div class="contacts-bottom-actions">
+                    <button class="action-icon-btn" id="sidebar-add-btn" title="Додати контакт">➕</button>
+                    <button class="action-icon-btn" id="sidebar-settings-btn" title="Налаштування">⚙️</button>
+                    <button class="action-icon-btn" id="sidebar-call-btn" title="Зв'язок">📞</button>
+                </div>
+
+                <!-- Додавання контакту -->
+                <div class="add-contact-box" id="add-contact-box" style="display: none;">
+                    <input type="text" id="new-contact-input" class="add-contact-input" placeholder="Додати за ніком...">
+                    <button id="add-contact-btn" class="add-contact-btn">Додати</button>
+                </div>
+            </div>
+        </div>
 
         <!-- Екран QR-кодів -->
         <div id="qr-screen">
@@ -901,6 +798,67 @@
             <button class="ios-download-btn" id="ios-download-btn">
                 🍎 Download on iOS
             </button>
+        </div>
+
+        <!-- Екран налаштувань (відкривається по шестерні або меню) -->
+        <div id="settings-screen">
+            <div class="settings-header">
+                <span>Налаштування</span>
+                <button id="close-settings-screen" style="background:none; border:none; color:#89a1b2; font-size:1.2rem; cursor:pointer;">✕</button>
+            </div>
+
+            <div class="menu-section">
+                <label>Керування профілем</label>
+                <button id="reset-user-btn" class="sidebar-nav-btn" style="background: rgba(255, 59, 48, 0.15); border-color: #ff3b30; color: #ff3b30;">
+                    🔄 Змінити нікнейм
+                </button>
+            </div>
+
+            <div class="menu-section">
+                <label>Оновлення програми</label>
+                <button id="update-app-btn" class="sidebar-nav-btn" style="background: #242f3d; border-color: #2b5278; color: #89a1b2;">
+                    🔄 Перевірити оновлення
+                </button>
+            </div>
+
+            <div class="menu-section">
+                <label for="interface-lang">Мова інтерфейсу:</label>
+                <select id="interface-lang" class="lang-select">
+                    <option value="Spanish">Spanish</option>
+                    <option value="English">English</option>
+                    <option value="Ukrainian">Ukrainian</option>
+                    <option value="German">German</option>
+                    <option value="French">French</option>
+                </select>
+            </div>
+
+            <div class="menu-section">
+                <label>Примусовий переклад</label>
+                <div style="display: flex; justify-content: space-between; align-items: center; background: #242f3d; padding: 10px; border-radius: 8px; border: 1px solid #2b5278; margin-bottom: 8px;">
+                    <span style="font-size: 0.85rem; color: #f5f5f5;">Увімкнути переклад</span>
+                    <label class="switch">
+                        <input type="checkbox" id="force-translate-toggle">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div id="target-lang-container" style="display: none; flex-direction: column; gap: 6px;">
+                    <select id="target-lang" class="lang-select">
+                        <option value="Ukrainian">Ukrainian</option>
+                        <option value="Spanish">Spanish</option>
+                        <option value="English">English</option>
+                        <option value="German">German</option>
+                        <option value="French">French</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="menu-section">
+                <label>Озвучування перекладу</label>
+                <div style="display: flex; justify-content: space-between; align-items: center; background: #242f3d; padding: 10px; border-radius: 8px; border: 1px solid #2b5278;">
+                    <span style="font-size: 0.85rem; color: #f5f5f5;">Увімкнути звук</span>
+                    <input type="checkbox" id="sound-toggle" style="width: 18px; height: 18px; accent-color: #2b5278;">
+                </div>
+            </div>
         </div>
     </div>
 
@@ -1049,7 +1007,7 @@
             }
         }
 
-        // Рендеринг сітки реальних контактів у сайдбарі
+        // Рендеринг сітки реальних контактів
         const contactsGridContainer = document.getElementById('contacts-grid-container');
 
         function renderContactsGrid(onlineUsers = []) {
@@ -1089,12 +1047,12 @@
                 itemDiv.appendChild(avatarDiv);
                 itemDiv.appendChild(nameDiv);
 
-                // Вибір контакту — ім'я з'являється над кнопкою мікрофона
+                // Вибір контакту — з'являється над кнопкою мікрофона та закриває екран контактів
                 itemDiv.addEventListener('click', () => {
                     selectedRecipientName = name;
                     selectedRecipientDisplay.textContent = name;
-                    sideMenu.classList.remove('open');
-                    menuOverlay.classList.remove('active');
+                    contactsScreen.classList.remove('active');
+                    setActiveNav(navHome);
                     renderContactsGrid(lastUsersData);
                 });
 
@@ -1162,22 +1120,23 @@
             addContactBox.style.display = addContactBox.style.display === 'none' ? 'flex' : 'none';
         });
 
-        const sideMenu = document.getElementById('side-menu');
-        const menuOverlay = document.getElementById('menu-overlay');
-        const panelMain = document.getElementById('panel-main');
-        const panelSettings = document.getElementById('panel-settings');
-        const panelAdmin = document.getElementById('panel-admin');
         const topMenuToggle = document.getElementById('top-menu-toggle');
+        const settingsScreen = document.getElementById('settings-screen');
+        const closeSettingsScreen = document.getElementById('close-settings-screen');
 
         topMenuToggle.addEventListener('click', () => {
-            showMainPanel();
-            sideMenu.classList.add('open');
-            menuOverlay.classList.add('active');
+            qrScreen.classList.remove('active');
+            contactsScreen.classList.remove('active');
+            settingsScreen.classList.add('active');
+        });
+
+        closeSettingsScreen.addEventListener('click', () => {
+            settingsScreen.classList.remove('active');
         });
 
         document.getElementById('sidebar-settings-btn').addEventListener('click', () => {
-            panelMain.classList.remove('active');
-            panelSettings.classList.add('active');
+            contactsScreen.classList.remove('active');
+            settingsScreen.classList.add('active');
         });
 
         const navHome = document.getElementById('nav-home');
@@ -1186,6 +1145,8 @@
         const navSettings = document.getElementById('nav-settings');
         const navItems = document.querySelectorAll('.nav-item');
         const qrScreen = document.getElementById('qr-screen');
+        const contactsScreen = document.getElementById('contacts-screen');
+        const menuOverlay = document.getElementById('menu-overlay');
 
         function setActiveNav(selectedItem) {
             navItems.forEach(item => item.classList.remove('active'));
@@ -1195,33 +1156,30 @@
         navHome.addEventListener('click', () => {
             setActiveNav(navHome);
             qrScreen.classList.remove('active');
-            sideMenu.classList.remove('open');
-            menuOverlay.classList.remove('active');
+            contactsScreen.classList.remove('active');
+            settingsScreen.classList.remove('active');
         });
 
         navContacts.addEventListener('click', () => {
             setActiveNav(navContacts);
             qrScreen.classList.remove('active');
-            showMainPanel();
+            settingsScreen.classList.remove('active');
             renderContactsGrid(lastUsersData);
-            sideMenu.classList.add('open');
-            menuOverlay.classList.add('active');
+            contactsScreen.classList.add('active');
         });
 
         navQr.addEventListener('click', () => {
             setActiveNav(navQr);
-            sideMenu.classList.remove('open');
-            menuOverlay.classList.remove('active');
+            contactsScreen.classList.remove('active');
+            settingsScreen.classList.remove('active');
             qrScreen.classList.add('active');
         });
 
         navSettings.addEventListener('click', () => {
             setActiveNav(navSettings);
             qrScreen.classList.remove('active');
-            panelMain.classList.remove('active');
-            panelSettings.classList.add('active');
-            sideMenu.classList.add('open');
-            menuOverlay.classList.add('active');
+            contactsScreen.classList.remove('active');
+            settingsScreen.classList.add('active');
         });
 
         const contactModal = document.getElementById('contact-modal');
@@ -1253,22 +1211,12 @@
         renderContactsGrid();
         joinWithLanguage();
 
-        function showMainPanel() {
-            panelMain.classList.add('active');
-            panelSettings.classList.remove('active');
-            panelAdmin.classList.remove('active');
-        }
-
-        document.getElementById('btn-back-from-settings').addEventListener('click', showMainPanel);
-        document.getElementById('btn-back-from-admin').addEventListener('click', showMainPanel);
-
-        menuOverlay.addEventListener('click', () => {
-            sideMenu.classList.remove('open');
+        closeContactModal.addEventListener('click', () => {
             contactModal.classList.remove('active');
             menuOverlay.classList.remove('active');
         });
 
-        closeContactModal.addEventListener('click', () => {
+        menuOverlay.addEventListener('click', () => {
             contactModal.classList.remove('active');
             menuOverlay.classList.remove('active');
         });
