@@ -8,163 +8,357 @@
     <meta name="theme-color" content="#0e1621">
     <script src="/socket.io/socket.io.js"></script>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
-            background-color: #0e1621; color: #f5f5f5;
+            background-color: #0e1621;
+            color: #f5f5f5;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            display: flex; flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            height: 100dvh;
+            overflow: hidden;
+            -webkit-touch-callout: none;
         }
+
         #pull-refresh-indicator {
-            position: fixed; top: -50px; left: 0; width: 100%; height: 50px;
-            display: flex; align-items: center; justify-content: center;
-            background: #0e1621; color: #89a1b2; font-size: 0.85rem; z-index: 100;
-            transition: transform 0.2s ease; border-bottom: 1px solid #242f3d;
+            position: fixed;
+            top: -50px;
+            left: 0;
+            width: 100%;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #0e1621;
+            color: #89a1b2;
+            font-size: 0.85rem;
+            z-index: 100;
+            transition: transform 0.2s ease;
+            border-bottom: 1px solid #242f3d;
         }
-        .switch { position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0; }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+            flex-shrink: 0;
+        }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider {
-            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
-            background-color: #2b5278; transition: 0.3s; border-radius: 24px;
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #2b5278;
+            transition: 0.3s;
+            border-radius: 24px;
         }
         .slider:before {
-            position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px;
-            background-color: white; transition: 0.3s; border-radius: 50%;
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
         }
         input:checked + .slider { background-color: #89a1b2; }
         input:checked + .slider:before { transform: translateX(20px); background-color: #0e1621; }
+
         .lang-select {
-            background: #242f3d; color: #f5f5f5; border: 1px solid #2b5278;
-            padding: 8px 12px; border-radius: 8px; outline: none; font-size: 0.9rem; cursor: pointer; width: 100%;
+            background: #242f3d;
+            color: #f5f5f5;
+            border: 1px solid #2b5278;
+            padding: 8px 12px;
+            border-radius: 8px;
+            outline: none;
+            font-size: 0.9rem;
+            cursor: pointer;
+            width: 100%;
         }
+        .lang-select option:disabled {
+            color: #666;
+            background: #17212b;
+        }
+
         .menu-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.6); z-index: 99; display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 99;
+            display: none;
         }
         .menu-overlay.active { display: block; }
+
         #contact-modal {
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 320px; background: #17212b; border: 1px solid #2b5278; border-radius: 14px;
-            padding: 20px; z-index: 101; display: none; flex-direction: column; gap: 12px;
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 320px;
+            background: #17212b;
+            border: 1px solid #2b5278;
+            border-radius: 14px;
+            padding: 20px;
+            z-index: 101;
+            display: none;
+            flex-direction: column;
+            gap: 12px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.7);
         }
         #contact-modal.active { display: flex; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #242f3d; padding-bottom: 10px; }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #242f3d;
+            padding-bottom: 10px;
+        }
         .modal-title { color: #f5f5f5; font-weight: bold; font-size: 1.05rem; }
         .modal-close-btn { background: none; border: none; color: #89a1b2; font-size: 1.2rem; cursor: pointer; }
-        .color-palette { display: flex; gap: 10px; justify-content: space-between; margin: 4px 0; }
-        .color-circle { width: 32px; height: 32px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
-        .color-circle.selected { border-color: #ffffff; }
-        .modal-avatar-input { width: 100%; background: #242f3d; border: 1px solid #2b5278; color: #fff; padding: 8px 10px; border-radius: 6px; outline: none; }
-        .modal-btn-save { background: #2b5278; color: #fff; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        .modal-btn-delete { background: rgba(255, 59, 48, 0.2); border: 1px solid #ff3b30; color: #ff3b30; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        #app-container { flex: 1; display: flex; flex-direction: column; position: relative; overflow: hidden; background: #0e1621; width: 100%; }
-        
-        .active-chat-header {
-            display: none; align-items: center; justify-content: space-between;
-            background: rgba(23, 33, 43, 0.9); border-bottom: 1px solid #2b5278;
-            padding: 10px 16px; width: 100%; max-width: 480px; margin: 0 auto; z-index: 10;
-        }
-        .active-chat-header.active { display: flex; }
-        .chat-user-info { display: flex; align-items: center; gap: 10px; }
-        .chat-user-avatar { width: 36px; height: 36px; border-radius: 50%; background: #2b5278; color: #fff; font-weight: bold; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; }
-        .chat-user-name { font-weight: 600; font-size: 0.95rem; color: #f5f5f5; }
-        .reset-chat-btn { background: none; border: none; color: #ff3b30; font-size: 1.2rem; cursor: pointer; padding: 4px; }
 
-        .main-screen { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; padding: 20px; width: 100%; max-width: 480px; margin: 0 auto; gap: 16px; }
-        
-        .messages-stack-container { width: 100%; max-width: 340px; display: flex; flex-direction: column; gap: 8px; justify-content: flex-end; min-height: 120px; margin-bottom: 10px; }
-        .message-card {
-            background: rgba(23, 33, 43, 0.9); border: 1px solid #2b5278; border-radius: 14px;
-            padding: 12px 14px; color: #f5f5f5; font-size: 0.9rem; line-height: 1.35; position: relative;
-            transition: all 0.3s ease; opacity: 1; transform: translateY(0);
+        .color-palette { display: flex; gap: 10px; justify-content: space-between; margin: 4px 0; }
+        .color-circle {
+            width: 32px; height: 32px; border-radius: 50%; cursor: pointer;
+            border: 2px solid transparent; transition: transform 0.2s, border-color 0.2s;
         }
-        .message-card.sent { border-color: #89a1b2; background: rgba(43, 82, 120, 0.4); align-self: flex-end; }
-        .message-card.received { border-color: #2b5278; align-self: flex-start; }
-        .message-card.older-1 { opacity: 0.75; transform: scale(0.96); }
-        .message-card.older-2 { opacity: 0.45; transform: scale(0.92); }
-        .message-card.fade-out { opacity: 0; transform: translateY(-20px) scale(0.85); }
-        .message-sender-tag { font-size: 0.7rem; color: #89a1b2; margin-bottom: 4px; font-weight: 600; }
+        .color-circle:hover { transform: scale(1.15); }
+        .color-circle.selected { border-color: #ffffff; }
+
+        .modal-avatar-input {
+            width: 100%; background: #242f3d; border: 1px solid #2b5278;
+            color: #fff; padding: 8px 10px; border-radius: 6px; font-size: 0.85rem; outline: none;
+        }
+        .modal-btn-save {
+            background: #2b5278; color: #fff; border: none; padding: 10px;
+            border-radius: 8px; font-weight: bold; cursor: pointer; text-align: center; font-size: 0.9rem;
+        }
+        .modal-btn-delete {
+            background: rgba(255, 59, 48, 0.2); border: 1px solid #ff3b30; color: #ff3b30;
+            padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; text-align: center; font-size: 0.9rem;
+        }
+
+        #app-container {
+            flex: 1; display: flex; flex-direction: column; position: relative;
+            overflow: hidden; background: #0e1621; width: 100%;
+        }
+
+        .main-screen {
+            flex: 1; display: flex; flex-direction: column; align-items: center;
+            justify-content: center; position: relative; padding: 20px; width: 100%;
+            max-width: 480px; margin: 0 auto; gap: 20px;
+        }
+
+        .notification-overlay-box {
+            display: none; width: 100%; max-width: 320px;
+            background: rgba(23, 33, 43, 0.85); border: 1px solid #2b5278;
+            border-radius: 14px; padding: 16px; position: relative;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5); margin-bottom: 10px;
+        }
+        .notification-overlay-box.active { display: flex; flex-direction: column; gap: 8px; }
+        .notification-text { color: #f5f5f5; font-size: 0.9rem; line-height: 1.4; padding-right: 28px; }
+        .notification-tts-btn {
+            position: absolute; bottom: 12px; right: 12px; background: none; border: none;
+            color: #89a1b2; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;
+        }
+        .notification-tts-btn:hover { color: #f5f5f5; }
+        .notification-tts-btn svg { width: 18px; height: 18px; fill: currentColor; }
 
         .neon-mic-btn {
             background: transparent; border: 1px solid #89a1b2; border-radius: 50%;
-            width: 200px; height: 200px; display: flex; flex-direction: column;
+            width: 210px; height: 210px; display: flex; flex-direction: column;
             align-items: center; justify-content: center; cursor: pointer;
-            transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s; position: relative; outline: none; gap: 6px;
+            transition: transform 0.2s, border-color 0.2s; position: relative; outline: none; gap: 6px;
         }
-        .neon-mic-btn.recording { border-color: #ff3b30; box-shadow: 0 0 20px rgba(255, 59, 48, 0.6); animation: pulse-red 1.2s infinite; }
-        @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.5); } 70% { box-shadow: 0 0 0 18px rgba(255, 59, 48, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0); } }
-        
-        .recording-timer { color: #ff3b30; font-weight: bold; font-size: 0.85rem; display: none; }
-        .recording-timer.active { display: block; }
-        .selected-recipient-inside { color: #f5f5f5; font-size: 1.05rem; font-weight: 600; display: none; }
-        .selected-recipient-inside.active { display: block; }
-        .mic-icon-placeholder svg { stroke: #89a1b2; fill: none; width: 50px; height: 50px; }
+        .neon-mic-btn:active { transform: scale(0.96); border-color: #f5f5f5; }
 
-        #contacts-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0e1621; z-index: 60; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; gap: 16px; overflow-y: auto; }
+        .selected-recipient-inside {
+            color: #f5f5f5; font-size: 1.05rem; font-weight: 600; letter-spacing: 0.5px; display: none;
+        }
+        .selected-recipient-inside.active { display: block; }
+        .mic-icon-placeholder svg { stroke: #89a1b2; fill: none; width: 54px; height: 54px; }
+
+        #contacts-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #0e1621; z-index: 60; display: none; flex-direction: column;
+            align-items: center; justify-content: center; padding: 20px; gap: 16px; overflow-y: auto;
+        }
         #contacts-screen.active { display: flex !important; }
-        #qr-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0e1621; z-index: 60; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; gap: 20px; }
+
+        #qr-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #0e1621; z-index: 60; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; gap: 20px;
+        }
         #qr-screen.active { display: flex !important; }
-        #settings-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0e1621; z-index: 60; display: none; flex-direction: column; padding: 30px 20px; gap: 12px; overflow-y: auto; }
+
+        #settings-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #0e1621; z-index: 60; display: none; flex-direction: column;
+            padding: 30px 20px; gap: 12px; overflow-y: auto; width: 100%;
+        }
         #settings-screen.active { display: flex !important; }
 
         .contacts-wrapper-box { width: 100%; max-width: 380px; display: flex; flex-direction: column; gap: 16px; margin: auto; }
-        .profile-card-box { background: rgba(23, 33, 43, 0.7); border: 1px solid #89a1b2; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; }
-        .user-avatar-large { width: 50px; height: 50px; border-radius: 50%; background: #2b5278; color: #0e1621; font-weight: bold; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 2px solid #89a1b2; }
+
+        .profile-card-box {
+            background: rgba(23, 33, 43, 0.7); border: 1px solid #89a1b2; border-radius: 16px;
+            padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer;
+        }
+        .user-avatar-large {
+            width: 50px; height: 50px; border-radius: 50%;
+            background: linear-gradient(135deg, #89a1b2 0%, #2b5278 100%);
+            color: #0e1621; font-weight: bold; font-size: 1.2rem; display: flex;
+            align-items: center; justify-content: center; overflow: hidden; border: 2px solid #89a1b2;
+        }
         .user-avatar-large img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
         .user-badge { color: #f5f5f5; font-weight: 600; font-size: 1rem; }
         .profile-subtitle { font-size: 0.75rem; color: #89a1b2; }
 
-        .saved-contacts-card { background: rgba(23, 33, 43, 0.7); border: 1px solid #89a1b2; border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+        .saved-contacts-card {
+            background: rgba(23, 33, 43, 0.7); border: 1px solid #89a1b2; border-radius: 16px;
+            padding: 14px; display: flex; flex-direction: column; gap: 12px;
+        }
         .saved-contacts-title { font-size: 0.85rem; color: #89a1b2; font-weight: 500; }
         .contacts-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; max-height: 220px; overflow-y: auto; }
 
         .contact-grid-item { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; }
-        .contact-grid-avatar { width: 44px; height: 44px; border-radius: 50%; background: #242f3d; border: 1px solid #89a1b2; color: #f5f5f5; font-weight: bold; font-size: 0.95rem; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .contact-grid-avatar {
+            width: 44px; height: 44px; border-radius: 50%; background: #242f3d;
+            border: 1px solid #89a1b2; color: #f5f5f5; font-weight: bold; font-size: 0.95rem;
+            display: flex; align-items: center; justify-content: center; overflow: hidden;
+        }
         .contact-grid-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
         .contact-grid-name { font-size: 0.7rem; color: #89a1b2; text-align: center; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .contact-grid-item.active .contact-grid-avatar { border-color: #f5f5f5; box-shadow: 0 0 8px rgba(137, 161, 178, 0.5); }
         .contact-grid-item.active .contact-grid-name { color: #f5f5f5; font-weight: bold; }
 
-        .add-contact-grid-circle { width: 44px; height: 44px; border-radius: 50%; background: rgba(43, 82, 120, 0.4); border: 2px dashed #89a1b2; color: #89a1b2; font-size: 1.4rem; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-        .contacts-bottom-actions { display: flex; justify-content: space-around; align-items: center; background: rgba(23, 33, 43, 0.7); border: 1px solid #89a1b2; border-radius: 14px; padding: 10px; }
-        .action-icon-btn { background: none; border: none; color: #89a1b2; font-size: 1.2rem; cursor: pointer; padding: 6px; border-radius: 8px; }
+        .add-contact-grid-circle {
+            width: 44px; height: 44px; border-radius: 50%; background: rgba(43, 82, 120, 0.4);
+            border: 2px dashed #89a1b2; color: #89a1b2; font-size: 1.4rem;
+            display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.2s, border-color 0.2s;
+        }
+        .add-contact-grid-circle:hover { transform: scale(1.1); border-color: #f5f5f5; color: #f5f5f5; }
 
-        #add-contact-fullscreen-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(14, 22, 33, 0.95); z-index: 120; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 30px; gap: 20px; }
+        .contacts-bottom-actions {
+            display: flex; justify-content: space-around; align-items: center;
+            background: rgba(23, 33, 43, 0.7); border: 1px solid #89a1b2; border-radius: 14px; padding: 10px;
+        }
+        .action-icon-btn { background: none; border: none; color: #89a1b2; font-size: 1.2rem; cursor: pointer; padding: 6px; border-radius: 8px; }
+        .action-icon-btn:hover { color: #f5f5f5; background: #242f3d; }
+
+        #add-contact-fullscreen-modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(14, 22, 33, 0.95);
+            z-index: 120;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+            gap: 20px;
+        }
         #add-contact-fullscreen-modal.active { display: flex; }
-        .add-modal-card { width: 100%; max-width: 340px; background: rgba(23, 33, 43, 0.85); border: 1px solid #2b5278; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; align-items: center; gap: 16px; }
-        .add-modal-icon-circle { width: 64px; height: 64px; border-radius: 50%; background: #2b5278; border: 2px solid #89a1b2; color: #f5f5f5; font-size: 2rem; display: flex; align-items: center; justify-content: center; }
-        .add-modal-input { width: 100%; background: #242f3d; border: 1px solid #2b5278; color: #fff; padding: 12px 14px; border-radius: 10px; font-size: 0.95rem; outline: none; text-align: center; }
+        .add-modal-card {
+            width: 100%; max-width: 340px;
+            background: rgba(23, 33, 43, 0.85);
+            border: 1px solid #2b5278;
+            border-radius: 16px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
+        .add-modal-icon-circle {
+            width: 64px; height: 64px; border-radius: 50%;
+            background: #2b5278; border: 2px solid #89a1b2;
+            color: #f5f5f5; font-size: 2rem; display: flex;
+            align-items: center; justify-content: center;
+        }
+        .add-modal-input {
+            width: 100%; background: #242f3d; border: 1px solid #2b5278;
+            color: #fff; padding: 12px 14px; border-radius: 10px; font-size: 0.95rem; outline: none; text-align: center;
+        }
         .add-modal-actions { display: flex; gap: 10px; width: 100%; }
-        .modal-action-btn { flex: 1; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 0.9rem; border: none; text-align: center; }
+        .modal-action-btn {
+            flex: 1; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 0.9rem; border: none; text-align: center;
+        }
         .modal-btn-confirm { background: #2b5278; color: #fff; }
         .modal-btn-cancel { background: rgba(255, 59, 48, 0.2); border: 1px solid #ff3b30; color: #ff3b30; }
 
         .qr-cards-wrapper { display: flex; gap: 16px; width: 100%; max-width: 400px; justify-content: center; }
-        .qr-card { flex: 1; background: rgba(23, 33, 43, 0.7); border: 1px solid #89a1b2; border-radius: 16px; padding: 16px 12px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+        .qr-card {
+            flex: 1; background: rgba(23, 33, 43, 0.7); border: 1px solid #89a1b2; border-radius: 16px;
+            padding: 16px 12px; display: flex; flex-direction: column; align-items: center; gap: 12px;
+        }
         .qr-card-title { color: #f5f5f5; font-size: 1rem; font-weight: 600; }
         .qr-img-box { background: #ffffff; padding: 6px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
         .qr-img-box img { width: 100px; height: 100px; display: block; }
-        .copy-link-action-btn { background: transparent; border: 1px solid #89a1b2; color: #89a1b2; padding: 8px 12px; border-radius: 10px; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; gap: 6px; width: 100%; justify-content: center; }
-        .ios-download-btn { background: transparent; border: 1px solid #89a1b2; color: #89a1b2; padding: 12px 24px; border-radius: 30px; font-size: 0.95rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 10px; max-width: 320px; width: 90%; justify-content: center; margin-top: 4px; }
+        .copy-link-action-btn {
+            background: transparent; border: 1px solid #89a1b2; color: #89a1b2; padding: 8px 12px;
+            border-radius: 10px; font-size: 0.8rem; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; width: 100%; justify-content: center;
+        }
+        .ios-download-btn {
+            background: transparent; border: 1px solid #89a1b2; color: #89a1b2; padding: 12px 24px;
+            border-radius: 30px; font-size: 0.95rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 10px; max-width: 320px; width: 90%; justify-content: center; margin-top: 4px;
+        }
 
-        .settings-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #242f3d; padding-bottom: 12px; font-weight: bold; color: #89a1b2; font-size: 1.1rem; }
-        .settings-card { background: rgba(23, 33, 43, 0.7); border: 1px solid #89a1b2; border-radius: 14px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; max-width: 480px; width: 100%; margin: 0 auto; }
-        .settings-row { display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding: 4px 0; color: #f5f5f5; font-size: 0.95rem; }
+        .settings-header {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid #242f3d; padding-bottom: 12px; font-weight: bold; color: #89a1b2; font-size: 1.1rem;
+        }
+        .settings-card {
+            background: rgba(23, 33, 43, 0.7); border: 1px solid #89a1b2; border-radius: 14px;
+            padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            max-width: 480px; width: 100%; margin: 0 auto;
+        }
+        .settings-row {
+            display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding: 4px 0; color: #f5f5f5; font-size: 0.95rem;
+        }
+        .settings-row:hover { color: #89a1b2; }
         .dropdown-arrow { font-size: 0.8rem; color: #89a1b2; transition: transform 0.2s; }
         .dropdown-arrow.open { transform: rotate(180deg); }
+
         .sub-options-box { display: none; flex-direction: column; gap: 8px; padding-top: 6px; border-top: 1px solid #242f3d; }
         .sub-options-box.active { display: flex; }
-        .sidebar-nav-btn { background: #242f3d; border: 1px solid #2b5278; color: #f5f5f5; padding: 12px 16px; border-radius: 10px; font-size: 0.95rem; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 12px; width: 100%; justify-content: center; }
+
+        .sidebar-nav-btn {
+            background: #242f3d; border: 1px solid #2b5278; color: #f5f5f5; padding: 12px 16px;
+            border-radius: 10px; font-size: 0.95rem; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 12px; width: 100%; justify-content: center;
+        }
 
         .bottom-nav-bar {
-            position: fixed; bottom: 0; left: 0; background: #17212b; border-top: 1px solid #2b5278;
-            padding: 10px 16px; display: flex; justify-content: space-around; align-items: center; z-index: 70;
-            width: 100%; flex-shrink: 0; padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            background: #17212b;
+            border-top: 1px solid #2b5278;
+            padding: 10px 16px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 70;
+            width: 100%;
+            flex-shrink: 0;
+            padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
         }
-        .nav-item { background: none; border: none; color: #89a1b2; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; padding: 6px 16px; border-radius: 8px; }
+        .nav-item {
+            background: none; border: none; color: #89a1b2; display: flex; flex-direction: column;
+            align-items: center; gap: 4px; cursor: pointer; padding: 6px 16px; border-radius: 8px;
+        }
         .nav-item svg { width: 24px; height: 24px; stroke: #89a1b2; fill: none; }
         .nav-item small { font-size: 0.75rem; font-weight: 500; color: #89a1b2; }
-        .nav-item.active svg { color: #f5f5f5; stroke: #f5f5f5; }
+        .nav-item:hover svg, .nav-item.active svg { color: #f5f5f5; stroke: #f5f5f5; }
     </style>
 </head>
 <body>
@@ -177,7 +371,7 @@
             <span id="modal-contact-title" class="modal-title">Контакт</span>
             <button id="close-contact-modal" class="modal-close-btn">✕</button>
         </div>
-        <div style="font-size: 0.8rem; color: #89a1b2;">Колір фону іконки:</div>
+        <div style="font-size: 0.8rem; color: #89a1b2;" data-i18n="icon_bg_color">Колір фону іконки:</div>
         <div class="color-palette" id="color-palette">
             <div class="color-circle" style="background: #89a1b2;" data-color="#89a1b2"></div>
             <div class="color-circle" style="background: #2b5278;" data-color="#2b5278"></div>
@@ -186,10 +380,10 @@
             <div class="color-circle" style="background: #7928ca;" data-color="#7928ca"></div>
             <div class="color-circle" style="background: #0056b3;" data-color="#0056b3"></div>
         </div>
-        <div style="font-size: 0.8rem; color: #89a1b2;">Посилання на фото-аватарку (URL):</div>
+        <div style="font-size: 0.8rem; color: #89a1b2;" data-i18n="avatar_url">Посилання на фото-аватарку (URL):</div>
         <input type="text" id="modal-avatar-input" class="modal-avatar-input" placeholder="https://...">
-        <button id="modal-save-btn" class="modal-btn-save">💾 Зберегти</button>
-        <button id="modal-delete-btn" class="modal-btn-delete">🗑 Видалити контакт</button>
+        <button id="modal-save-btn" class="modal-btn-save" data-i18n="save">💾 Зберегти</button>
+        <button id="modal-delete-btn" class="modal-btn-delete" data-i18n="delete_contact">🗑 Видалити контакт</button>
     </div>
 
     <div id="add-contact-fullscreen-modal">
@@ -205,23 +399,16 @@
     </div>
 
     <div id="app-container">
-        <div id="active-chat-header" class="active-chat-header">
-            <div class="chat-user-info">
-                <div id="chat-header-avatar" class="chat-user-avatar">?</div>
-                <div>
-                    <div id="chat-header-name" class="chat-user-name">Оберіть контакт</div>
-                    <div style="font-size: 0.7rem; color: #34c759;">• в мережі</div>
-                </div>
-            </div>
-            <button id="chat-header-reset" class="reset-chat-btn" title="Скинути співрозмовника">✕</button>
-        </div>
-
         <main class="main-screen">
-            <div id="messages-stack" class="messages-stack-container"></div>
+            <div id="notification-box" class="notification-overlay-box">
+                <div id="notification-text" class="notification-text"></div>
+                <button id="notification-tts-btn" class="notification-tts-btn" title="Прослухати">
+                    <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+                </button>
+            </div>
 
             <button id="mic-button" class="neon-mic-btn" title="Натисніть для запису голосу">
                 <div id="selected-recipient-display" class="selected-recipient-inside"></div>
-                <div id="recording-timer" class="recording-timer">🔴 00:00</div>
                 <div class="mic-icon-placeholder">
                     <svg viewBox="0 0 24 24" stroke="#89a1b2" stroke-width="2" fill="none"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v1a7 7 0 0 1-14 0v-1"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
                 </div>
@@ -234,12 +421,12 @@
                     <div id="user-avatar-large" class="user-avatar-large">G</div>
                     <div style="text-align: center;">
                         <div id="user-display" class="user-badge">Стасан</div>
-                        <div class="profile-subtitle">Profile Settings</div>
+                        <div class="profile-subtitle" data-i18n="profile_settings">Profile Settings</div>
                     </div>
                 </div>
 
                 <div class="saved-contacts-card">
-                    <div class="saved-contacts-title">Збережені контакти</div>
+                    <div class="saved-contacts-title" id="label-saved-contacts" data-i18n="saved_contacts">Збережені контакти</div>
                     <div class="contacts-grid" id="contacts-grid-container"></div>
                 </div>
 
@@ -269,17 +456,17 @@
 
         <div id="settings-screen">
             <div class="settings-header" style="max-width:480px; width:100%; margin:0 auto;">
-                <span>Налаштування</span>
+                <span data-i18n="settings_title">Налаштування</span>
                 <button id="close-settings-screen" style="background:none; border:none; color:#89a1b2; font-size:1.2rem; cursor:pointer;">✕</button>
             </div>
 
             <div class="settings-card">
-                <button id="update-app-btn" class="sidebar-nav-btn">🔄 Оновлення програми</button>
+                <button id="update-app-btn" class="sidebar-nav-btn">🔄 <span data-i18n="update_app">Оновлення програми</span></button>
             </div>
 
             <div class="settings-card">
                 <div class="settings-row" id="toggle-lang-dropdown">
-                    <span>Мова інтерфейсу</span>
+                    <span data-i18n="interface_lang">Мова інтерфейсу</span>
                     <span class="dropdown-arrow" id="lang-arrow">▼</span>
                 </div>
                 <div class="sub-options-box" id="lang-options-box">
@@ -289,18 +476,19 @@
                         <option value="Ukrainian">Ukrainian</option>
                         <option value="German">German</option>
                         <option value="French">French</option>
+                        <option value="Russian" disabled>Russian</option>
                     </select>
                 </div>
             </div>
 
             <div class="settings-card">
                 <div class="settings-row" id="toggle-voice-dropdown">
-                    <span>Озвучування перекладу</span>
+                    <span data-i18n="voice_over">Озвучування перекладу</span>
                     <span class="dropdown-arrow" id="voice-arrow">▼</span>
                 </div>
                 <div class="sub-options-box" id="voice-options-box">
                     <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0;">
-                        <span style="font-size: 0.85rem; color: #f5f5f5;">Примусово озвучувати</span>
+                        <span style="font-size: 0.85rem; color: #f5f5f5;" data-i18n="force_voice">Примусово озвучувати</span>
                         <label class="switch">
                             <input type="checkbox" id="sound-toggle">
                             <span class="slider"></span>
@@ -310,38 +498,182 @@
             </div>
 
             <div class="settings-card">
-                <button id="reset-user-btn" class="sidebar-nav-btn" style="background: rgba(255, 59, 48, 0.15); border-color: #ff3b30; color: #ff3b30;">🔄 Змінити нікнейм</button>
+                <div class="settings-row" id="btn-appearance">
+                    <span data-i18n="appearance">🎨 Зовнішній вигляд</span>
+                </div>
+            </div>
+
+            <div class="settings-card">
+                <div class="settings-row" id="btn-data-storage">
+                    <span data-i18n="data_storage">💾 Дані та пам'ять</span>
+                </div>
+            </div>
+
+            <div class="settings-card">
+                <div class="settings-row" id="btn-help">
+                    <span data-i18n="help">❓ Допомога</span>
+                </div>
+            </div>
+            
+            <div class="settings-card">
+                <button id="reset-user-btn" class="sidebar-nav-btn" style="background: rgba(255, 59, 48, 0.15); border-color: #ff3b30; color: #ff3b30;">🔄 <span data-i18n="change_nickname">Змінити нікнейм</span></button>
             </div>
         </div>
     </div>
 
     <nav class="bottom-nav-bar">
-        <button class="nav-item active" id="nav-home">
+        <button class="nav-item active" id="nav-home" title="Home">
             <svg viewBox="0 0 24 24" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-            <small>Home</small>
+            <small data-i18n="tab_home">Home</small>
         </button>
-        <button class="nav-item" id="nav-contacts">
+        <button class="nav-item" id="nav-contacts" title="Contacts">
             <svg viewBox="0 0 24 24" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-            <small>Contacts</small>
+            <small data-i18n="tab_contacts">Contacts</small>
         </button>
-        <button class="nav-item" id="nav-qr">
+        <button class="nav-item" id="nav-qr" title="QR Code">
             <svg viewBox="0 0 24 24" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-            <small>QR</small>
+            <small data-i18n="tab_qr">QR</small>
         </button>
-        <button class="nav-item" id="nav-settings">
+        <button class="nav-item" id="nav-settings" title="Settings">
             <svg viewBox="0 0 24 24" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-            <small>Settings</small>
+            <small data-i18n="tab_settings">Settings</small>
         </button>
     </nav>
 
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js').catch(() => {});
+                navigator.serviceWorker.register('/sw.js')
+                    .then((reg) => console.log('Service Worker зареєстровано:', reg))
+                    .catch((err) => console.log('Помилка реєстрації Service Worker:', err));
             });
         }
 
         const socket = io();
+
+        const translations = {
+            Ukrainian: {
+                settings_title: "Налаштування",
+                update_app: "Оновлення програми",
+                interface_lang: "Мова інтерфейсу",
+                voice_over: "Озвучування перекладу",
+                force_voice: "Примусово озвучувати",
+                appearance: "🎨 Зовнішній вигляд",
+                data_storage: "💾 Дані та пам'ять",
+                help: "❓ Допомога",
+                change_nickname: "Змінити нікнейм",
+                saved_contacts: "Збережені контакти",
+                profile_settings: "Profile Settings",
+                add: "Додати",
+                tab_home: "Головна",
+                tab_contacts: "Контакти",
+                tab_qr: "QR",
+                tab_settings: "Налаштування",
+                icon_bg_color: "Колір фону іконки:",
+                avatar_url: "Посилання на фото-аватарку (URL):",
+                save: "💾 Зберегти",
+                delete_contact: "🗑 Видалити контакт"
+            },
+            English: {
+                settings_title: "Settings",
+                update_app: "Update App",
+                interface_lang: "Interface Language",
+                voice_over: "Voice-over Translation",
+                force_voice: "Force voice-over",
+                appearance: "🎨 Appearance",
+                data_storage: "💾 Data & Storage",
+                help: "❓ Help",
+                change_nickname: "Change Nickname",
+                saved_contacts: "Saved Contacts",
+                profile_settings: "Profile Settings",
+                add: "Add",
+                tab_home: "Home",
+                tab_contacts: "Contacts",
+                tab_qr: "QR",
+                tab_settings: "Settings",
+                icon_bg_color: "Icon background color:",
+                avatar_url: "Avatar photo link (URL):",
+                save: "💾 Save",
+                delete_contact: "🗑 Delete contact"
+            },
+            Spanish: {
+                settings_title: "Ajustes",
+                update_app: "Actualizar aplicación",
+                interface_lang: "Idioma de interfaz",
+                voice_over: "Voz de traducción",
+                force_voice: "Forzar voz",
+                appearance: "🎨 Apariencia",
+                data_storage: "💾 Datos y almacenamiento",
+                help: "❓ Ayuda",
+                change_nickname: "Cambiar apodo",
+                saved_contacts: "Contactos guardados",
+                profile_settings: "Ajustes de perfil",
+                add: "Añadir",
+                tab_home: "Inicio",
+                tab_contacts: "Contactos",
+                tab_qr: "QR",
+                tab_settings: "Ajustes",
+                icon_bg_color: "Color de fondo del icono:",
+                avatar_url: "Enlace de avatar (URL):",
+                save: "💾 Guardar",
+                delete_contact: "🗑 Eliminar contacto"
+            },
+            German: {
+                settings_title: "Einstellungen",
+                update_app: "App aktualisieren",
+                interface_lang: "Benutzeroberflächensprache",
+                voice_over: "Übersetzungssprache",
+                force_voice: "Sprachausgabe erzwingen",
+                appearance: "🎨 Erscheinungsbild",
+                data_storage: "💾 Daten & Speicher",
+                help: "❓ Hilfe",
+                change_nickname: "Spitzname ändern",
+                saved_contacts: "Gespeicherte Kontakte",
+                profile_settings: "Profileinstellungen",
+                add: "Hinzufügen",
+                tab_home: "Start",
+                tab_contacts: "Kontakte",
+                tab_qr: "QR",
+                tab_settings: "Einstellungen",
+                icon_bg_color: "Symbolhintergrundfarbe:",
+                avatar_url: "Avatar-Link (URL):",
+                save: "💾 Speichern",
+                delete_contact: "🗑 Kontakt löschen"
+            },
+            French: {
+                settings_title: "Paramètres",
+                update_app: "Mettre à jour l'application",
+                interface_lang: "Langue de l'interface",
+                voice_over: "Voix de traduction",
+                force_voice: "Forcer la voix",
+                appearance: "🎨 Apparence",
+                data_storage: "💾 Données et stockage",
+                help: "❓ Aide",
+                change_nickname: "Changer de pseudo",
+                saved_contacts: "Contacts enregistrés",
+                profile_settings: "Paramètres du profil",
+                add: "Ajouter",
+                tab_home: "Accueil",
+                tab_contacts: "Contacts",
+                tab_qr: "QR",
+                tab_settings: "Paramètres",
+                icon_bg_color: "Couleur de fond de l'icône :",
+                avatar_url: "Lien d'avatar (URL) :",
+                save: "💾 Enregistrer",
+                delete_contact: "🗑 Supprimer le contact"
+            }
+        };
+
+        function applyLocalization(lang) {
+            const dict = translations[lang] || translations['Spanish'];
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (dict[key]) {
+                    el.textContent = dict[key];
+                }
+            });
+        }
+
         let selectedRecipientName = localStorage.getItem('habla_selected_recipient') || null;
         let recentContactsOrder = JSON.parse(localStorage.getItem('habla_recent_contacts') || '["Максим", "Стасан", "notebook", "Марина"]');
         let localAddedContacts = JSON.parse(localStorage.getItem('habla_local_contacts') || '[]');
@@ -352,61 +684,77 @@
         let lastUsersData = [];
 
         const selectedRecipientDisplay = document.getElementById('selected-recipient-display');
-        const activeChatHeader = document.getElementById('active-chat-header');
-        const chatHeaderName = document.getElementById('chat-header-name');
-        const chatHeaderAvatar = document.getElementById('chat-header-avatar');
-        const chatHeaderReset = document.getElementById('chat-header-reset');
 
         function setRecipient(name) {
-            if (!name) {
-                selectedRecipientName = null;
-                localStorage.removeItem('habla_selected_recipient');
-                if (selectedRecipientDisplay) {
-                    selectedRecipientDisplay.textContent = '';
-                    selectedRecipientDisplay.classList.remove('active');
-                }
-                if (activeChatHeader) activeChatHeader.classList.remove('active');
-                return;
-            }
-
+            if (!name) return;
             selectedRecipientName = name;
             localStorage.setItem('habla_selected_recipient', name);
             if (selectedRecipientDisplay) {
                 selectedRecipientDisplay.textContent = name;
                 selectedRecipientDisplay.classList.add('active');
             }
-
-            if (activeChatHeader) {
-                chatHeaderName.textContent = name;
-                const customAvatar = contactAvatars[name];
-                const customColor = contactColors[name] || '#2b5278';
-                if (customAvatar) {
-                    chatHeaderAvatar.innerHTML = `<img src="${escapeHtml(customAvatar)}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
-                } else {
-                    chatHeaderAvatar.textContent = name.charAt(0).toUpperCase();
-                    chatHeaderAvatar.style.background = customColor;
-                }
-                activeChatHeader.classList.add('active');
-            }
         }
 
-        if (chatHeaderReset) chatHeaderReset.addEventListener('click', () => setRecipient(null));
-        if (selectedRecipientName) setRecipient(selectedRecipientName);
+        if (selectedRecipientName) {
+            setRecipient(selectedRecipientName);
+        }
+
+        socket.on('sync-customizations', (customizations) => {
+            contactColors = {};
+            contactAvatars = {};
+            for (let [name, data] of Object.entries(customizations)) {
+                if (data.color) contactColors[name] = data.color;
+                if (data.avatar) contactAvatars[name] = data.avatar;
+            }
+            localStorage.setItem('habla_contact_colors', JSON.stringify(contactColors));
+            localStorage.setItem('habla_contact_avatars', JSON.stringify(contactAvatars));
+            updateProfileDisplay();
+            safeRenderContactsGrid(lastUsersData);
+        });
+
+        function getDeviceLanguage() {
+            const navLang = (navigator.language || navigator.userLanguage || 'es').toLowerCase();
+            if (navLang.startsWith('uk')) return 'Ukrainian';
+            if (navLang.startsWith('en')) return 'English';
+            if (navLang.startsWith('de')) return 'German';
+            if (navLang.startsWith('fr')) return 'French';
+            return 'Spanish';
+        }
 
         let username = localStorage.getItem('habla_username');
         if (!username) {
-            username = prompt("Введіть свій нікнейм:") || "Стасан";
+            username = prompt("Introduce tu apodo / Introduce your nickname:") || "Стасан";
             username = username.trim();
             localStorage.setItem('habla_username', username);
         }
 
         const interfaceLangSelect = document.getElementById('interface-lang');
+        let savedInterfaceLang = localStorage.getItem('habla_interface_lang') || getDeviceLanguage();
+        if (savedInterfaceLang === 'Russian') savedInterfaceLang = 'Spanish';
+        interfaceLangSelect.value = savedInterfaceLang;
+        applyLocalization(savedInterfaceLang);
+
+        interfaceLangSelect.addEventListener('change', () => {
+            const newLang = interfaceLangSelect.value;
+            if (newLang === 'Russian') return;
+            localStorage.setItem('habla_interface_lang', newLang);
+            applyLocalization(newLang);
+            socket.emit('update-language', newLang);
+            joinWithLanguage();
+        });
+
         function joinWithLanguage() {
             if (username) {
-                socket.emit('join', { username: username, lang: interfaceLangSelect.value });
+                socket.emit('join', {
+                    username: username,
+                    lang: interfaceLangSelect.value
+                });
             }
         }
-        socket.on('connect', () => joinWithLanguage());
+
+        socket.on('connect', () => {
+            joinWithLanguage();
+        });
 
         const userDisplay = document.getElementById('user-display');
         const userAvatarLarge = document.getElementById('user-avatar-large');
@@ -415,107 +763,136 @@
             userDisplay.textContent = username;
             const customColor = contactColors[username] || '#89a1b2';
             const customAvatarUrl = contactAvatars[username];
+            
             if (customAvatarUrl) {
                 userAvatarLarge.innerHTML = `<img src="${escapeHtml(customAvatarUrl)}" alt="">`;
                 userAvatarLarge.style.background = 'none';
             } else {
                 userAvatarLarge.innerHTML = username.charAt(0).toUpperCase();
                 userAvatarLarge.style.background = customColor;
+                userAvatarLarge.style.color = '#0e1621';
             }
         }
 
         const contactsGridContainer = document.getElementById('contacts-grid-container');
+
         function safeRenderContactsGrid(onlineUsers = []) {
-            if (!contactsGridContainer) return;
-            contactsGridContainer.innerHTML = '';
-            
-            let onlineArr = Array.isArray(onlineUsers) ? onlineUsers : [];
-            let allContactsSet = new Set([...recentContactsOrder, ...localAddedContacts, ...onlineArr]);
-            if (username) allContactsSet.delete(username);
-            let contactsList = Array.from(allContactsSet);
+            try {
+                if (!contactsGridContainer) return;
+                contactsGridContainer.innerHTML = '';
+                
+                let onlineArr = Array.isArray(onlineUsers) ? onlineUsers : [];
+                let allContactsSet = new Set([...recentContactsOrder, ...localAddedContacts, ...onlineArr]);
+                if (username) allContactsSet.delete(username);
+                let contactsList = Array.from(allContactsSet);
 
-            contactsList.forEach(name => {
-                if (!name) return;
-                const itemDiv = document.createElement('div');
-                itemDiv.className = 'contact-grid-item';
-                if (selectedRecipientName === name) itemDiv.classList.add('active');
+                contactsList.forEach(name => {
+                    if (!name) return;
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = 'contact-grid-item';
+                    if (selectedRecipientName === name) {
+                        itemDiv.classList.add('active');
+                    }
 
-                const avatarDiv = document.createElement('div');
-                avatarDiv.className = 'contact-grid-avatar';
-                const customColor = contactColors[name] || '#2b5278';
-                const customAvatarUrl = contactAvatars[name];
+                    const avatarDiv = document.createElement('div');
+                    avatarDiv.className = 'contact-grid-avatar';
+                    const customColor = contactColors[name] || '#2b5278';
+                    const customAvatarUrl = contactAvatars[name];
 
-                if (customAvatarUrl) {
-                    avatarDiv.innerHTML = `<img src="${escapeHtml(customAvatarUrl)}" alt="">`;
-                } else {
-                    avatarDiv.textContent = name.charAt(0).toUpperCase();
-                    avatarDiv.style.background = customColor;
-                }
+                    if (customAvatarUrl) {
+                        avatarDiv.innerHTML = `<img src="${escapeHtml(customAvatarUrl)}" alt="">`;
+                    } else {
+                        avatarDiv.textContent = name.charAt(0).toUpperCase();
+                        avatarDiv.style.background = customColor;
+                    }
 
-                const nameDiv = document.createElement('div');
-                nameDiv.className = 'contact-grid-name';
-                nameDiv.textContent = name;
+                    const nameDiv = document.createElement('div');
+                    nameDiv.className = 'contact-grid-name';
+                    nameDiv.textContent = name;
 
-                itemDiv.appendChild(avatarDiv);
-                itemDiv.appendChild(nameDiv);
+                    itemDiv.appendChild(avatarDiv);
+                    itemDiv.appendChild(nameDiv);
 
-                itemDiv.addEventListener('click', () => {
-                    setRecipient(name);
-                    closeAllScreens();
-                    setActiveNav(navHome);
-                    safeRenderContactsGrid(lastUsersData);
+                    itemDiv.addEventListener('click', () => {
+                        setRecipient(name);
+                        closeAllScreens();
+                        setActiveNav(navHome);
+                        safeRenderContactsGrid(lastUsersData);
+                    });
+
+                    itemDiv.addEventListener('contextmenu', (e) => {
+                        e.preventDefault();
+                        triggerSettings(name, e);
+                    });
+
+                    contactsGridContainer.appendChild(itemDiv);
                 });
 
-                contactsGridContainer.appendChild(itemDiv);
-            });
+                const addGridItem = document.createElement('div');
+                addGridItem.className = 'contact-grid-item';
+                
+                const addCircle = document.createElement('div');
+                addCircle.className = 'add-contact-grid-circle';
+                addCircle.textContent = '+';
+                addCircle.title = 'Додати новий контакт';
+
+                const addName = document.createElement('div');
+                addName.className = 'contact-grid-name';
+                addName.textContent = 'Add';
+
+                addGridItem.appendChild(addCircle);
+                addGridItem.appendChild(addName);
+
+                addGridItem.addEventListener('click', () => {
+                    openFullscreenAddContactModal();
+                });
+
+                contactsGridContainer.appendChild(addGridItem);
+            } catch (err) {
+                console.error("Помилка відображення контактів:", err);
+            }
         }
 
-        const messagesStack = document.getElementById('messages-stack');
-        let displayedMessages = [];
+        const fullscreenModal = document.getElementById('add-contact-fullscreen-modal');
+        const fullscreenInput = document.getElementById('fullscreen-contact-input');
+        const fullscreenConfirmBtn = document.getElementById('fullscreen-confirm-btn');
+        const fullscreenCancelBtn = document.getElementById('fullscreen-cancel-btn');
 
-        function addMessageToStack(text, sender, isSent = false) {
-            if (!messagesStack) return;
-            const card = document.createElement('div');
-            card.className = `message-card ${isSent ? 'sent' : 'received'}`;
-            
-            const senderTag = document.createElement('div');
-            senderTag.className = 'message-sender-tag';
-            senderTag.textContent = isSent ? `Ви ➔ ${selectedRecipientName || 'Контакт'}` : sender;
-
-            const textNode = document.createElement('div');
-            textNode.textContent = text;
-
-            card.appendChild(senderTag);
-            card.appendChild(textNode);
-            messagesStack.appendChild(card);
-            displayedMessages.push(card);
-
-            updateStackStyles();
+        function openFullscreenAddContactModal() {
+            if (fullscreenInput) fullscreenInput.value = '';
+            if (fullscreenModal) fullscreenModal.classList.add('active');
+            if (fullscreenInput) fullscreenInput.focus();
         }
 
-        function updateStackStyles() {
-            const total = displayedMessages.length;
-            displayedMessages.forEach((card, index) => {
-                const diff = total - 1 - index;
-                card.classList.remove('older-1', 'older-2', 'fade-out');
-                if (diff === 1) card.classList.add('older-1');
-                if (diff === 2) card.classList.add('older-2');
-                if (diff >= 3) {
-                    card.classList.add('fade-out');
-                    setTimeout(() => { if (card.parentNode) card.parentNode.removeChild(card); }, 300);
+        function closeFullscreenAddContactModal() {
+            if (fullscreenModal) fullscreenModal.classList.remove('active');
+        }
+
+        if (fullscreenCancelBtn) fullscreenCancelBtn.addEventListener('click', closeFullscreenAddContactModal);
+        
+        if (fullscreenConfirmBtn) fullscreenConfirmBtn.addEventListener('click', () => {
+            const targetName = fullscreenInput.value.trim();
+            if (targetName && targetName !== username) {
+                socket.emit('add-contact', targetName);
+                if (!localAddedContacts.includes(targetName)) {
+                    localAddedContacts.push(targetName);
+                    localStorage.setItem('habla_local_contacts', JSON.stringify(localAddedContacts));
                 }
-            });
-            displayedMessages = displayedMessages.filter(c => c.parentNode !== null);
-        }
+                closeFullscreenAddContactModal();
+                safeRenderContactsGrid(lastUsersData);
+            } else {
+                alert('Введіть коректне ім\'я контакту!');
+            }
+        });
+
+        if (fullscreenInput) fullscreenInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') fullscreenConfirmBtn.click();
+        });
 
         let mediaRecorder;
         let audioChunks = [];
         let isRecording = false;
-        let recordTimerInterval = null;
-        let recordSeconds = 0;
-
         const micButton = document.getElementById('mic-button');
-        const recordingTimer = document.getElementById('recording-timer');
 
         micButton.addEventListener('click', async () => {
             if (!selectedRecipientName) {
@@ -550,38 +927,183 @@
 
                     mediaRecorder.start();
                     isRecording = true;
-                    micButton.classList.add('recording');
-                    
-                    recordSeconds = 0;
-                    recordingTimer.textContent = '🔴 00:00';
-                    recordingTimer.classList.add('active');
-                    recordTimerInterval = setInterval(() => {
-                        recordSeconds++;
-                        const mins = String(Math.floor(recordSeconds / 60)).padStart(2, '0');
-                        const secs = String(recordSeconds % 60).padStart(2, '0');
-                        recordingTimer.textContent = `🔴 ${mins}:${secs}`;
-                    }, 1000);
-
+                    micButton.style.borderColor = '#ff3b30';
                 } catch (err) {
+                    console.error("Помилка мікрофона:", err);
                     alert("Не вдалося отримати доступ до мікрофона.");
                 }
             } else {
-                if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-                    mediaRecorder.stop();
-                }
+                mediaRecorder.stop();
                 isRecording = false;
-                micButton.classList.remove('recording');
-                recordingTimer.classList.remove('active');
-                if (recordTimerInterval) clearInterval(recordTimerInterval);
+                micButton.style.borderColor = '#89a1b2';
             }
         });
 
+        const notificationBox = document.getElementById('notification-box');
+        const notificationText = document.getElementById('notification-text');
+        const notificationTtsBtn = document.getElementById('notification-tts-btn');
+        let lastReceivedText = '';
+
         socket.on('incoming-message', (data) => {
-            if (data.text) {
-                const isMySent = (data.sender === username);
-                addMessageToStack(data.text, data.sender || 'Контакт', isMySent);
-                if (data.sender && !isMySent) setRecipient(data.sender);
+            lastReceivedText = data.text;
+            notificationText.textContent = data.text;
+            notificationBox.classList.add('active');
+
+            if (data.sender) {
+                setRecipient(data.sender);
             }
+
+            const soundToggle = document.getElementById('sound-toggle');
+            if (data.text && soundToggle && soundToggle.checked) {
+                speakText(data.text);
+            }
+        });
+
+        notificationTtsBtn.addEventListener('click', () => {
+            if (lastReceivedText) {
+                speakText(lastReceivedText);
+            }
+        });
+
+        let touchStartY = 0;
+        const refreshIndicator = document.getElementById('pull-refresh-indicator');
+
+        window.addEventListener('touchstart', (e) => {
+            if (window.scrollY === 0) {
+                touchStartY = e.touches[0].clientY;
+            }
+        }, { passive: true });
+
+        window.addEventListener('touchmove', (e) => {
+            if (touchStartY > 0) {
+                const currentY = e.touches[0].clientY;
+                const diff = currentY - touchStartY;
+                if (diff > 0 && diff < 120) {
+                    refreshIndicator.style.transform = `translateY(${diff}px)`;
+                }
+            }
+        }, { passive: true });
+
+        window.addEventListener('touchend', async (e) => {
+            if (touchStartY > 0) {
+                const endY = e.changedTouches[0].clientY;
+                if (endY - touchStartY > 80) {
+                    refreshIndicator.textContent = '⏳ Оновлення програми...';
+                    refreshIndicator.style.transform = `translateY(50px)`;
+                    try {
+                        if ('serviceWorker' in navigator) {
+                            const reg = await navigator.serviceWorker.getRegistration();
+                            if (reg) await reg.update();
+                        }
+                        if ('caches' in window) {
+                            const keys = await caches.keys();
+                            await Promise.all(keys.map(k => caches.delete(k)));
+                        }
+                    } catch (err) {}
+                    setTimeout(() => window.location.reload(true), 400);
+                } else {
+                    refreshIndicator.style.transform = `translateY(0px)`;
+                }
+                touchStartY = 0;
+            }
+        });
+
+        let availableVoices = [];
+        function populateVoiceList() {
+            if (typeof speechSynthesis === 'undefined') return;
+            availableVoices = speechSynthesis.getVoices();
+        }
+        populateVoiceList();
+        if (typeof speechSynthesis !== 'undefined' && speechSynthesis.onvoiceschanged !== undefined) {
+            speechSynthesis.onvoiceschanged = populateVoiceList;
+        }
+
+        const ttsLangMap = { 'Ukrainian': 'uk-UA', 'English': 'en-US', 'Spanish': 'es-ES', 'German': 'de-DE', 'French': 'fr-FR' };
+
+        function speakText(textToSpeech) {
+            if (!('speechSynthesis' in window)) return;
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(textToSpeech);
+            const activeLang = interfaceLangSelect.value;
+            utterance.lang = ttsLangMap[activeLang] || 'es-ES';
+            utterance.rate = 1.0;
+            utterance.pitch = 1.0;
+            window.speechSynthesis.speak(utterance);
+        }
+
+        document.getElementById('reset-user-btn').addEventListener('click', () => {
+            localStorage.removeItem('habla_username');
+            localStorage.removeItem('habla_selected_recipient');
+            location.reload();
+        });
+
+        const updateAppBtn = document.getElementById('update-app-btn');
+        if (updateAppBtn) {
+            updateAppBtn.addEventListener('click', async () => {
+                updateAppBtn.textContent = '⏳ Перевірка оновлень...';
+                try {
+                    if ('serviceWorker' in navigator) {
+                        const registration = await navigator.serviceWorker.getRegistration();
+                        if (registration) {
+                            await registration.update();
+                            if (registration.waiting) {
+                                registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+                            }
+                        }
+                    }
+                    if ('caches' in window) {
+                        const cacheNames = await caches.keys();
+                        await Promise.all(cacheNames.map(name => caches.delete(name)));
+                    }
+                    setTimeout(() => {
+                        window.location.reload(true);
+                    }, 500);
+                } catch (err) {
+                    window.location.reload(true);
+                }
+            });
+        }
+
+        const currentAppUrl = window.location.origin;
+        document.getElementById('qr-android-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(currentAppUrl)}`;
+        document.getElementById('qr-pc-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(currentAppUrl)}`;
+
+        document.getElementById('copy-android-btn').addEventListener('click', () => {
+            navigator.clipboard.writeText(currentAppUrl).then(() => alert('Посилання Android скопійовано!'));
+        });
+        document.getElementById('copy-pc-btn').addEventListener('click', () => {
+            navigator.clipboard.writeText(currentAppUrl).then(() => alert('Посилання PC скопійовано!'));
+        });
+        document.getElementById('ios-download-btn').addEventListener('click', () => {
+            navigator.clipboard.writeText(currentAppUrl).then(() => alert('Посилання iOS скопійовано!'));
+        });
+
+        const toggleLangDropdown = document.getElementById('toggle-lang-dropdown');
+        const langOptionsBox = document.getElementById('lang-options-box');
+        const langArrow = document.getElementById('lang-arrow');
+
+        toggleLangDropdown.addEventListener('click', () => {
+            langOptionsBox.classList.toggle('active');
+            langArrow.classList.toggle('open');
+        });
+
+        const toggleVoiceDropdown = document.getElementById('toggle-voice-dropdown');
+        const voiceOptionsBox = document.getElementById('voice-options-box');
+        const voiceArrow = document.getElementById('voice-arrow');
+
+        toggleVoiceDropdown.addEventListener('click', () => {
+            voiceOptionsBox.classList.toggle('active');
+            voiceArrow.classList.toggle('open');
+        });
+
+        document.getElementById('btn-appearance').addEventListener('click', () => {
+            alert('Зовнішній вигляд: Темна неон тема активована.');
+        });
+        document.getElementById('btn-data-storage').addEventListener('click', () => {
+            alert('Дані та пам\'ять: Кеш успішно оптимізовано.');
+        });
+        document.getElementById('btn-help').addEventListener('click', () => {
+            alert('Допомога: Habla Mobile 3.0 — голосовий перекладач та месенджер.');
         });
 
         const navHome = document.getElementById('nav-home');
@@ -592,36 +1114,187 @@
         const qrScreen = document.getElementById('qr-screen');
         const contactsScreen = document.getElementById('contacts-screen');
         const settingsScreen = document.getElementById('settings-screen');
+        const menuOverlay = document.getElementById('menu-overlay');
 
         function setActiveNav(selectedItem) {
             navItems.forEach(item => item.classList.remove('active'));
-            if (selectedItem) selectedItem.classList.add('active');
+            if (selectedItem) {
+                selectedItem.classList.add('active');
+            }
         }
 
         function closeAllScreens() {
             if (qrScreen) qrScreen.classList.remove('active');
             if (contactsScreen) contactsScreen.classList.remove('active');
             if (settingsScreen) settingsScreen.classList.remove('active');
+            if (fullscreenModal) fullscreenModal.classList.remove('active');
         }
 
-        navHome.addEventListener('click', () => { closeAllScreens(); setActiveNav(navHome); });
-        navContacts.addEventListener('click', () => {
+        navHome.addEventListener('click', () => {
             closeAllScreens();
-            setActiveNav(navContacts);
-            if (contactsScreen) contactsScreen.classList.add('active');
+            setActiveNav(navHome);
+        });
+
+        navContacts.addEventListener('click', () => {
+            const isCurrentlyOpen = contactsScreen && contactsScreen.classList.contains('active');
+            closeAllScreens();
+            
+            if (isCurrentlyOpen) {
+                setActiveNav(navHome);
+            } else {
+                setActiveNav(navContacts);
+                if (contactsScreen) contactsScreen.classList.add('active');
+                setTimeout(() => {
+                    safeRenderContactsGrid(lastUsersData);
+                }, 10);
+            }
+        });
+
+        navQr.addEventListener('click', () => {
+            const isCurrentlyOpen = qrScreen && qrScreen.classList.contains('active');
+            closeAllScreens();
+            if (isCurrentlyOpen) {
+                setActiveNav(navHome);
+            } else {
+                setActiveNav(navQr);
+                if (qrScreen) qrScreen.classList.add('active');
+            }
+        });
+
+        navSettings.addEventListener('click', () => {
+            const isCurrentlyOpen = settingsScreen && settingsScreen.classList.contains('active');
+            closeAllScreens();
+            if (isCurrentlyOpen) {
+                setActiveNav(navHome);
+            } else {
+                setActiveNav(navSettings);
+                if (settingsScreen) settingsScreen.classList.add('active');
+            }
+        });
+
+        document.getElementById('close-settings-screen').addEventListener('click', () => {
+            closeAllScreens();
+            setActiveNav(navHome);
+        });
+
+        document.getElementById('sidebar-settings-btn').addEventListener('click', () => {
+            closeAllScreens();
+            if (settingsScreen) settingsScreen.classList.add('active');
+            setActiveNav(navSettings);
+        });
+
+        const contactModal = document.getElementById('contact-modal');
+        const modalContactTitle = document.getElementById('modal-contact-title');
+        const closeContactModal = document.getElementById('close-contact-modal');
+        const modalDeleteBtn = document.getElementById('modal-delete-btn');
+        const modalSaveBtn = document.getElementById('modal-save-btn');
+        const modalAvatarInput = document.getElementById('modal-avatar-input');
+        const colorCircles = document.querySelectorAll('.color-circle');
+
+        closeContactModal.addEventListener('click', () => {
+            contactModal.classList.remove('active');
+            menuOverlay.classList.remove('active');
+        });
+
+        menuOverlay.addEventListener('click', () => {
+            contactModal.classList.remove('active');
+            menuOverlay.classList.remove('active');
+        });
+
+        function triggerSettings(targetName, e) {
+            e.preventDefault();
+            activeContactForModal = targetName;
+            modalContactTitle.textContent = targetName === username ? `⚙️ Мій профіль (${targetName})` : `⚙️ ${targetName}`;
+            
+            if (targetName === username) {
+                modalDeleteBtn.style.display = 'none';
+            } else {
+                modalDeleteBtn.style.display = 'block';
+            }
+
+            selectedModalColor = contactColors[targetName] || '#89a1b2';
+            colorCircles.forEach(c => {
+                if (c.getAttribute('data-color') === selectedModalColor) {
+                    c.classList.add('selected');
+                } else {
+                    c.classList.remove('selected');
+                }
+            });
+
+            modalAvatarInput.value = contactAvatars[targetName] || '';
+
+            contactModal.classList.add('active');
+            menuOverlay.classList.add('active');
+        }
+
+        const profileSettingsTrigger = document.getElementById('profile-settings-trigger');
+        profileSettingsTrigger.addEventListener('click', (e) => triggerSettings(username, e));
+
+        colorCircles.forEach(circle => {
+            circle.addEventListener('click', () => {
+                colorCircles.forEach(c => c.classList.remove('selected'));
+                circle.classList.add('selected');
+                selectedModalColor = circle.getAttribute('data-color');
+            });
+        });
+
+        modalSaveBtn.addEventListener('click', () => {
+            if (!activeContactForModal) return;
+            
+            const color = selectedModalColor;
+            const avatar = modalAvatarInput.value.trim();
+
+            contactColors[activeContactForModal] = color;
+            if (avatar) {
+                contactAvatars[activeContactForModal] = avatar;
+            } else {
+                delete contactAvatars[activeContactForModal];
+            }
+
+            socket.emit('update-customization', {
+                targetName: activeContactForModal,
+                color: color,
+                avatar: avatar
+            });
+
+            contactModal.classList.remove('active');
+            menuOverlay.classList.remove('active');
+            updateProfileDisplay();
             safeRenderContactsGrid(lastUsersData);
         });
-        navQr.addEventListener('click', () => { closeAllScreens(); setActiveNav(navQr); if (qrScreen) qrScreen.classList.add('active'); });
-        navSettings.addEventListener('click', () => { closeAllScreens(); setActiveNav(navSettings); if (settingsScreen) settingsScreen.classList.add('active'); });
 
-        document.getElementById('close-settings-screen').addEventListener('click', () => { closeAllScreens(); setActiveNav(navHome); });
-        document.getElementById('reset-user-btn').addEventListener('click', () => {
-            localStorage.removeItem('habla_username');
-            localStorage.removeItem('habla_selected_recipient');
-            location.reload();
+        modalDeleteBtn.addEventListener('click', () => {
+            if (!activeContactForModal || activeContactForModal === username) return;
+            if (confirm(`Видалити контакт ${activeContactForModal}?`)) {
+                localAddedContacts = localAddedContacts.filter(n => n !== activeContactForModal);
+                localStorage.setItem('habla_local_contacts', JSON.stringify(localAddedContacts));
+                recentContactsOrder = recentContactsOrder.filter(n => n !== activeContactForModal);
+                localStorage.setItem('habla_recent_contacts', JSON.stringify(recentContactsOrder));
+                delete contactColors[activeContactForModal];
+                delete contactAvatars[activeContactForModal];
+                
+                if (selectedRecipientName === activeContactForModal) {
+                    localStorage.removeItem('habla_selected_recipient');
+                    selectedRecipientName = null;
+                    if (selectedRecipientDisplay) {
+                        selectedRecipientDisplay.textContent = '';
+                        selectedRecipientDisplay.classList.remove('active');
+                    }
+                }
+
+                socket.emit('update-customization', {
+                    targetName: activeContactForModal,
+                    color: '#89a1b2',
+                    avatar: ''
+                });
+
+                contactModal.classList.remove('active');
+                menuOverlay.classList.remove('active');
+                safeRenderContactsGrid(lastUsersData);
+            }
         });
 
-        socket.on('update-users', ({ users }) => {
+        socket.on('update-users', ({ users, isAdmin }) => {
             lastUsersData = users;
             safeRenderContactsGrid(users);
         });
