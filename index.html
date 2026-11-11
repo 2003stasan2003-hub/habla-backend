@@ -157,7 +157,7 @@
             max-width: 480px; margin: 0 auto; gap: 14px; padding-bottom: 80px;
         }
 
-        /* 1. Стрічка повідомлень */
+        /* Стрічка повідомлень */
         .messages-stack-container {
             width: 100%; max-width: 340px; display: flex; flex-direction: column;
             gap: 8px; justify-content: flex-end; min-height: 120px; margin-bottom: 6px;
@@ -174,7 +174,6 @@
         .message-card.fade-out { opacity: 0; transform: translateY(-20px) scale(0.85); }
         .message-sender-tag { font-size: 0.7rem; color: #89a1b2; margin-bottom: 4px; font-weight: 600; }
         
-        /* 2. Динамік для прослуховування */
         .message-tts-btn {
             position: absolute; right: 8px; bottom: 8px; background: none; border: none;
             color: #89a1b2; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;
@@ -182,7 +181,7 @@
         .message-tts-btn:hover { color: #f5f5f5; }
         .message-tts-btn svg { width: 18px; height: 18px; fill: currentColor; }
 
-        /* 3. Кнопка мікрофона з анімацією та секундоміром */
+        /* Кнопка мікрофона */
         .neon-mic-btn {
             background: transparent; border: 1px solid #89a1b2; border-radius: 50%;
             width: 180px; height: 180px; display: flex; flex-direction: column;
@@ -204,10 +203,10 @@
         .recording-timer.active { display: block; }
 
         .selected-recipient-inside {
-            color: #f5f5f5; font-size: 1.05rem; font-weight: 600; letter-spacing: 0.5px; display: none;
+            color: #f5f5f5; font-size: 0.95rem; font-weight: 600; letter-spacing: 0.5px; display: none; text-align: center; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
         }
         .selected-recipient-inside.active { display: block; }
-        .mic-icon-placeholder svg { stroke: #89a1b2; fill: none; width: 48px; height: 48px; }
+        .mic-icon-placeholder svg { stroke: #89a1b2; fill: none; width: 46px; height: 46px; }
 
         #contacts-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -423,7 +422,6 @@
 
     <div id="app-container">
         <main class="main-screen">
-            <!-- 1. Стрічка повідомлень замість однієї плашки -->
             <div id="messages-stack" class="messages-stack-container"></div>
 
             <button id="mic-button" class="neon-mic-btn" title="Натисніть для запису голосу">
@@ -440,7 +438,7 @@
                 <div id="profile-settings-trigger" class="profile-card-box" title="Налаштування профілю">
                     <div id="user-avatar-large" class="user-avatar-large">G</div>
                     <div style="text-align: center;">
-                        <div id="user-display" class="user-badge">Стасан</div>
+                        <div id="user-display" class="user-badge">notebook</div>
                         <div class="profile-subtitle" data-i18n="profile_settings">Profile Settings</div>
                     </div>
                 </div>
@@ -701,6 +699,9 @@
         let selectedModalColor = '#89a1b2';
         let lastUsersData = [];
 
+        // ПАМ'ЯТЬ ІСТОРІЇ ЧАТІВ ДЛЯ КОЖНОГО КОНТАКТУ ОКРЕМО
+        let chatHistories = {}; 
+
         const selectedRecipientDisplay = document.getElementById('selected-recipient-display');
 
         function setRecipient(name) {
@@ -708,9 +709,11 @@
             selectedRecipientName = name;
             localStorage.setItem('habla_selected_recipient', name);
             if (selectedRecipientDisplay) {
-                selectedRecipientDisplay.textContent = name;
+                selectedRecipientDisplay.textContent = `Для ➔ ${name}`;
                 selectedRecipientDisplay.classList.add('active');
             }
+            // Перемикаємо екран на повідомлення обраного контакту
+            renderChatHistoryFor(name);
         }
 
         if (selectedRecipientName) {
@@ -741,7 +744,7 @@
 
         let username = localStorage.getItem('habla_username');
         if (!username) {
-            username = prompt("Introduce tu apodo / Introduce your nickname:") || "Стасан";
+            username = prompt("Introduce tu apodo / Introduce your nickname:") || "notebook";
             username = username.trim();
             localStorage.setItem('habla_username', username);
         }
@@ -908,59 +911,63 @@
         });
 
         // ----------------------------------------------------
-        // ЛОГІКА СТРІЧКИ ПОВІДОМЛЕНЬ ТА ДИНАМІКА ПРОСЛУХОВУВАННЯ
+        // ЛОГІКА ІЗОЛЬОВАНИХ СТРІЧОК ЧАТУ ДЛЯ КОЖНОГО КОНТАКТУ
         // ----------------------------------------------------
         const messagesStack = document.getElementById('messages-stack');
-        let displayedMessages = [];
 
-        function addMessageToStack(text, sender, isSent = false) {
+        function renderChatHistoryFor(contactName) {
             if (!messagesStack) return;
-            const card = document.createElement('div');
-            card.className = `message-card ${isSent ? 'sent' : 'received'}`;
+            messagesStack.innerHTML = '';
+            const history = chatHistories[contactName] || [];
             
-            const senderTag = document.createElement('div');
-            senderTag.className = 'message-sender-tag';
-            senderTag.textContent = isSent ? `Ви ➔ ${selectedRecipientName || 'Контакт'}` : sender;
-
-            const textNode = document.createElement('div');
-            textNode.textContent = text;
-
-            const ttsBtn = document.createElement('button');
-            ttsBtn.className = 'message-tts-btn';
-            ttsBtn.title = 'Прослухати';
-            ttsBtn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>`;
-            ttsBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                speakText(text);
-            });
-
-            card.appendChild(senderTag);
-            card.appendChild(textNode);
-            card.appendChild(ttsBtn);
-
-            messagesStack.appendChild(card);
-            displayedMessages.push(card);
-
-            updateStackStyles();
-        }
-
-        function updateStackStyles() {
-            const total = displayedMessages.length;
-            displayedMessages.forEach((card, index) => {
+            // Показуємо тільки останні 3 повідомлення для цієї людини
+            const recentHistory = history.slice(-3);
+            recentHistory.forEach((msgData, index) => {
+                const total = recentHistory.length;
                 const diff = total - 1 - index;
-                card.classList.remove('older-1', 'older-2', 'fade-out');
+                
+                const card = document.createElement('div');
+                card.className = `message-card ${msgData.isSent ? 'sent' : 'received'}`;
                 if (diff === 1) card.classList.add('older-1');
                 if (diff === 2) card.classList.add('older-2');
-                if (diff >= 3) {
-                    card.classList.add('fade-out');
-                    setTimeout(() => { if (card.parentNode) card.parentNode.removeChild(card); }, 300);
-                }
+
+                const senderTag = document.createElement('div');
+                senderTag.className = 'message-sender-tag';
+                senderTag.textContent = msgData.isSent ? `Ви ➔ ${contactName}` : msgData.sender;
+
+                const textNode = document.createElement('div');
+                textNode.textContent = msgData.text;
+
+                const ttsBtn = document.createElement('button');
+                ttsBtn.className = 'message-tts-btn';
+                ttsBtn.title = 'Прослухати';
+                ttsBtn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>`;
+                ttsBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    speakText(msgData.text);
+                };
+
+                card.appendChild(senderTag);
+                card.appendChild(textNode);
+                card.appendChild(ttsBtn);
+                messagesStack.appendChild(card);
             });
-            displayedMessages = displayedMessages.filter(c => c.parentNode !== null);
+        }
+
+        function saveAndDisplayMessage(contactName, text, sender, isSent) {
+            if (!chatHistories[contactName]) {
+                chatHistories[contactName] = [];
+            }
+            chatHistories[contactName].push({ text, sender, isSent });
+
+            // Відображаємо тільки якщо відкритий саме цей чат
+            if (selectedRecipientName === contactName) {
+                renderChatHistoryFor(contactName);
+            }
         }
 
         // ----------------------------------------------------
-        // ЛОГІКА МІКРОФОНА: АНІМАЦІЯ ПУЛЬСАЦІЇ ТА СЕКУНДОМІР
+        // МІКРОФОН З АНІМАЦІЄЮ ТА СЕКУНДОМІРОМ
         // ----------------------------------------------------
         let mediaRecorder;
         let audioChunks = [];
@@ -1034,9 +1041,11 @@
         socket.on('incoming-message', (data) => {
             if (data.text) {
                 const isMySent = (data.sender === username);
-                addMessageToStack(data.text, data.sender || 'Контакт', isMySent);
+                const targetContact = isMySent ? selectedRecipientName : (data.sender || 'Контакт');
+                
+                saveAndDisplayMessage(targetContact, data.text, data.sender || 'Контакт', isMySent);
 
-                if (data.sender && !isMySent) {
+                if (data.sender && !isMySent && !selectedRecipientName) {
                     setRecipient(data.sender);
                 }
 
