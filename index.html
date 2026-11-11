@@ -186,7 +186,6 @@
         .selected-recipient-inside.active { display: block; }
         .mic-icon-placeholder svg { stroke: #89a1b2; fill: none; width: 54px; height: 54px; }
 
-        /* Екрани */
         #contacts-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #0e1621; z-index: 60; display: none; flex-direction: column;
@@ -914,7 +913,6 @@
         const notificationTtsBtn = document.getElementById('notification-tts-btn');
         let lastReceivedText = '';
 
-        // Оновлено: при отриманні повідомлення виводимо також ім'я відправника на кнопці
         socket.on('incoming-message', (data) => {
             lastReceivedText = data.text;
             notificationText.textContent = data.text;
@@ -1089,7 +1087,9 @@
 
         function setActiveNav(selectedItem) {
             navItems.forEach(item => item.classList.remove('active'));
-            selectedItem.classList.add('active');
+            if (selectedItem) {
+                selectedItem.classList.add('active');
+            }
         }
 
         function closeAllScreens() {
@@ -1098,28 +1098,45 @@
             if (settingsScreen) settingsScreen.classList.remove('active');
         }
 
+        // Залізобетонна логіка Toggle для кожної кнопки нижньої панелі
         navHome.addEventListener('click', () => {
-            setActiveNav(navHome);
+            const isOpen = navHome.classList.contains('active') && !contactsScreen.classList.contains('active') && !qrScreen.classList.contains('active') && !settingsScreen.classList.contains('active');
             closeAllScreens();
+            setActiveNav(navHome);
         });
 
         navContacts.addEventListener('click', () => {
-            setActiveNav(navContacts);
+            const isOpen = contactsScreen.classList.contains('active');
             closeAllScreens();
-            renderContactsGrid(lastUsersData);
-            if (contactsScreen) contactsScreen.classList.add('active');
+            if (isOpen) {
+                setActiveNav(navHome);
+            } else {
+                setActiveNav(navContacts);
+                renderContactsGrid(lastUsersData);
+                if (contactsScreen) contactsScreen.classList.add('active');
+            }
         });
 
         navQr.addEventListener('click', () => {
-            setActiveNav(navQr);
+            const isOpen = qrScreen.classList.contains('active');
             closeAllScreens();
-            if (qrScreen) qrScreen.classList.add('active');
+            if (isOpen) {
+                setActiveNav(navHome);
+            } else {
+                setActiveNav(navQr);
+                if (qrScreen) qrScreen.classList.add('active');
+            }
         });
 
         navSettings.addEventListener('click', () => {
-            setActiveNav(navSettings);
+            const isOpen = settingsScreen.classList.contains('active');
             closeAllScreens();
-            if (settingsScreen) settingsScreen.classList.add('active');
+            if (isOpen) {
+                setActiveNav(navHome);
+            } else {
+                setActiveNav(navSettings);
+                if (settingsScreen) settingsScreen.classList.add('active');
+            }
         });
 
         document.getElementById('close-settings-screen').addEventListener('click', () => {
