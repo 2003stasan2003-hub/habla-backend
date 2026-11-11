@@ -121,7 +121,7 @@
         .modal-title { color: #f5f5f5; font-weight: bold; font-size: 1.05rem; }
         .modal-close-btn { background: none; border: none; color: #89a1b2; font-size: 1.2rem; cursor: pointer; }
 
-        .color-palette { display: flex; gap: 10px; justifyContent: space-between; margin: 4px 0; }
+        .color-palette { display: flex; gap: 10px; justify-content: space-between; margin: 4px 0; }
         .color-circle {
             width: 32px; height: 32px; border-radius: 50%; cursor: pointer;
             border: 2px solid transparent; transition: transform 0.2s, border-color 0.2s;
@@ -160,7 +160,7 @@
             box-shadow: 0 4px 20px rgba(0,0,0,0.5); margin-bottom: 10px;
         }
         .notification-overlay-box.active { display: flex; flex-direction: column; gap: 8px; }
-        .notification-text { color: #f5f5f5; font-size: 0.9rem; line-height: 1.4; padding-right: 24px; }
+        .notification-text { color: #f5f5f5; font-size: 0.9rem; line-height: 1.4; padding-right: 28px; }
         .notification-tts-btn {
             position: absolute; bottom: 12px; right: 12px; background: none; border: none;
             color: #89a1b2; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;
@@ -255,7 +255,6 @@
             border-radius: 30px; font-size: 0.95rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 10px; max-width: 320px; width: 90%; justify-content: center; margin-top: 4px;
         }
 
-        /* Налаштування з окремими картками для кожної кнопки */
         #settings-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #0e1621; z-index: 30; display: none; flex-direction: column;
@@ -386,7 +385,6 @@
             <button class="ios-download-btn" id="ios-download-btn">🍎 Download on iOS</button>
         </div>
 
-        <!-- Налаштування з окремими картками для кожної кнопки -->
         <div id="settings-screen">
             <div class="settings-header">
                 <span data-i18n="settings_title">Налаштування</span>
@@ -483,7 +481,6 @@
 
         const socket = io();
 
-        // Словник локалізації інтерфейсу
         const translations = {
             Ukrainian: {
                 settings_title: "Налаштування",
@@ -791,16 +788,18 @@
         const notificationTtsBtn = document.getElementById('notification-tts-btn');
         let lastReceivedText = '';
 
+        // Чистий вивід перекладу без префіксів у дужках
         socket.on('incoming-message', (data) => {
             lastReceivedText = data.text;
-            notificationText.textContent = `[Переклад від ${data.sender}]: ${data.text}`;
+            notificationText.textContent = data.text;
             notificationBox.classList.add('active');
 
-            if (data.text && document.getElementById('sound-toggle').checked) {
+            if (data.text) {
                 speakText(data.text);
             }
         });
 
+        // Надійне озвучування через кнопку динаміка
         notificationTtsBtn.addEventListener('click', () => {
             if (lastReceivedText) {
                 speakText(lastReceivedText);
@@ -864,10 +863,12 @@
 
         function speakText(textToSpeech) {
             if (!('speechSynthesis' in window)) return;
+            window.speechSynthesis.cancel();
             const utterance = new SpeechSynthesisUtterance(textToSpeech);
             const activeLang = interfaceLangSelect.value;
             utterance.lang = ttsLangMap[activeLang] || 'es-ES';
-            window.speechSynthesis.cancel();
+            utterance.rate = 1.0;
+            utterance.pitch = 1.0;
             window.speechSynthesis.speak(utterance);
         }
 
