@@ -451,7 +451,7 @@
             fill: none;
         }
 
-        /* Повністю мінімалістична сіра нижня панель навігації */
+        /* Повністю суцільна мінімалістична сіра нижня панель навігації */
         .bottom-nav-bar {
             background: #17212b;
             border-top: 1px solid #2b5278;
@@ -477,21 +477,27 @@
             font-size: 1.2rem;
             padding: 6px 16px;
             border-radius: 8px;
-            transition: color 0.2s, background 0.2s;
+            transition: color 0.2s;
         }
 
         .nav-item span {
             font-size: 1.3rem;
+            color: #89a1b2;
         }
 
         .nav-item small {
             font-size: 0.7rem;
             font-weight: 500;
+            color: #89a1b2;
         }
 
         .nav-item.active, .nav-item:hover {
-            color: #f5f5f5;
+            color: #89a1b2;
             background: transparent;
+        }
+        .nav-item.active span, .nav-item.active small,
+        .nav-item:hover span, .nav-item:hover small {
+            color: #89a1b2;
         }
 
         #chat-messages {
@@ -736,7 +742,7 @@
         </main>
     </div>
 
-    <!-- Нижня панель навігації у мінімалістичному сірому стилі -->
+    <!-- Нижня панель навігації у єдиному сірому мінімалістичному стилі -->
     <nav class="bottom-nav-bar">
         <button class="nav-item active" id="nav-home" title="Home">
             <span>🏠</span>
