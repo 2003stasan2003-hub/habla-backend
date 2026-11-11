@@ -154,37 +154,60 @@
         .main-screen {
             flex: 1; display: flex; flex-direction: column; align-items: center;
             justify-content: center; position: relative; padding: 20px; width: 100%;
-            max-width: 480px; margin: 0 auto; gap: 20px;
+            max-width: 480px; margin: 0 auto; gap: 14px; padding-bottom: 80px;
         }
 
-        .notification-overlay-box {
-            display: none; width: 100%; max-width: 320px;
-            background: rgba(23, 33, 43, 0.85); border: 1px solid #2b5278;
-            border-radius: 14px; padding: 16px; position: relative;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5); margin-bottom: 10px;
+        /* 1. Стрічка повідомлень */
+        .messages-stack-container {
+            width: 100%; max-width: 340px; display: flex; flex-direction: column;
+            gap: 8px; justify-content: flex-end; min-height: 120px; margin-bottom: 6px;
         }
-        .notification-overlay-box.active { display: flex; flex-direction: column; gap: 8px; }
-        .notification-text { color: #f5f5f5; font-size: 0.9rem; line-height: 1.4; padding-right: 28px; }
-        .notification-tts-btn {
-            position: absolute; bottom: 12px; right: 12px; background: none; border: none;
+        .message-card {
+            background: rgba(23, 33, 43, 0.9); border: 1px solid #2b5278; border-radius: 14px;
+            padding: 10px 12px; color: #f5f5f5; font-size: 0.9rem; line-height: 1.35; position: relative;
+            transition: all 0.3s ease; opacity: 1; transform: translateY(0); padding-right: 36px;
+        }
+        .message-card.sent { border-color: #89a1b2; background: rgba(43, 82, 120, 0.4); align-self: flex-end; }
+        .message-card.received { border-color: #2b5278; align-self: flex-start; }
+        .message-card.older-1 { opacity: 0.75; transform: scale(0.96); }
+        .message-card.older-2 { opacity: 0.45; transform: scale(0.92); }
+        .message-card.fade-out { opacity: 0; transform: translateY(-20px) scale(0.85); }
+        .message-sender-tag { font-size: 0.7rem; color: #89a1b2; margin-bottom: 4px; font-weight: 600; }
+        
+        /* 2. Динамік для прослуховування */
+        .message-tts-btn {
+            position: absolute; right: 8px; bottom: 8px; background: none; border: none;
             color: #89a1b2; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;
         }
-        .notification-tts-btn:hover { color: #f5f5f5; }
-        .notification-tts-btn svg { width: 18px; height: 18px; fill: currentColor; }
+        .message-tts-btn:hover { color: #f5f5f5; }
+        .message-tts-btn svg { width: 18px; height: 18px; fill: currentColor; }
 
+        /* 3. Кнопка мікрофона з анімацією та секундоміром */
         .neon-mic-btn {
             background: transparent; border: 1px solid #89a1b2; border-radius: 50%;
-            width: 210px; height: 210px; display: flex; flex-direction: column;
+            width: 180px; height: 180px; display: flex; flex-direction: column;
             align-items: center; justify-content: center; cursor: pointer;
-            transition: transform 0.2s, border-color 0.2s; position: relative; outline: none; gap: 6px;
+            transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s; position: relative; outline: none; gap: 6px;
         }
         .neon-mic-btn:active { transform: scale(0.96); border-color: #f5f5f5; }
+        .neon-mic-btn.recording {
+            border-color: #ff3b30;
+            box-shadow: 0 0 20px rgba(255, 59, 48, 0.6);
+            animation: pulse-red 1.2s infinite;
+        }
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.5); }
+            70% { box-shadow: 0 0 0 18px rgba(255, 59, 48, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0); }
+        }
+        .recording-timer { color: #ff3b30; font-weight: bold; font-size: 0.85rem; display: none; }
+        .recording-timer.active { display: block; }
 
         .selected-recipient-inside {
             color: #f5f5f5; font-size: 1.05rem; font-weight: 600; letter-spacing: 0.5px; display: none;
         }
         .selected-recipient-inside.active { display: block; }
-        .mic-icon-placeholder svg { stroke: #89a1b2; fill: none; width: 54px; height: 54px; }
+        .mic-icon-placeholder svg { stroke: #89a1b2; fill: none; width: 48px; height: 48px; }
 
         #contacts-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -400,15 +423,12 @@
 
     <div id="app-container">
         <main class="main-screen">
-            <div id="notification-box" class="notification-overlay-box">
-                <div id="notification-text" class="notification-text"></div>
-                <button id="notification-tts-btn" class="notification-tts-btn" title="Прослухати">
-                    <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
-                </button>
-            </div>
+            <!-- 1. Стрічка повідомлень замість однієї плашки -->
+            <div id="messages-stack" class="messages-stack-container"></div>
 
             <button id="mic-button" class="neon-mic-btn" title="Натисніть для запису голосу">
                 <div id="selected-recipient-display" class="selected-recipient-inside"></div>
+                <div id="recording-timer" class="recording-timer">🔴 00:00</div>
                 <div class="mic-icon-placeholder">
                     <svg viewBox="0 0 24 24" stroke="#89a1b2" stroke-width="2" fill="none"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v1a7 7 0 0 1-14 0v-1"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
                 </div>
@@ -543,9 +563,7 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                    .then((reg) => console.log('Service Worker зареєстровано:', reg))
-                    .catch((err) => console.log('Помилка реєстрації Service Worker:', err));
+                navigator.serviceWorker.register('/sw.js').catch(() => {});
             });
         }
 
@@ -889,10 +907,69 @@
             if (e.key === 'Enter') fullscreenConfirmBtn.click();
         });
 
+        // ----------------------------------------------------
+        // ЛОГІКА СТРІЧКИ ПОВІДОМЛЕНЬ ТА ДИНАМІКА ПРОСЛУХОВУВАННЯ
+        // ----------------------------------------------------
+        const messagesStack = document.getElementById('messages-stack');
+        let displayedMessages = [];
+
+        function addMessageToStack(text, sender, isSent = false) {
+            if (!messagesStack) return;
+            const card = document.createElement('div');
+            card.className = `message-card ${isSent ? 'sent' : 'received'}`;
+            
+            const senderTag = document.createElement('div');
+            senderTag.className = 'message-sender-tag';
+            senderTag.textContent = isSent ? `Ви ➔ ${selectedRecipientName || 'Контакт'}` : sender;
+
+            const textNode = document.createElement('div');
+            textNode.textContent = text;
+
+            const ttsBtn = document.createElement('button');
+            ttsBtn.className = 'message-tts-btn';
+            ttsBtn.title = 'Прослухати';
+            ttsBtn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>`;
+            ttsBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                speakText(text);
+            });
+
+            card.appendChild(senderTag);
+            card.appendChild(textNode);
+            card.appendChild(ttsBtn);
+
+            messagesStack.appendChild(card);
+            displayedMessages.push(card);
+
+            updateStackStyles();
+        }
+
+        function updateStackStyles() {
+            const total = displayedMessages.length;
+            displayedMessages.forEach((card, index) => {
+                const diff = total - 1 - index;
+                card.classList.remove('older-1', 'older-2', 'fade-out');
+                if (diff === 1) card.classList.add('older-1');
+                if (diff === 2) card.classList.add('older-2');
+                if (diff >= 3) {
+                    card.classList.add('fade-out');
+                    setTimeout(() => { if (card.parentNode) card.parentNode.removeChild(card); }, 300);
+                }
+            });
+            displayedMessages = displayedMessages.filter(c => c.parentNode !== null);
+        }
+
+        // ----------------------------------------------------
+        // ЛОГІКА МІКРОФОНА: АНІМАЦІЯ ПУЛЬСАЦІЇ ТА СЕКУНДОМІР
+        // ----------------------------------------------------
         let mediaRecorder;
         let audioChunks = [];
         let isRecording = false;
+        let recordTimerInterval = null;
+        let recordSeconds = 0;
+
         const micButton = document.getElementById('mic-button');
+        const recordingTimer = document.getElementById('recording-timer');
 
         micButton.addEventListener('click', async () => {
             if (!selectedRecipientName) {
@@ -927,96 +1004,48 @@
 
                     mediaRecorder.start();
                     isRecording = true;
-                    micButton.style.borderColor = '#ff3b30';
+                    micButton.classList.add('recording');
+                    
+                    recordSeconds = 0;
+                    recordingTimer.textContent = '🔴 00:00';
+                    recordingTimer.classList.add('active');
+                    recordTimerInterval = setInterval(() => {
+                        recordSeconds++;
+                        const mins = String(Math.floor(recordSeconds / 60)).padStart(2, '0');
+                        const secs = String(recordSeconds % 60).padStart(2, '0');
+                        recordingTimer.textContent = `🔴 ${mins}:${secs}`;
+                    }, 1000);
+
                 } catch (err) {
                     console.error("Помилка мікрофона:", err);
                     alert("Не вдалося отримати доступ до мікрофона.");
                 }
             } else {
-                mediaRecorder.stop();
+                if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                    mediaRecorder.stop();
+                }
                 isRecording = false;
-                micButton.style.borderColor = '#89a1b2';
+                micButton.classList.remove('recording');
+                recordingTimer.classList.remove('active');
+                if (recordTimerInterval) clearInterval(recordTimerInterval);
             }
         });
-
-        const notificationBox = document.getElementById('notification-box');
-        const notificationText = document.getElementById('notification-text');
-        const notificationTtsBtn = document.getElementById('notification-tts-btn');
-        let lastReceivedText = '';
 
         socket.on('incoming-message', (data) => {
-            lastReceivedText = data.text;
-            notificationText.textContent = data.text;
-            notificationBox.classList.add('active');
+            if (data.text) {
+                const isMySent = (data.sender === username);
+                addMessageToStack(data.text, data.sender || 'Контакт', isMySent);
 
-            if (data.sender) {
-                setRecipient(data.sender);
-            }
+                if (data.sender && !isMySent) {
+                    setRecipient(data.sender);
+                }
 
-            const soundToggle = document.getElementById('sound-toggle');
-            if (data.text && soundToggle && soundToggle.checked) {
-                speakText(data.text);
-            }
-        });
-
-        notificationTtsBtn.addEventListener('click', () => {
-            if (lastReceivedText) {
-                speakText(lastReceivedText);
-            }
-        });
-
-        let touchStartY = 0;
-        const refreshIndicator = document.getElementById('pull-refresh-indicator');
-
-        window.addEventListener('touchstart', (e) => {
-            if (window.scrollY === 0) {
-                touchStartY = e.touches[0].clientY;
-            }
-        }, { passive: true });
-
-        window.addEventListener('touchmove', (e) => {
-            if (touchStartY > 0) {
-                const currentY = e.touches[0].clientY;
-                const diff = currentY - touchStartY;
-                if (diff > 0 && diff < 120) {
-                    refreshIndicator.style.transform = `translateY(${diff}px)`;
+                const soundToggle = document.getElementById('sound-toggle');
+                if (soundToggle && soundToggle.checked) {
+                    speakText(data.text);
                 }
             }
-        }, { passive: true });
-
-        window.addEventListener('touchend', async (e) => {
-            if (touchStartY > 0) {
-                const endY = e.changedTouches[0].clientY;
-                if (endY - touchStartY > 80) {
-                    refreshIndicator.textContent = '⏳ Оновлення програми...';
-                    refreshIndicator.style.transform = `translateY(50px)`;
-                    try {
-                        if ('serviceWorker' in navigator) {
-                            const reg = await navigator.serviceWorker.getRegistration();
-                            if (reg) await reg.update();
-                        }
-                        if ('caches' in window) {
-                            const keys = await caches.keys();
-                            await Promise.all(keys.map(k => caches.delete(k)));
-                        }
-                    } catch (err) {}
-                    setTimeout(() => window.location.reload(true), 400);
-                } else {
-                    refreshIndicator.style.transform = `translateY(0px)`;
-                }
-                touchStartY = 0;
-            }
         });
-
-        let availableVoices = [];
-        function populateVoiceList() {
-            if (typeof speechSynthesis === 'undefined') return;
-            availableVoices = speechSynthesis.getVoices();
-        }
-        populateVoiceList();
-        if (typeof speechSynthesis !== 'undefined' && speechSynthesis.onvoiceschanged !== undefined) {
-            speechSynthesis.onvoiceschanged = populateVoiceList;
-        }
 
         const ttsLangMap = { 'Ukrainian': 'uk-UA', 'English': 'en-US', 'Spanish': 'es-ES', 'German': 'de-DE', 'French': 'fr-FR' };
 
@@ -1040,24 +1069,17 @@
         const updateAppBtn = document.getElementById('update-app-btn');
         if (updateAppBtn) {
             updateAppBtn.addEventListener('click', async () => {
-                updateAppBtn.textContent = '⏳ Перевірка оновлень...';
+                updateAppBtn.textContent = '⏳ Перевірка...';
                 try {
                     if ('serviceWorker' in navigator) {
                         const registration = await navigator.serviceWorker.getRegistration();
-                        if (registration) {
-                            await registration.update();
-                            if (registration.waiting) {
-                                registration.waiting.postMessage({ type: 'SKIP_WAITING' });
-                            }
-                        }
+                        if (registration) await registration.update();
                     }
                     if ('caches' in window) {
                         const cacheNames = await caches.keys();
                         await Promise.all(cacheNames.map(name => caches.delete(name)));
                     }
-                    setTimeout(() => {
-                        window.location.reload(true);
-                    }, 500);
+                    setTimeout(() => window.location.reload(true), 400);
                 } catch (err) {
                     window.location.reload(true);
                 }
@@ -1096,15 +1118,9 @@
             voiceArrow.classList.toggle('open');
         });
 
-        document.getElementById('btn-appearance').addEventListener('click', () => {
-            alert('Зовнішній вигляд: Темна неон тема активована.');
-        });
-        document.getElementById('btn-data-storage').addEventListener('click', () => {
-            alert('Дані та пам\'ять: Кеш успішно оптимізовано.');
-        });
-        document.getElementById('btn-help').addEventListener('click', () => {
-            alert('Допомога: Habla Mobile 3.0 — голосовий перекладач та месенджер.');
-        });
+        document.getElementById('btn-appearance').addEventListener('click', () => { alert('Зовнішній вигляд: Темна неон тема активована.'); });
+        document.getElementById('btn-data-storage').addEventListener('click', () => { alert('Дані та пам\'ять: Кеш успішно оптимізовано.'); });
+        document.getElementById('btn-help').addEventListener('click', () => { alert('Допомога: Habla Mobile 3.0 — голосовий перекладач та месенджер.'); });
 
         const navHome = document.getElementById('nav-home');
         const navContacts = document.getElementById('nav-contacts');
@@ -1118,9 +1134,7 @@
 
         function setActiveNav(selectedItem) {
             navItems.forEach(item => item.classList.remove('active'));
-            if (selectedItem) {
-                selectedItem.classList.add('active');
-            }
+            if (selectedItem) selectedItem.classList.add('active');
         }
 
         function closeAllScreens() {
@@ -1130,26 +1144,18 @@
             if (fullscreenModal) fullscreenModal.classList.remove('active');
         }
 
-        navHome.addEventListener('click', () => {
-            closeAllScreens();
-            setActiveNav(navHome);
-        });
-
+        navHome.addEventListener('click', () => { closeAllScreens(); setActiveNav(navHome); });
         navContacts.addEventListener('click', () => {
             const isCurrentlyOpen = contactsScreen && contactsScreen.classList.contains('active');
             closeAllScreens();
-            
             if (isCurrentlyOpen) {
                 setActiveNav(navHome);
             } else {
                 setActiveNav(navContacts);
                 if (contactsScreen) contactsScreen.classList.add('active');
-                setTimeout(() => {
-                    safeRenderContactsGrid(lastUsersData);
-                }, 10);
+                setTimeout(() => { safeRenderContactsGrid(lastUsersData); }, 10);
             }
         });
-
         navQr.addEventListener('click', () => {
             const isCurrentlyOpen = qrScreen && qrScreen.classList.contains('active');
             closeAllScreens();
@@ -1160,7 +1166,6 @@
                 if (qrScreen) qrScreen.classList.add('active');
             }
         });
-
         navSettings.addEventListener('click', () => {
             const isCurrentlyOpen = settingsScreen && settingsScreen.classList.contains('active');
             closeAllScreens();
@@ -1172,11 +1177,7 @@
             }
         });
 
-        document.getElementById('close-settings-screen').addEventListener('click', () => {
-            closeAllScreens();
-            setActiveNav(navHome);
-        });
-
+        document.getElementById('close-settings-screen').addEventListener('click', () => { closeAllScreens(); setActiveNav(navHome); });
         document.getElementById('sidebar-settings-btn').addEventListener('click', () => {
             closeAllScreens();
             if (settingsScreen) settingsScreen.classList.add('active');
@@ -1191,44 +1192,26 @@
         const modalAvatarInput = document.getElementById('modal-avatar-input');
         const colorCircles = document.querySelectorAll('.color-circle');
 
-        closeContactModal.addEventListener('click', () => {
-            contactModal.classList.remove('active');
-            menuOverlay.classList.remove('active');
-        });
-
-        menuOverlay.addEventListener('click', () => {
-            contactModal.classList.remove('active');
-            menuOverlay.classList.remove('active');
-        });
+        closeContactModal.addEventListener('click', () => { contactModal.classList.remove('active'); menuOverlay.classList.remove('active'); });
+        menuOverlay.addEventListener('click', () => { contactModal.classList.remove('active'); menuOverlay.classList.remove('active'); });
 
         function triggerSettings(targetName, e) {
             e.preventDefault();
             activeContactForModal = targetName;
             modalContactTitle.textContent = targetName === username ? `⚙️ Мій профіль (${targetName})` : `⚙️ ${targetName}`;
-            
-            if (targetName === username) {
-                modalDeleteBtn.style.display = 'none';
-            } else {
-                modalDeleteBtn.style.display = 'block';
-            }
+            modalDeleteBtn.style.display = targetName === username ? 'none' : 'block';
 
             selectedModalColor = contactColors[targetName] || '#89a1b2';
             colorCircles.forEach(c => {
-                if (c.getAttribute('data-color') === selectedModalColor) {
-                    c.classList.add('selected');
-                } else {
-                    c.classList.remove('selected');
-                }
+                if (c.getAttribute('data-color') === selectedModalColor) c.classList.add('selected');
+                else c.classList.remove('selected');
             });
-
             modalAvatarInput.value = contactAvatars[targetName] || '';
-
             contactModal.classList.add('active');
             menuOverlay.classList.add('active');
         }
 
-        const profileSettingsTrigger = document.getElementById('profile-settings-trigger');
-        profileSettingsTrigger.addEventListener('click', (e) => triggerSettings(username, e));
+        document.getElementById('profile-settings-trigger').addEventListener('click', (e) => triggerSettings(username, e));
 
         colorCircles.forEach(circle => {
             circle.addEventListener('click', () => {
@@ -1240,23 +1223,13 @@
 
         modalSaveBtn.addEventListener('click', () => {
             if (!activeContactForModal) return;
-            
             const color = selectedModalColor;
             const avatar = modalAvatarInput.value.trim();
-
             contactColors[activeContactForModal] = color;
-            if (avatar) {
-                contactAvatars[activeContactForModal] = avatar;
-            } else {
-                delete contactAvatars[activeContactForModal];
-            }
+            if (avatar) contactAvatars[activeContactForModal] = avatar;
+            else delete contactAvatars[activeContactForModal];
 
-            socket.emit('update-customization', {
-                targetName: activeContactForModal,
-                color: color,
-                avatar: avatar
-            });
-
+            socket.emit('update-customization', { targetName: activeContactForModal, color: color, avatar: avatar });
             contactModal.classList.remove('active');
             menuOverlay.classList.remove('active');
             updateProfileDisplay();
@@ -1282,12 +1255,7 @@
                     }
                 }
 
-                socket.emit('update-customization', {
-                    targetName: activeContactForModal,
-                    color: '#89a1b2',
-                    avatar: ''
-                });
-
+                socket.emit('update-customization', { targetName: activeContactForModal, color: '#89a1b2', avatar: '' });
                 contactModal.classList.remove('active');
                 menuOverlay.classList.remove('active');
                 safeRenderContactsGrid(lastUsersData);
