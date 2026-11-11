@@ -199,7 +199,6 @@
         }
         #qr-screen.active { display: flex !important; }
 
-        /* Оновлено: тепер розгортається на весь екран без обмежень ширини */
         #settings-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #0e1621; z-index: 60; display: none; flex-direction: column;
@@ -491,7 +490,6 @@
                     <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0;">
                         <span style="font-size: 0.85rem; color: #f5f5f5;" data-i18n="force_voice">Примусово озвучувати</span>
                         <label class="switch">
-                            <!-- Оновлено: прибрано checked, щоб за замовчуванням було вимкнено -->
                             <input type="checkbox" id="sound-toggle">
                             <span class="slider"></span>
                         </label>
@@ -676,7 +674,8 @@
             });
         }
 
-        let selectedRecipientName = null;
+        // Залізобетонна фіксація вибору співрозмовника
+        let selectedRecipientName = localStorage.getItem('habla_selected_recipient') || null;
         let recentContactsOrder = JSON.parse(localStorage.getItem('habla_recent_contacts') || '["Максим", "Стасан", "notebook", "Марина"]');
         let localAddedContacts = JSON.parse(localStorage.getItem('habla_local_contacts') || '[]');
         let contactColors = JSON.parse(localStorage.getItem('habla_contact_colors') || '{}');
@@ -684,6 +683,23 @@
         let activeContactForModal = null;
         let selectedModalColor = '#89a1b2';
         let lastUsersData = [];
+
+        const selectedRecipientDisplay = document.getElementById('selected-recipient-display');
+
+        function setRecipient(name) {
+            if (!name) return;
+            selectedRecipientName = name;
+            localStorage.setItem('habla_selected_recipient', name);
+            if (selectedRecipientDisplay) {
+                selectedRecipientDisplay.textContent = name;
+                selectedRecipientDisplay.classList.add('active');
+            }
+        }
+
+        // Завантаження збереженого співрозмовника при старті
+        if (selectedRecipientName) {
+            setRecipient(selectedRecipientName);
+        }
 
         socket.on('sync-customizations', (customizations) => {
             contactColors = {};
@@ -744,7 +760,6 @@
 
         const userDisplay = document.getElementById('user-display');
         const userAvatarLarge = document.getElementById('user-avatar-large');
-        const selectedRecipientDisplay = document.getElementById('selected-recipient-display');
 
         function updateProfileDisplay() {
             userDisplay.textContent = username;
@@ -801,9 +816,7 @@
                     itemDiv.appendChild(nameDiv);
 
                     itemDiv.addEventListener('click', () => {
-                        selectedRecipientName = name;
-                        selectedRecipientDisplay.textContent = name;
-                        selectedRecipientDisplay.classList.add('active');
+                        setRecipient(name);
                         closeAllScreens();
                         setActiveNav(navHome);
                         safeRenderContactsGrid(lastUsersData);
@@ -939,12 +952,9 @@
             notificationBox.classList.add('active');
 
             if (data.sender) {
-                selectedRecipientName = data.sender;
-                selectedRecipientDisplay.textContent = data.sender;
-                selectedRecipientDisplay.classList.add('active');
+                setRecipient(data.sender);
             }
 
-            // Озвучуємо лише якщо чекбокс "sound-toggle" включений
             const soundToggle = document.getElementById('sound-toggle');
             if (data.text && soundToggle && soundToggle.checked) {
                 speakText(data.text);
@@ -1025,6 +1035,7 @@
 
         document.getElementById('reset-user-btn').addEventListener('click', () => {
             localStorage.removeItem('habla_username');
+            localStorage.removeItem('habla_selected_recipient');
             location.reload();
         });
 
@@ -1264,6 +1275,15 @@
                 delete contactColors[activeContactForModal];
                 delete contactAvatars[activeContactForModal];
                 
+                if (selectedRecipientName === activeContactForModal) {
+                    localStorage.removeItem('habla_selected_recipient');
+                    selectedRecipientName = null;
+                    if (selectedRecipientDisplay) {
+                        selectedRecipientDisplay.textContent = '';
+                        selectedRecipientDisplay.classList.remove('active');
+                    }
+                }
+
                 socket.emit('update-customization', {
                     targetName: activeContactForModal,
                     color: '#89a1b2',
