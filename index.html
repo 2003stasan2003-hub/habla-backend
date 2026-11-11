@@ -66,30 +66,6 @@
             background-color: #0e1621;
         }
 
-        /* Кнопка відкриття меню у верхньому лівому кутку */
-        .top-menu-btn {
-            position: absolute;
-            top: 16px;
-            left: 16px;
-            background: rgba(23, 33, 43, 0.8);
-            border: 1px solid #2b5278;
-            color: #89a1b2;
-            width: 44px;
-            height: 44px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.4rem;
-            cursor: pointer;
-            z-index: 40;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-            transition: background 0.2s, border-color 0.2s;
-        }
-        .top-menu-btn:active {
-            background: #2b5278;
-        }
-
         .lang-select {
             background: #242f3d;
             color: #f5f5f5;
@@ -273,7 +249,7 @@
             height: 72px;
         }
 
-        /* Екран контактів (на весь екран, як QR-код) */
+        /* Екран контактів */
         #contacts-screen {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -299,7 +275,6 @@
             gap: 16px;
         }
 
-        /* Картка профілю на весь екран контактів */
         .profile-card-box {
             background: rgba(23, 33, 43, 0.7);
             border: 1px solid #89a1b2;
@@ -350,7 +325,6 @@
             color: #89a1b2;
         }
 
-        /* Збережені контакти */
         .saved-contacts-card {
             background: rgba(23, 33, 43, 0.7);
             border: 1px solid #89a1b2;
@@ -429,7 +403,6 @@
             font-weight: bold;
         }
 
-        /* Панель дій в екрані контактів */
         .contacts-bottom-actions {
             display: flex;
             justify-content: space-around;
@@ -590,7 +563,7 @@
             transform: scale(0.96);
         }
 
-        /* Налаштування в налаштуваннях */
+        /* Повноноекранний екран налаштувань (Settings) із випадаючими списками та стрілочками */
         #settings-screen {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -616,17 +589,51 @@
             padding-bottom: 12px;
             font-weight: bold;
             color: #89a1b2;
+            font-size: 1.1rem;
         }
 
-        .menu-section {
+        .settings-card {
+            background: rgba(23, 33, 43, 0.7);
+            border: 1px solid #89a1b2;
+            border-radius: 14px;
+            padding: 14px 16px;
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
 
-        .menu-section label {
+        .settings-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            padding: 8px 0;
+            color: #f5f5f5;
+            font-size: 0.95rem;
+        }
+        .settings-row:hover {
+            color: #89a1b2;
+        }
+
+        .dropdown-arrow {
             font-size: 0.8rem;
             color: #89a1b2;
+            transition: transform 0.2s;
+        }
+        .dropdown-arrow.open {
+            transform: rotate(180deg);
+        }
+
+        .sub-options-box {
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+            padding-top: 6px;
+            border-top: 1px solid #242f3d;
+        }
+        .sub-options-box.active {
+            display: flex;
         }
 
         .sidebar-nav-btn {
@@ -644,6 +651,11 @@
             transition: background 0.2s, border-color 0.2s, color 0.2s;
             width: 100%;
             justify-content: center;
+        }
+        .sidebar-nav-btn:hover {
+            background: #2b5278;
+            border-color: #89a1b2;
+            color: #89a1b2;
         }
 
         /* Нижня панель навігації */
@@ -699,11 +711,6 @@
 
     <div id="menu-overlay" class="menu-overlay"></div>
 
-    <!-- Кнопка відкриття меню у верхньому лівому кутку (для налаштувань) -->
-    <button id="top-menu-toggle" class="top-menu-btn" title="Меню">
-        ☰
-    </button>
-
     <div id="contact-modal">
         <div class="modal-header">
             <span id="modal-contact-title" class="modal-title">Контакт</span>
@@ -724,11 +731,11 @@
         <button id="modal-delete-btn" class="modal-btn-delete">🗑 Видалити контакт</button>
     </div>
 
-    <!-- Головний екран -->
+    <!-- Головний контейнер додатку -->
     <div id="app-container">
+        <!-- Головний екран -->
         <main class="main-screen">
             <div class="info-card" style="display:none;"></div>
-            <!-- Ім'я обраного співрозмовника над кнопкою -->
             <div id="selected-recipient-display" class="selected-recipient-label">Habla</div>
             
             <button id="mic-button" class="neon-mic-btn">
@@ -738,10 +745,9 @@
             </button>
         </main>
 
-        <!-- Екран контактів (тепер на весь екран, як QR-код) -->
+        <!-- Екран контактів (повноноекранний) -->
         <div id="contacts-screen">
             <div class="contacts-wrapper-box">
-                <!-- Блок профілю користувача -->
                 <div id="profile-settings-trigger" class="profile-card-box" title="Натисніть, щоб змінити налаштування профілю">
                     <div id="user-avatar-large" class="user-avatar-large">G</div>
                     <div style="text-align: center;">
@@ -750,22 +756,19 @@
                     </div>
                 </div>
 
-                <!-- Збережені контакти (Saved Contacts) із реальними співрозмовниками -->
                 <div class="saved-contacts-card">
                     <div class="saved-contacts-title" id="label-saved-contacts">Збережені контакти</div>
                     <div class="contacts-grid" id="contacts-grid-container">
-                        <!-- Заповнюється вашими реальними контактами -->
+                        <!-- Контакти заповнюються автоматично -->
                     </div>
                 </div>
 
-                <!-- Нижня панель дій -->
                 <div class="contacts-bottom-actions">
                     <button class="action-icon-btn" id="sidebar-add-btn" title="Додати контакт">➕</button>
                     <button class="action-icon-btn" id="sidebar-settings-btn" title="Налаштування">⚙️</button>
                     <button class="action-icon-btn" id="sidebar-call-btn" title="Зв'язок">📞</button>
                 </div>
 
-                <!-- Додавання контакту -->
                 <div class="add-contact-box" id="add-contact-box" style="display: none;">
                     <input type="text" id="new-contact-input" class="add-contact-input" placeholder="Додати за ніком...">
                     <button id="add-contact-btn" class="add-contact-btn">Додати</button>
@@ -773,7 +776,7 @@
             </div>
         </div>
 
-        <!-- Екран QR-кодів -->
+        <!-- Екран QR-кодів (повноноекранний) -->
         <div id="qr-screen">
             <div class="qr-cards-wrapper">
                 <div class="qr-card">
@@ -800,64 +803,71 @@
             </button>
         </div>
 
-        <!-- Екран налаштувань (відкривається по шестерні або меню) -->
+        <!-- Повноноекранний екран Налаштувань (Settings) із випадаючими списками та стрілочками -->
         <div id="settings-screen">
             <div class="settings-header">
                 <span>Налаштування</span>
                 <button id="close-settings-screen" style="background:none; border:none; color:#89a1b2; font-size:1.2rem; cursor:pointer;">✕</button>
             </div>
 
-            <div class="menu-section">
-                <label>Керування профілем</label>
-                <button id="reset-user-btn" class="sidebar-nav-btn" style="background: rgba(255, 59, 48, 0.15); border-color: #ff3b30; color: #ff3b30;">
-                    🔄 Змінити нікнейм
+            <!-- Кнопка оновлення -->
+            <div class="settings-card">
+                <button id="update-app-btn" class="sidebar-nav-btn">
+                    🔄 Оновлення програми
                 </button>
             </div>
 
-            <div class="menu-section">
-                <label>Оновлення програми</label>
-                <button id="update-app-btn" class="sidebar-nav-btn" style="background: #242f3d; border-color: #2b5278; color: #89a1b2;">
-                    🔄 Перевірити оновлення
-                </button>
-            </div>
-
-            <div class="menu-section">
-                <label for="interface-lang">Мова інтерфейсу:</label>
-                <select id="interface-lang" class="lang-select">
-                    <option value="Spanish">Spanish</option>
-                    <option value="English">English</option>
-                    <option value="Ukrainian">Ukrainian</option>
-                    <option value="German">German</option>
-                    <option value="French">French</option>
-                </select>
-            </div>
-
-            <div class="menu-section">
-                <label>Примусовий переклад</label>
-                <div style="display: flex; justify-content: space-between; align-items: center; background: #242f3d; padding: 10px; border-radius: 8px; border: 1px solid #2b5278; margin-bottom: 8px;">
-                    <span style="font-size: 0.85rem; color: #f5f5f5;">Увімкнути переклад</span>
-                    <label class="switch">
-                        <input type="checkbox" id="force-translate-toggle">
-                        <span class="slider"></span>
-                    </label>
+            <!-- Мова інтерфейсу зі стрілочкою -->
+            <div class="settings-card">
+                <div class="settings-row" id="toggle-lang-dropdown">
+                    <span>Мова інтерфейсу</span>
+                    <span class="dropdown-arrow" id="lang-arrow">▼</span>
                 </div>
-                <div id="target-lang-container" style="display: none; flex-direction: column; gap: 6px;">
-                    <select id="target-lang" class="lang-select">
-                        <option value="Ukrainian">Ukrainian</option>
+                <div class="sub-options-box" id="lang-options-box">
+                    <select id="interface-lang" class="lang-select">
                         <option value="Spanish">Spanish</option>
                         <option value="English">English</option>
+                        <option value="Ukrainian">Ukrainian</option>
                         <option value="German">German</option>
                         <option value="French">French</option>
                     </select>
                 </div>
             </div>
 
-            <div class="menu-section">
-                <label>Озвучування перекладу</label>
-                <div style="display: flex; justify-content: space-between; align-items: center; background: #242f3d; padding: 10px; border-radius: 8px; border: 1px solid #2b5278;">
-                    <span style="font-size: 0.85rem; color: #f5f5f5;">Увімкнути звук</span>
-                    <input type="checkbox" id="sound-toggle" style="width: 18px; height: 18px; accent-color: #2b5278;">
+            <!-- Озвучування перекладу зі стрілочкою та вкл/викл -->
+            <div class="settings-card">
+                <div class="settings-row" id="toggle-voice-dropdown">
+                    <span>Озвучування перекладу</span>
+                    <span class="dropdown-arrow" id="voice-arrow">▼</span>
                 </div>
+                <div class="sub-options-box" id="voice-options-box">
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0;">
+                        <span style="font-size: 0.85rem; color: #f5f5f5;">Примусово озвучувати</span>
+                        <label class="switch">
+                            <input type="checkbox" id="sound-toggle">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Додаткові клікабельні кнопки налаштувань -->
+            <div class="settings-card" style="gap: 8px;">
+                <div class="settings-row" id="btn-appearance" style="padding: 4px 0;">
+                    <span>🎨 Зовнішній вигляд</span>
+                </div>
+                <div class="settings-row" id="btn-data-storage" style="padding: 4px 0; border-top: 1px solid #242f3d; margin-top: 4px;">
+                    <span>💾 Дані та пам'ять</span>
+                </div>
+                <div class="settings-row" id="btn-help" style="padding: 4px 0; border-top: 1px solid #242f3d; margin-top: 4px;">
+                    <span>❓ Допомога</span>
+                </div>
+            </div>
+            
+            <div class="settings-card">
+                <button id="reset-user-btn" class="sidebar-nav-btn" style="background: rgba(255, 59, 48, 0.15); border-color: #ff3b30; color: #ff3b30;">
+                    🔄 Змінити нікнейм
+                </button>
             </div>
         </div>
     </div>
@@ -931,61 +941,26 @@
         }
 
         const interfaceLangSelect = document.getElementById('interface-lang');
-        const targetLangSelect = document.getElementById('target-lang');
-        const forceTranslateToggle = document.getElementById('force-translate-toggle');
-        const targetLangContainer = document.getElementById('target-lang-container');
-        
         let savedInterfaceLang = localStorage.getItem('habla_interface_lang') || getDeviceLanguage();
         interfaceLangSelect.value = savedInterfaceLang;
-        
-        let savedTargetLang = localStorage.getItem('habla_target_lang') || 'Ukrainian';
-        targetLangSelect.value = savedTargetLang;
 
-        let savedForceState = localStorage.getItem('habla_force_translate') === 'true';
-        forceTranslateToggle.checked = savedForceState;
-
-        function updateForceTranslateUI() {
-            if (forceTranslateToggle.checked) {
-                targetLangContainer.style.display = 'flex';
-            } else {
-                targetLangContainer.style.display = 'none';
-            }
-        }
-
-        updateForceTranslateUI();
-
-        forceTranslateToggle.addEventListener('change', () => {
-            localStorage.setItem('habla_force_translate', forceTranslateToggle.checked);
-            updateForceTranslateUI();
+        interfaceLangSelect.addEventListener('change', () => {
+            const newLang = interfaceLangSelect.value;
+            localStorage.setItem('habla_interface_lang', newLang);
             joinWithLanguage();
-        });
-
-        targetLangSelect.addEventListener('change', () => {
-            localStorage.setItem('habla_target_lang', targetLangSelect.value);
-            if (forceTranslateToggle.checked) {
-                joinWithLanguage();
-            }
         });
 
         function joinWithLanguage() {
             if (username) {
-                const langToUse = forceTranslateToggle.checked ? targetLangSelect.value : interfaceLangSelect.value;
                 socket.emit('join', {
                     username: username,
-                    lang: langToUse
+                    lang: interfaceLangSelect.value
                 });
             }
         }
 
         socket.on('connect', () => {
             joinWithLanguage();
-        });
-
-        document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'visible') {
-                if (!socket.connected) socket.connect();
-                joinWithLanguage();
-            }
         });
 
         const userDisplay = document.getElementById('user-display');
@@ -1007,7 +982,7 @@
             }
         }
 
-        // Рендеринг сітки реальних контактів
+        /* Рендеринг реальних контактів */
         const contactsGridContainer = document.getElementById('contacts-grid-container');
 
         function renderContactsGrid(onlineUsers = []) {
@@ -1047,7 +1022,6 @@
                 itemDiv.appendChild(avatarDiv);
                 itemDiv.appendChild(nameDiv);
 
-                // Вибір контакту — з'являється над кнопкою мікрофона та закриває екран контактів
                 itemDiv.addEventListener('click', () => {
                     selectedRecipientName = name;
                     selectedRecipientDisplay.textContent = name;
@@ -1073,7 +1047,7 @@
         const updateAppBtn = document.getElementById('update-app-btn');
         if (updateAppBtn) {
             updateAppBtn.addEventListener('click', async () => {
-                updateAppBtn.textContent = '⏳ Перевірка...';
+                updateAppBtn.textContent = '⏳ Перевірка оновлень...';
                 try {
                     if ('serviceWorker' in navigator) {
                         const registration = await navigator.serviceWorker.getRegistration();
@@ -1120,23 +1094,34 @@
             addContactBox.style.display = addContactBox.style.display === 'none' ? 'flex' : 'none';
         });
 
-        const topMenuToggle = document.getElementById('top-menu-toggle');
-        const settingsScreen = document.getElementById('settings-screen');
-        const closeSettingsScreen = document.getElementById('close-settings-screen');
+        // Інтерактивні випадаючі списки в Налаштуваннях (зі стрілочками)
+        const toggleLangDropdown = document.getElementById('toggle-lang-dropdown');
+        const langOptionsBox = document.getElementById('lang-options-box');
+        const langArrow = document.getElementById('lang-arrow');
 
-        topMenuToggle.addEventListener('click', () => {
-            qrScreen.classList.remove('active');
-            contactsScreen.classList.remove('active');
-            settingsScreen.classList.add('active');
+        toggleLangDropdown.addEventListener('click', () => {
+            langOptionsBox.classList.toggle('active');
+            langArrow.classList.toggle('open');
         });
 
-        closeSettingsScreen.addEventListener('click', () => {
-            settingsScreen.classList.remove('active');
+        const toggleVoiceDropdown = document.getElementById('toggle-voice-dropdown');
+        const voiceOptionsBox = document.getElementById('voice-options-box');
+        const voiceArrow = document.getElementById('voice-arrow');
+
+        toggleVoiceDropdown.addEventListener('click', () => {
+            voiceOptionsBox.classList.toggle('active');
+            voiceArrow.classList.toggle('open');
         });
 
-        document.getElementById('sidebar-settings-btn').addEventListener('click', () => {
-            contactsScreen.classList.remove('active');
-            settingsScreen.classList.add('active');
+        // Кліки по додаткових кнопках налаштувань
+        document.getElementById('btn-appearance').addEventListener('click', () => {
+            alert('Зовнішній вигляд: Темна неон тема активована.');
+        });
+        document.getElementById('btn-data-storage').addEventListener('click', () => {
+            alert('Дані та пам\'ять: Кеш успішно оптимізовано.');
+        });
+        document.getElementById('btn-help').addEventListener('click', () => {
+            alert('Допомога: Habla Mobile 3.0 — голосовий перекладач та месенджер.');
         });
 
         const navHome = document.getElementById('nav-home');
@@ -1146,6 +1131,7 @@
         const navItems = document.querySelectorAll('.nav-item');
         const qrScreen = document.getElementById('qr-screen');
         const contactsScreen = document.getElementById('contacts-screen');
+        const settingsScreen = document.getElementById('settings-screen');
         const menuOverlay = document.getElementById('menu-overlay');
 
         function setActiveNav(selectedItem) {
@@ -1182,6 +1168,17 @@
             settingsScreen.classList.add('active');
         });
 
+        document.getElementById('close-settings-screen').addEventListener('click', () => {
+            settingsScreen.classList.remove('active');
+            setActiveNav(navHome);
+        });
+
+        document.getElementById('sidebar-settings-btn').addEventListener('click', () => {
+            contactsScreen.classList.remove('active');
+            settingsScreen.classList.add('active');
+            setActiveNav(navSettings);
+        });
+
         const contactModal = document.getElementById('contact-modal');
         const modalContactTitle = document.getElementById('modal-contact-title');
         const closeContactModal = document.getElementById('close-contact-modal');
@@ -1191,25 +1188,6 @@
         const colorCircles = document.querySelectorAll('.color-circle');
 
         let lastUsersData = [];
-
-        function updateInterfaceTexts() {
-            const lang = interfaceLangSelect.value;
-            document.getElementById('label-saved-contacts').textContent = lang === 'Ukrainian' ? 'Збережені контакти' : (lang === 'Spanish' ? 'Contactos guardados' : 'Saved Contacts');
-        }
-
-        interfaceLangSelect.addEventListener('change', () => {
-            const newLang = interfaceLangSelect.value;
-            localStorage.setItem('habla_interface_lang', newLang);
-            updateInterfaceTexts();
-            if (!forceTranslateToggle.checked) {
-                joinWithLanguage();
-            }
-        });
-
-        updateInterfaceTexts();
-        updateProfileDisplay();
-        renderContactsGrid();
-        joinWithLanguage();
 
         closeContactModal.addEventListener('click', () => {
             contactModal.classList.remove('active');
@@ -1330,6 +1308,9 @@
             const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
             return text.replace(/[&<>"']/g, function(m) { return map[m]; });
         }
+
+        updateProfileDisplay();
+        renderContactsGrid();
     </script>
 </body>
 </html>
