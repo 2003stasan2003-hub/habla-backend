@@ -210,7 +210,7 @@
         #contacts-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #0e1621; z-index: 60; display: none; flex-direction: column;
-            align-items: center; justify-content: center; padding: 20px; gap: 16px; overflow-y: auto;
+            align-items: center; justify-content: center; padding: 20px; padding-bottom: 85px; gap: 16px; overflow-y: auto;
         }
         #contacts-screen.active { display: flex !important; }
 
@@ -227,7 +227,9 @@
         }
         #settings-screen.active { display: flex !important; }
 
-        .contacts-wrapper-box { width: 100%; max-width: 380px; display: flex; flex-direction: column; gap: 16px; margin: auto; }
+        .contacts-wrapper-box { width: 100%; max-width: 380px; display: flex; flex-direction: column; gap: 16px; margin: auto; transition: all 0.25s ease; }
+        .contacts-wrapper-box.expanded-mode { max-width: 440px; height: 100%; margin: 0 auto; }
+        .contacts-wrapper-box.expanded-mode .profile-card-box { display: none; }
 
         .profile-card-box {
             background: rgba(23, 33, 43, 0.7); border: 1px solid #89a1b2; border-radius: 16px;
@@ -245,28 +247,59 @@
 
         .saved-contacts-card {
             background: rgba(23, 33, 43, 0.7); border: 1px solid #89a1b2; border-radius: 16px;
-            padding: 14px; display: flex; flex-direction: column; gap: 12px;
+            padding: 14px; display: flex; flex-direction: column; gap: 12px; transition: all 0.25s ease;
+        }
+        .contacts-wrapper-box.expanded-mode .saved-contacts-card {
+            flex: 1; overflow: hidden; display: flex; flex-direction: column;
+        }
+        .saved-contacts-header {
+            display: flex; justify-content: space-between; align-items: center;
         }
         .saved-contacts-title { font-size: 0.85rem; color: #89a1b2; font-weight: 500; }
-        .contacts-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; max-height: 220px; overflow-y: auto; }
+        .toggle-expand-contacts-btn {
+            background: none; border: 1px solid #2b5278; color: #89a1b2; font-size: 0.75rem;
+            padding: 4px 10px; border-radius: 10px; cursor: pointer; transition: all 0.2s; display: none;
+        }
+        .toggle-expand-contacts-btn:hover { color: #f5f5f5; border-color: #89a1b2; }
+        .toggle-expand-contacts-btn.visible { display: inline-block; }
 
-        .contact-grid-item { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; }
+        .contacts-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px 12px; }
+        .contacts-wrapper-box.expanded-mode .contacts-grid {
+            overflow-y: auto; flex: 1; padding-right: 4px; align-content: start;
+        }
+
+        .contact-grid-item { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; position: relative; }
+        .contact-avatar-wrapper { position: relative; width: 46px; height: 46px; }
         .contact-grid-avatar {
-            width: 44px; height: 44px; border-radius: 50%; background: #242f3d;
+            width: 46px; height: 46px; border-radius: 50%; background: #242f3d;
             border: 1px solid #89a1b2; color: #f5f5f5; font-weight: bold; font-size: 0.95rem;
             display: flex; align-items: center; justify-content: center; overflow: hidden;
         }
+        .contacts-wrapper-box.expanded-mode .contact-avatar-wrapper,
+        .contacts-wrapper-box.expanded-mode .contact-grid-avatar {
+            width: 52px; height: 52px; font-size: 1.05rem;
+        }
         .contact-grid-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
-        .contact-grid-name { font-size: 0.7rem; color: #89a1b2; text-align: center; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .online-status-dot {
+            position: absolute; bottom: 1px; right: 1px; width: 11px; height: 11px;
+            background: #89a1b2; border: 2px solid #17212b; border-radius: 50%;
+            box-shadow: 0 0 6px rgba(137, 161, 178, 0.8); display: none;
+        }
+        .contact-grid-item.online .online-status-dot { display: block; }
+
+        .contact-grid-name { font-size: 0.72rem; color: #89a1b2; text-align: center; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .contact-grid-item.active .contact-grid-avatar { border-color: #f5f5f5; box-shadow: 0 0 8px rgba(137, 161, 178, 0.5); }
         .contact-grid-item.active .contact-grid-name { color: #f5f5f5; font-weight: bold; }
 
         .add-contact-grid-circle {
-            width: 44px; height: 44px; border-radius: 50%; background: rgba(43, 82, 120, 0.4);
+            width: 46px; height: 46px; border-radius: 50%; background: rgba(43, 82, 120, 0.4);
             border: 2px dashed #89a1b2; color: #89a1b2; font-size: 1.4rem;
             display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.2s, border-color 0.2s;
         }
-        .add-contact-grid-circle:hover { transform: scale(1.1); border-color: #f5f5f5; color: #f5f5f5; }
+        .contacts-wrapper-box.expanded-mode .add-contact-grid-circle {
+            width: 52px; height: 52px;
+        }
+        .add-contact-grid-circle:hover { transform: scale(1.08); border-color: #f5f5f5; color: #f5f5f5; }
 
         #add-contact-fullscreen-modal {
             position: fixed;
@@ -432,7 +465,7 @@
         </main>
 
         <div id="contacts-screen">
-            <div class="contacts-wrapper-box">
+            <div class="contacts-wrapper-box" id="contacts-wrapper-box">
                 <div id="profile-settings-trigger" class="profile-card-box" title="Налаштування профілю">
                     <div id="user-avatar-large" class="user-avatar-large">G</div>
                     <div style="text-align: center;">
@@ -442,7 +475,10 @@
                 </div>
 
                 <div class="saved-contacts-card">
-                    <div class="saved-contacts-title" id="label-saved-contacts" data-i18n="saved_contacts">Збережені контакти</div>
+                    <div class="saved-contacts-header">
+                        <div class="saved-contacts-title" id="label-saved-contacts" data-i18n="saved_contacts">Збережені контакти</div>
+                        <button class="toggle-expand-contacts-btn" id="toggle-expand-contacts-btn"></button>
+                    </div>
                     <div class="contacts-grid" id="contacts-grid-container"></div>
                 </div>
             </div>
@@ -579,7 +615,9 @@
                 icon_bg_color: "Колір фону іконки:",
                 avatar_url: "Посилання на фото-аватарку (URL):",
                 save: "Зберегти",
-                delete_contact: "Видалити контакт"
+                delete_contact: "Видалити контакт",
+                show_all: "Показати всі",
+                collapse: "Згорнути"
             },
             English: {
                 settings_title: "Settings",
@@ -601,7 +639,9 @@
                 icon_bg_color: "Icon background color:",
                 avatar_url: "Avatar photo link (URL):",
                 save: "Save",
-                delete_contact: "Delete contact"
+                delete_contact: "Delete contact",
+                show_all: "Show all",
+                collapse: "Collapse"
             },
             Spanish: {
                 settings_title: "Ajustes",
@@ -623,7 +663,9 @@
                 icon_bg_color: "Color de fondo del icono:",
                 avatar_url: "Enlace de avatar (URL):",
                 save: "Guardar",
-                delete_contact: "Eliminar contacto"
+                delete_contact: "Eliminar contacto",
+                show_all: "Mostrar todos",
+                collapse: "Contraer"
             },
             German: {
                 settings_title: "Einstellungen",
@@ -645,7 +687,9 @@
                 icon_bg_color: "Symbolhintergrundfarbe:",
                 avatar_url: "Avatar-Link (URL):",
                 save: "Speichern",
-                delete_contact: "Kontakt löschen"
+                delete_contact: "Kontakt löschen",
+                show_all: "Alle anzeigen",
+                collapse: "Einklappen"
             },
             French: {
                 settings_title: "Paramètres",
@@ -667,7 +711,9 @@
                 icon_bg_color: "Couleur de fond de l'icône :",
                 avatar_url: "Lien d'avatar (URL) :",
                 save: "Enregistrer",
-                delete_contact: "Supprimer le contact"
+                delete_contact: "Supprimer le contact",
+                show_all: "Tout afficher",
+                collapse: "Réduire"
             }
         };
 
@@ -679,16 +725,18 @@
                     el.textContent = dict[key];
                 }
             });
+            safeRenderContactsGrid(lastUsersData);
         }
 
         let selectedRecipientName = localStorage.getItem('habla_selected_recipient') || null;
-        let recentContactsOrder = JSON.parse(localStorage.getItem('habla_recent_contacts') || '["Максим", "Стасан", "notebook", "Марина"]');
+        let recentContactsOrder = JSON.parse(localStorage.getItem('habla_recent_contacts') || '[]');
         let localAddedContacts = JSON.parse(localStorage.getItem('habla_local_contacts') || '[]');
         let contactColors = JSON.parse(localStorage.getItem('habla_contact_colors') || '{}');
         let contactAvatars = JSON.parse(localStorage.getItem('habla_contact_avatars') || '{}');
         let activeContactForModal = null;
         let selectedModalColor = '#89a1b2';
         let lastUsersData = [];
+        let isContactsExpanded = false;
 
         const selectedRecipientDisplay = document.getElementById('selected-recipient-display');
 
@@ -788,6 +836,18 @@
         }
 
         const contactsGridContainer = document.getElementById('contacts-grid-container');
+        const contactsWrapperBox = document.getElementById('contacts-wrapper-box');
+        const toggleExpandContactsBtn = document.getElementById('toggle-expand-contacts-btn');
+
+        if (toggleExpandContactsBtn) {
+            toggleExpandContactsBtn.addEventListener('click', () => {
+                isContactsExpanded = !isContactsExpanded;
+                if (contactsWrapperBox) {
+                    contactsWrapperBox.classList.toggle('expanded-mode', isContactsExpanded);
+                }
+                safeRenderContactsGrid(lastUsersData);
+            });
+        }
 
         function safeRenderContactsGrid(onlineUsers = []) {
             try {
@@ -797,15 +857,38 @@
                 let onlineArr = Array.isArray(onlineUsers) ? onlineUsers : [];
                 let allContactsSet = new Set([...recentContactsOrder, ...localAddedContacts, ...onlineArr]);
                 if (username) allContactsSet.delete(username);
-                let contactsList = Array.from(allContactsSet);
+                let fullContactsList = Array.from(allContactsSet).filter(Boolean);
 
-                contactsList.forEach(name => {
-                    if (!name) return;
+                const currentLang = interfaceLangSelect ? interfaceLangSelect.value : 'Ukrainian';
+                const dict = translations[currentLang] || translations['Ukrainian'];
+
+                if (toggleExpandContactsBtn) {
+                    if (fullContactsList.length > 5) {
+                        toggleExpandContactsBtn.classList.add('visible');
+                        toggleExpandContactsBtn.textContent = isContactsExpanded
+                            ? dict.collapse
+                            : `${dict.show_all} (${fullContactsList.length})`;
+                    } else {
+                        toggleExpandContactsBtn.classList.remove('visible');
+                        isContactsExpanded = false;
+                        if (contactsWrapperBox) contactsWrapperBox.classList.remove('expanded-mode');
+                    }
+                }
+
+                const visibleContacts = isContactsExpanded ? fullContactsList : fullContactsList.slice(0, 5);
+
+                visibleContacts.forEach(name => {
                     const itemDiv = document.createElement('div');
                     itemDiv.className = 'contact-grid-item';
                     if (selectedRecipientName === name) {
                         itemDiv.classList.add('active');
                     }
+                    if (onlineArr.includes(name)) {
+                        itemDiv.classList.add('online');
+                    }
+
+                    const avatarWrapper = document.createElement('div');
+                    avatarWrapper.className = 'contact-avatar-wrapper';
 
                     const avatarDiv = document.createElement('div');
                     avatarDiv.className = 'contact-grid-avatar';
@@ -819,15 +902,23 @@
                         avatarDiv.style.background = customColor;
                     }
 
+                    const onlineDot = document.createElement('div');
+                    onlineDot.className = 'online-status-dot';
+
+                    avatarWrapper.appendChild(avatarDiv);
+                    avatarWrapper.appendChild(onlineDot);
+
                     const nameDiv = document.createElement('div');
                     nameDiv.className = 'contact-grid-name';
                     nameDiv.textContent = name;
 
-                    itemDiv.appendChild(avatarDiv);
+                    itemDiv.appendChild(avatarWrapper);
                     itemDiv.appendChild(nameDiv);
 
                     itemDiv.addEventListener('click', () => {
                         setRecipient(name);
+                        isContactsExpanded = false;
+                        if (contactsWrapperBox) contactsWrapperBox.classList.remove('expanded-mode');
                         closeAllScreens();
                         setActiveNav(navHome);
                         safeRenderContactsGrid(lastUsersData);
@@ -1132,6 +1223,8 @@
             if (contactsScreen) contactsScreen.classList.remove('active');
             if (settingsScreen) settingsScreen.classList.remove('active');
             if (fullscreenModal) fullscreenModal.classList.remove('active');
+            isContactsExpanded = false;
+            if (contactsWrapperBox) contactsWrapperBox.classList.remove('expanded-mode');
         }
 
         navHome.addEventListener('click', () => { closeAllScreens(); setActiveNav(navHome); });
