@@ -42,8 +42,28 @@ function checkIsAdmin(username) {
     return lower === 'stasan' || lower === 'admin' || lower === 'стасан';
 }
 
+function hasContactCaseInsensitive(ownerName, targetName) {
+    const set = userContacts[ownerName];
+    if (!set || !targetName) return false;
+    const targetLower = targetName.toLowerCase().trim();
+    for (let item of set) {
+        if (item && item.toLowerCase().trim() === targetLower) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function isUserOnlineCaseInsensitive(onlineLowerSet, targetName) {
+    if (!targetName) return false;
+    return onlineLowerSet.has(targetName.toLowerCase().trim());
+}
+
 function updateUsers() {
     const onlineNames = new Set(Object.values(activeSockets));
+    const onlineLowerSet = new Set(
+        Array.from(onlineNames).map(n => (n || '').toLowerCase().trim()).filter(Boolean)
+    );
     
     for (let [id, socket] of io.of("/").sockets) {
         const currentUsername = activeSockets[id];
@@ -52,14 +72,14 @@ function updateUsers() {
         const isAdmin = checkIsAdmin(currentUsername);
 
         const usersList = Array.from(allKnownUsers).map(name => {
-            if (name === currentUsername) return null;
+            if (name.toLowerCase().trim() === currentUsername.toLowerCase().trim()) return null;
 
-            const isOnline = onlineNames.has(name);
-            const myAdd = userContacts[currentUsername]?.has(name) || false;
-            const theirAdd = userContacts[name]?.has(currentUsername) || false;
+            const isOnline = isUserOnlineCaseInsensitive(onlineLowerSet, name);
+            const myAdd = hasContactCaseInsensitive(currentUsername, name);
+            const theirAdd = hasContactCaseInsensitive(name, currentUsername);
             const isMutual = myAdd && theirAdd;
 
-            if (!isAdmin && !isMutual) {
+            if (!isAdmin && !myAdd) {
                 return null;
             }
 
@@ -163,6 +183,7 @@ io.on('connection', (socket) => {
         }
 
         if (!username) return;
+        username = username.trim();
         activeSockets[socket.id] = username;
         allKnownUsers.add(username);
         userLanguages[username] = lang;
@@ -203,13 +224,15 @@ io.on('connection', (socket) => {
 
     socket.on('add-contact', (targetName) => {
         const username = activeSockets[socket.id];
-        if (!username || !targetName || username === targetName) return;
+        if (!username || !targetName) return;
+        const cleanTarget = targetName.trim();
+        if (!cleanTarget || username.toLowerCase() === cleanTarget.toLowerCase()) return;
 
-        allKnownUsers.add(targetName);
+        allKnownUsers.add(cleanTarget);
         if (!userContacts[username]) {
             userContacts[username] = new Set();
         }
-        userContacts[username].add(targetName);
+        userContacts[username].add(cleanTarget);
         updateUsers();
     });
 
