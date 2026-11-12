@@ -392,7 +392,7 @@
         .modal-btn-confirm { background: #2b5278; color: #fff; }
         .modal-btn-cancel { background: rgba(201, 74, 74, 0.15); border: 1px solid #c94a4a; color: #c94a4a; }
 
-        /* Збільшені QR-коди та адаптивна плашка встановлення PWA (Блок 3) */
+        /* Збільшені QR-коди, повноекранний перегляд та адаптивна плашка встановлення PWA */
         .qr-cards-wrapper { display: flex; gap: 14px; width: 100%; max-width: 440px; justify-content: center; }
         .qr-card {
             flex: 1; background: rgba(23, 33, 43, 0.75); border: 1px solid #89a1b2; border-radius: 18px;
@@ -403,7 +403,9 @@
             background: #ffffff; padding: 8px; border-radius: 12px;
             display: flex; align-items: center; justify-content: center;
             box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+            cursor: zoom-in; transition: transform 0.2s ease;
         }
+        .qr-img-box:active { transform: scale(0.96); }
         .qr-img-box img { width: 145px; height: 145px; display: block; }
         @media (max-width: 380px) {
             .qr-img-box img { width: 124px; height: 124px; }
@@ -414,6 +416,30 @@
             display: flex; align-items: center; gap: 6px; width: 100%; justify-content: center;
         }
         .copy-link-action-btn:hover { color: #f5f5f5; border-color: #f5f5f5; }
+
+        #qr-fullscreen-modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(14, 22, 33, 0.96);
+            z-index: 150;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 18px;
+            padding: 24px;
+            cursor: zoom-out;
+        }
+        #qr-fullscreen-modal.active { display: flex; }
+        .qr-fullscreen-title { font-size: 1.25rem; font-weight: 700; color: #f5f5f5; }
+        .qr-fullscreen-box {
+            background: #ffffff;
+            padding: 16px;
+            border-radius: 20px;
+            box-shadow: 0 0 30px rgba(137, 161, 178, 0.45);
+        }
+        .qr-fullscreen-box img { width: 270px; height: 270px; display: block; }
+        .qr-fullscreen-hint { font-size: 0.85rem; color: #89a1b2; text-align: center; }
 
         .pwa-install-card {
             width: 100%; max-width: 440px;
@@ -499,7 +525,7 @@
     <div id="pull-refresh-indicator">🔄 Потягніть, щоб оновити...</div>
     <div id="menu-overlay" class="menu-overlay"></div>
 
-    <!-- Фірмове вікно першого входу Habla Mobile (Блок 3) -->
+    <!-- Фірмове вікно першого входу Habla Mobile -->
     <div id="welcome-login-modal">
         <div class="welcome-card">
             <div class="welcome-logo-ring">
@@ -553,6 +579,15 @@
         </div>
     </div>
 
+    <!-- Повноекранний перегляд QR-коду -->
+    <div id="qr-fullscreen-modal">
+        <div class="qr-fullscreen-title" id="qr-fullscreen-title">QR Code</div>
+        <div class="qr-fullscreen-box">
+            <img id="qr-fullscreen-img" src="" alt="Fullscreen QR">
+        </div>
+        <div class="qr-fullscreen-hint" data-i18n="qr_tap_close">Натисніть будь-де, щоб згорнути</div>
+    </div>
+
     <div id="app-container">
         <main class="main-screen">
             <div id="messages-stack" class="messages-stack-container"></div>
@@ -590,12 +625,12 @@
             <div class="qr-cards-wrapper">
                 <div class="qr-card">
                     <div class="qr-card-title">Android / iOS</div>
-                    <div class="qr-img-box"><img id="qr-android-img" src="" alt="Mobile QR"></div>
+                    <div class="qr-img-box" id="qr-android-box"><img id="qr-android-img" src="" alt="Mobile QR"></div>
                     <button class="copy-link-action-btn" id="copy-android-btn" data-i18n="copy_link">Copy Link</button>
                 </div>
                 <div class="qr-card">
                     <div class="qr-card-title">PC / Web</div>
-                    <div class="qr-img-box"><img id="qr-pc-img" src="" alt="PC QR"></div>
+                    <div class="qr-img-box" id="qr-pc-box"><img id="qr-pc-img" src="" alt="PC QR"></div>
                     <button class="copy-link-action-btn" id="copy-pc-btn" data-i18n="copy_link">Copy Link</button>
                 </div>
             </div>
@@ -730,6 +765,7 @@
                 install_app: "Встановити додаток",
                 welcome_subtitle: "Введіть ваш нікнейм для миттєвого голосового перекладу та зв'язку",
                 welcome_enter: "Увійти",
+                qr_tap_close: "Натисніть будь-де, щоб згорнути",
                 ios_install_hint: "На iPhone/iPad: натисніть «Поділитися» (квадрат зі стрілкою внизу Safari) → «На початковий екран».",
                 manual_install_hint: "Відкрийте меню браузера (⋮) і виберіть «Встановити додаток» або «Додати на головний екран»."
             },
@@ -760,6 +796,7 @@
                 install_app: "Install App",
                 welcome_subtitle: "Enter your nickname for instant voice translation and messaging",
                 welcome_enter: "Enter",
+                qr_tap_close: "Tap anywhere to close",
                 ios_install_hint: "On iPhone/iPad: tap Share (square with arrow in Safari) → «Add to Home Screen».",
                 manual_install_hint: "Open browser menu (⋮) and select «Install app» or «Add to Home screen»."
             },
@@ -790,6 +827,7 @@
                 install_app: "Instalar aplicación",
                 welcome_subtitle: "Introduce tu apodo para traducción de voz instantánea",
                 welcome_enter: "Entrar",
+                qr_tap_close: "Toca en cualquier lugar para cerrar",
                 ios_install_hint: "En iPhone/iPad: pulsa Compartir en Safari → «Añadir a pantalla de inicio».",
                 manual_install_hint: "Abre el menú del navegador (⋮) y selecciona «Instalar aplicación»."
             },
@@ -820,6 +858,7 @@
                 install_app: "App installieren",
                 welcome_subtitle: "Gib deinen Spitznamen für sofortige Sprachübersetzung ein",
                 welcome_enter: "Beitreten",
+                qr_tap_close: "Tippe irgendwo hin, um zu schließen",
                 ios_install_hint: "Auf iPhone/iPad: Tippe in Safari auf Teilen → «Zum Home-Bildschirm».",
                 manual_install_hint: "Öffne das Browser-Menü (⋮) und wähle «App installieren»."
             },
@@ -850,6 +889,7 @@
                 install_app: "Installer l'application",
                 welcome_subtitle: "Entrez votre pseudo pour une traduction vocale instantanée",
                 welcome_enter: "Entrer",
+                qr_tap_close: "Appuyez n'importe où pour fermer",
                 ios_install_hint: "Sur iPhone/iPad : appuyez sur Partager dans Safari → «Sur l'écran d'accueil».",
                 manual_install_hint: "Ouvrez le menu du navigateur (⋮) et sélectionnez «Installer l'application»."
             }
@@ -880,14 +920,13 @@
 
         function setRecipient(name) {
             if (!name) return;
-            selectedRecipientName = name;
-            localStorage.setItem('habla_selected_recipient', name);
+            selectedRecipientName = name.trim();
+            localStorage.setItem('habla_selected_recipient', selectedRecipientName);
             if (selectedRecipientDisplay) {
-                selectedRecipientDisplay.textContent = name;
+                selectedRecipientDisplay.textContent = selectedRecipientName;
                 selectedRecipientDisplay.classList.add('active');
             }
 
-            // ОЧИЩАЄМО ЕКРАН ПРИ ЗМІНІ КОНТАКТУ, ЩОБ ПОВІДОМЛЕННЯ НЕ ПЕРЕМІШУВАЛИСЯ
             const messagesStack = document.getElementById('messages-stack');
             if (messagesStack) {
                 messagesStack.innerHTML = '';
@@ -926,8 +965,10 @@
         interfaceLangSelect.value = savedInterfaceLang;
         applyLocalization(savedInterfaceLang);
 
-        // Фірмове вікно першого входу Habla Mobile замість системного prompt()
-        let username = localStorage.getItem('habla_username');
+        // Фірмове вікно першого входу Habla Mobile
+        let username = (localStorage.getItem('habla_username') || '').trim();
+        if (username) localStorage.setItem('habla_username', username);
+
         const welcomeLoginModal = document.getElementById('welcome-login-modal');
         const welcomeNicknameInput = document.getElementById('welcome-nickname-input');
         const welcomeSubmitBtn = document.getElementById('welcome-submit-btn');
@@ -972,7 +1013,7 @@
         function joinWithLanguage() {
             if (username) {
                 socket.emit('join', {
-                    username: username,
+                    username: username.trim(),
                     lang: interfaceLangSelect.value
                 });
             }
@@ -987,6 +1028,13 @@
                 joinWithLanguage();
             }
         });
+
+        // Періодична підтримка актуального статусу онлайн на ПК та смартфоні
+        setInterval(() => {
+            if (socket && socket.connected && username) {
+                joinWithLanguage();
+            }
+        }, 10000);
 
         const userDisplay = document.getElementById('user-display');
         const userAvatarLarge = document.getElementById('user-avatar-large');
@@ -1040,7 +1088,11 @@
                 const onlineNames = normalizeOnlineUsers(onlineUsers);
                 const onlineLowerSet = new Set(onlineNames.map(n => n.toLowerCase()));
 
-                let allContactsSet = new Set([...recentContactsOrder, ...localAddedContacts, ...onlineNames]);
+                let allContactsSet = new Set([
+                    ...recentContactsOrder.map(n => (n || '').trim()),
+                    ...localAddedContacts.map(n => (n || '').trim()),
+                    ...onlineNames
+                ]);
                 if (username) {
                     for (let item of allContactsSet) {
                         if (item.toLowerCase() === username.toLowerCase()) {
@@ -1168,9 +1220,9 @@
         
         if (fullscreenConfirmBtn) fullscreenConfirmBtn.addEventListener('click', () => {
             const targetName = fullscreenInput.value.trim();
-            if (targetName && targetName !== username) {
+            if (targetName && targetName.toLowerCase() !== (username || '').toLowerCase()) {
                 socket.emit('add-contact', targetName);
-                if (!localAddedContacts.includes(targetName)) {
+                if (!localAddedContacts.some(n => n.toLowerCase() === targetName.toLowerCase())) {
                     localAddedContacts.push(targetName);
                     localStorage.setItem('habla_local_contacts', JSON.stringify(localAddedContacts));
                 }
@@ -1359,11 +1411,37 @@
         }
 
         // ----------------------------------------------------
-        // ВКЛАДКА QR ТА ВСТАНОВЛЕННЯ PWA (БЛОК 3)
+        // ВКЛАДКА QR, ПОВНОЕКРАННИЙ QR ТА ВСТАНОВЛЕННЯ PWA
         // ----------------------------------------------------
         const currentAppUrl = window.location.origin;
-        document.getElementById('qr-android-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(currentAppUrl)}`;
-        document.getElementById('qr-pc-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(currentAppUrl)}`;
+        const qrHighResUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(currentAppUrl)}`;
+        document.getElementById('qr-android-img').src = qrHighResUrl;
+        document.getElementById('qr-pc-img').src = qrHighResUrl;
+
+        const qrFullscreenModal = document.getElementById('qr-fullscreen-modal');
+        const qrFullscreenTitle = document.getElementById('qr-fullscreen-title');
+        const qrFullscreenImg = document.getElementById('qr-fullscreen-img');
+        const qrAndroidBox = document.getElementById('qr-android-box');
+        const qrPcBox = document.getElementById('qr-pc-box');
+
+        function openFullscreenQr(titleText) {
+            if (!qrFullscreenModal) return;
+            qrFullscreenTitle.textContent = titleText;
+            qrFullscreenImg.src = qrHighResUrl;
+            qrFullscreenModal.classList.add('active');
+        }
+
+        if (qrAndroidBox) {
+            qrAndroidBox.addEventListener('click', () => openFullscreenQr('Android / iOS'));
+        }
+        if (qrPcBox) {
+            qrPcBox.addEventListener('click', () => openFullscreenQr('PC / Web'));
+        }
+        if (qrFullscreenModal) {
+            qrFullscreenModal.addEventListener('click', () => {
+                qrFullscreenModal.classList.remove('active');
+            });
+        }
 
         document.getElementById('copy-android-btn').addEventListener('click', () => {
             navigator.clipboard.writeText(currentAppUrl).then(() => alert('Посилання скопійовано!'));
@@ -1455,6 +1533,7 @@
             if (contactsScreen) contactsScreen.classList.remove('active');
             if (settingsScreen) settingsScreen.classList.remove('active');
             if (fullscreenModal) fullscreenModal.classList.remove('active');
+            if (qrFullscreenModal) qrFullscreenModal.classList.remove('active');
             isContactsExpanded = false;
             if (contactsWrapperBox) contactsWrapperBox.classList.remove('expanded-mode');
         }
