@@ -223,7 +223,7 @@
         #settings-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #0e1621; z-index: 60; display: none; flex-direction: column;
-            padding: 30px 20px; gap: 12px; overflow-y: auto; width: 100%;
+            padding: 30px 20px; padding-bottom: 85px; gap: 12px; overflow-y: auto; width: 100%;
         }
         #settings-screen.active { display: flex !important; }
 
@@ -281,9 +281,9 @@
         }
         .contact-grid-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
         .online-status-dot {
-            position: absolute; bottom: 1px; right: 1px; width: 11px; height: 11px;
-            background: #89a1b2; border: 2px solid #17212b; border-radius: 50%;
-            box-shadow: 0 0 6px rgba(137, 161, 178, 0.8); display: none;
+            position: absolute; bottom: 0px; right: 0px; width: 12px; height: 12px;
+            background: #4ade80; border: 2px solid #0e1621; border-radius: 50%;
+            box-shadow: 0 0 8px rgba(74, 222, 128, 0.9); display: none; z-index: 2;
         }
         .contact-grid-item.online .online-status-dot { display: block; }
 
@@ -390,24 +390,30 @@
             position: fixed;
             bottom: 0;
             left: 0;
+            right: 0;
             background: #17212b;
             border-top: 1px solid #2b5278;
-            padding: 10px 16px;
+            padding: 8px 4px;
             display: flex;
-            justify-content: space-around;
+            justify-content: space-between;
             align-items: center;
             z-index: 70;
             width: 100%;
             flex-shrink: 0;
-            padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+            padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
         }
         .nav-item {
             background: none; border: none; color: #89a1b2; display: flex; flex-direction: column;
-            align-items: center; gap: 4px; cursor: pointer; padding: 6px 16px; border-radius: 8px;
+            align-items: center; justify-content: center; gap: 4px; cursor: pointer;
+            padding: 6px 2px; border-radius: 8px; flex: 1; min-width: 0;
         }
-        .nav-item svg { width: 24px; height: 24px; stroke: #89a1b2; fill: none; }
-        .nav-item small { font-size: 0.75rem; font-weight: 500; color: #89a1b2; }
+        .nav-item svg { width: 22px; height: 22px; stroke: #89a1b2; fill: none; flex-shrink: 0; }
+        .nav-item small {
+            font-size: 0.7rem; font-weight: 500; color: #89a1b2;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;
+        }
         .nav-item:hover svg, .nav-item.active svg { color: #f5f5f5; stroke: #f5f5f5; }
+        .nav-item.active small { color: #f5f5f5; }
     </style>
 </head>
 <body>
@@ -849,14 +855,33 @@
             });
         }
 
+        function normalizeOnlineUsers(onlineUsers) {
+            if (!Array.isArray(onlineUsers)) return [];
+            return onlineUsers
+                .map(u => {
+                    if (typeof u === 'string') return u.trim();
+                    if (u && typeof u === 'object') return (u.username || u.name || '').trim();
+                    return '';
+                })
+                .filter(Boolean);
+        }
+
         function safeRenderContactsGrid(onlineUsers = []) {
             try {
                 if (!contactsGridContainer) return;
                 contactsGridContainer.innerHTML = '';
                 
-                let onlineArr = Array.isArray(onlineUsers) ? onlineUsers : [];
-                let allContactsSet = new Set([...recentContactsOrder, ...localAddedContacts, ...onlineArr]);
-                if (username) allContactsSet.delete(username);
+                const onlineNames = normalizeOnlineUsers(onlineUsers);
+                const onlineLowerSet = new Set(onlineNames.map(n => n.toLowerCase()));
+
+                let allContactsSet = new Set([...recentContactsOrder, ...localAddedContacts, ...onlineNames]);
+                if (username) {
+                    for (let item of allContactsSet) {
+                        if (item.toLowerCase() === username.toLowerCase()) {
+                            allContactsSet.delete(item);
+                        }
+                    }
+                }
                 let fullContactsList = Array.from(allContactsSet).filter(Boolean);
 
                 const currentLang = interfaceLangSelect ? interfaceLangSelect.value : 'Ukrainian';
@@ -875,15 +900,37 @@
                     }
                 }
 
+                // Кнопка + Add ЗАВЖДИ стоїть першою в сітці, щоб ніколи не зникала
+                const addGridItem = document.createElement('div');
+                addGridItem.className = 'contact-grid-item';
+                
+                const addCircle = document.createElement('div');
+                addCircle.className = 'add-contact-grid-circle';
+                addCircle.textContent = '+';
+                addCircle.title = 'Додати новий контакт';
+
+                const addName = document.createElement('div');
+                addName.className = 'contact-grid-name';
+                addName.textContent = 'Add';
+
+                addGridItem.appendChild(addCircle);
+                addGridItem.appendChild(addName);
+
+                addGridItem.addEventListener('click', () => {
+                    openFullscreenAddContactModal();
+                });
+
+                contactsGridContainer.appendChild(addGridItem);
+
                 const visibleContacts = isContactsExpanded ? fullContactsList : fullContactsList.slice(0, 5);
 
                 visibleContacts.forEach(name => {
                     const itemDiv = document.createElement('div');
                     itemDiv.className = 'contact-grid-item';
-                    if (selectedRecipientName === name) {
+                    if (selectedRecipientName && selectedRecipientName.toLowerCase() === name.toLowerCase()) {
                         itemDiv.classList.add('active');
                     }
-                    if (onlineArr.includes(name)) {
+                    if (onlineLowerSet.has(name.toLowerCase())) {
                         itemDiv.classList.add('online');
                     }
 
@@ -931,27 +978,6 @@
 
                     contactsGridContainer.appendChild(itemDiv);
                 });
-
-                const addGridItem = document.createElement('div');
-                addGridItem.className = 'contact-grid-item';
-                
-                const addCircle = document.createElement('div');
-                addCircle.className = 'add-contact-grid-circle';
-                addCircle.textContent = '+';
-                addCircle.title = 'Додати новий контакт';
-
-                const addName = document.createElement('div');
-                addName.className = 'contact-grid-name';
-                addName.textContent = 'Add';
-
-                addGridItem.appendChild(addCircle);
-                addGridItem.appendChild(addName);
-
-                addGridItem.addEventListener('click', () => {
-                    openFullscreenAddContactModal();
-                });
-
-                contactsGridContainer.appendChild(addGridItem);
             } catch (err) {
                 console.error("Помилка відображення контактів:", err);
             }
@@ -1362,9 +1388,10 @@
             }
         });
 
-        socket.on('update-users', ({ users, isAdmin }) => {
-            lastUsersData = users;
-            safeRenderContactsGrid(users);
+        socket.on('update-users', (payload) => {
+            const usersList = Array.isArray(payload) ? payload : (payload && payload.users ? payload.users : []);
+            lastUsersData = usersList;
+            safeRenderContactsGrid(usersList);
         });
 
         function escapeHtml(text) {
