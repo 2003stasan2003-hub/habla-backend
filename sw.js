@@ -1,43 +1,31 @@
-const CACHE_NAME = 'habla-mobile-v3.3';
-const urlsToCache = [
-    '/',
-    '/index.html',
-    '/manifest.json'
-];
+const CACHE_NAME = 'habla-mobile-v3';
 
 self.addEventListener('install', (event) => {
-    event.waitUntil(
-        caches.open(CACHE_NAME)
-            .then((cache) => cache.addAll(urlsToCache))
-            .then(() => self.skipWaiting())
-    );
+    self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
     event.waitUntil(
-        caches.keys().then((cacheNames) => {
-            return Promise.all(
-                cacheNames.map((cacheName) => {
-                    if (cacheName !== CACHE_NAME) {
-                        return caches.delete(cacheName);
-                    }
-                })
-            );
-        }).then(() => self.clients.claim())
+        caches.keys().then((keys) =>
+            Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
+        ).then(() => self.clients.claim())
     );
 });
 
 self.addEventListener('fetch', (event) => {
+    if (event.request.method !== 'GET') return;
+
+    const url = new URL(event.request.url);
+    if (url.pathname.startsWith('/socket.io/')) return;
+
     event.respondWith(
         fetch(event.request)
-            .then((response) => {
-                if (response && response.status === 200 && response.type === 'basic') {
-                    const responseToCache = response.clone();
-                    caches.open(CACHE_NAME).then((cache) => {
-                        cache.put(event.request, responseToCache);
-                    });
+            .then((networkResponse) => {
+                if (networkResponse && networkResponse.status === 200 && url.origin === self.location.origin) {
+                    const responseClone = networkResponse.clone();
+                    caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
                 }
-                return response;
+                return networkResponse;
             })
             .catch(() => caches.match(event.request))
     );
