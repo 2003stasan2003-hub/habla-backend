@@ -8,129 +8,61 @@
     <meta name="theme-color" content="#0e1621">
     <script src="/socket.io/socket.io.js"></script>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             background-color: #0e1621;
             color: #f5f5f5;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            height: 100dvh;
-            overflow: hidden;
-            -webkit-touch-callout: none;
+            display: flex; flex-direction: column; height: 100vh; height: 100dvh;
+            overflow: hidden; -webkit-touch-callout: none;
         }
 
         #pull-refresh-indicator {
-            position: fixed;
-            top: -50px;
-            left: 0;
-            width: 100%;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #0e1621;
-            color: #89a1b2;
-            font-size: 0.85rem;
-            z-index: 100;
-            transition: transform 0.2s ease;
-            border-bottom: 1px solid #242f3d;
+            position: fixed; top: -50px; left: 0; width: 100%; height: 50px;
+            display: flex; align-items: center; justify-content: center;
+            background: #0e1621; color: #89a1b2; font-size: 0.85rem; z-index: 100;
+            transition: transform 0.2s ease; border-bottom: 1px solid #242f3d;
         }
 
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 44px;
-            height: 24px;
-            flex-shrink: 0;
-        }
+        .switch { position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-color: #2b5278;
-            transition: 0.3s;
-            border-radius: 24px;
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #2b5278; transition: 0.3s; border-radius: 24px;
         }
         .slider:before {
-            position: absolute;
-            content: "";
-            height: 18px;
-            width: 18px;
-            left: 3px;
-            bottom: 3px;
-            background-color: white;
-            transition: 0.3s;
-            border-radius: 50%;
+            position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px;
+            background-color: white; transition: 0.3s; border-radius: 50%;
         }
         input:checked + .slider { background-color: #89a1b2; }
         input:checked + .slider:before { transform: translateX(20px); background-color: #0e1621; }
 
         .lang-select {
-            background: #242f3d;
-            color: #f5f5f5;
-            border: 1px solid #2b5278;
-            padding: 8px 12px;
-            border-radius: 8px;
-            outline: none;
-            font-size: 0.9rem;
-            cursor: pointer;
-            width: 100%;
+            background: #242f3d; color: #f5f5f5; border: 1px solid #2b5278;
+            padding: 8px 12px; border-radius: 8px; outline: none; font-size: 0.9rem; cursor: pointer; width: 100%;
         }
-        .lang-select option:disabled {
-            color: #666;
-            background: #17212b;
-        }
+        .lang-select option:disabled { color: #666; background: #17212b; }
 
         .menu-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.6);
-            z-index: 99;
-            display: none;
-            pointer-events: none;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.6); z-index: 99; display: none; pointer-events: none;
         }
         .menu-overlay.active { display: block; pointer-events: auto; }
 
         #contact-modal {
-            position: fixed;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            width: 320px;
-            background: #17212b;
-            border: 1px solid #2b5278;
-            border-radius: 14px;
-            padding: 20px;
-            z-index: 101;
-            display: none;
-            flex-direction: column;
-            gap: 12px;
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 320px; background: #17212b; border: 1px solid #2b5278; border-radius: 14px;
+            padding: 20px; z-index: 101; display: none; flex-direction: column; gap: 12px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.7);
         }
         #contact-modal.active { display: flex; }
 
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #242f3d;
-            padding-bottom: 10px;
-        }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #242f3d; padding-bottom: 10px; }
         .modal-title { color: #f5f5f5; font-weight: bold; font-size: 1.05rem; }
         .modal-close-btn { background: none; border: none; color: #89a1b2; font-size: 1.2rem; cursor: pointer; }
 
         .color-palette { display: flex; gap: 10px; justify-content: space-between; margin: 4px 0; }
-        .color-circle {
-            width: 32px; height: 32px; border-radius: 50%; cursor: pointer;
-            border: 2px solid transparent; transition: transform 0.2s, border-color 0.2s;
-        }
+        .color-circle { width: 32px; height: 32px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: transform 0.2s; }
         .color-circle:hover { transform: scale(1.15); }
         .color-circle.selected { border-color: #ffffff; }
 
@@ -138,62 +70,36 @@
             width: 100%; background: #242f3d; border: 1px solid #2b5278;
             color: #fff; padding: 8px 10px; border-radius: 6px; font-size: 0.85rem; outline: none;
         }
-        .modal-btn-save {
-            background: #2b5278; color: #fff; border: none; padding: 10px;
-            border-radius: 8px; font-weight: bold; cursor: pointer; text-align: center; font-size: 0.9rem;
-        }
-        .modal-btn-delete {
-            background: rgba(201, 74, 74, 0.15); border: 1px solid #c94a4a; color: #c94a4a;
-            padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; text-align: center; font-size: 0.9rem;
-        }
+        .modal-btn-save { background: #2b5278; color: #fff; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; text-align: center; }
+        .modal-btn-delete { background: rgba(201, 74, 74, 0.15); border: 1px solid #c94a4a; color: #c94a4a; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; text-align: center; }
 
-        /* Фірмове вікно першого входу Habla Mobile */
         #welcome-login-modal {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: #0e1621;
-            z-index: 200;
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 24px;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #0e1621; z-index: 200; display: none; flex-direction: column;
+            align-items: center; justify-content: center; padding: 24px;
         }
         #welcome-login-modal.active { display: flex; }
         .welcome-card {
-            width: 100%; max-width: 350px;
-            background: rgba(23, 33, 43, 0.9);
-            border: 1px solid #89a1b2;
-            border-radius: 20px;
-            padding: 28px 24px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 18px;
+            width: 100%; max-width: 350px; background: rgba(23, 33, 43, 0.9);
+            border: 1px solid #89a1b2; border-radius: 20px; padding: 28px 24px;
+            display: flex; flex-direction: column; align-items: center; gap: 18px;
             box-shadow: 0 12px 35px rgba(0, 0, 0, 0.75);
         }
         .welcome-logo-ring {
-            width: 72px; height: 72px; border-radius: 50%;
-            border: 2px solid #89a1b2;
-            background: rgba(43, 82, 120, 0.35);
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 0 18px rgba(137, 161, 178, 0.25);
+            width: 72px; height: 72px; border-radius: 50%; border: 2px solid #89a1b2;
+            background: rgba(43, 82, 120, 0.35); display: flex; align-items: center; justify-content: center;
         }
         .welcome-logo-ring svg { width: 34px; height: 34px; stroke: #f5f5f5; fill: none; }
-        .welcome-title { font-size: 1.35rem; font-weight: 700; color: #f5f5f5; letter-spacing: 0.5px; }
+        .welcome-title { font-size: 1.35rem; font-weight: 700; color: #f5f5f5; }
         .welcome-subtitle { font-size: 0.85rem; color: #89a1b2; text-align: center; line-height: 1.4; }
         .welcome-input {
-            width: 100%; background: #242f3d; border: 1px solid #2b5278;
-            color: #f5f5f5; padding: 13px 16px; border-radius: 12px;
-            font-size: 1rem; outline: none; text-align: center;
+            width: 100%; background: #242f3d; border: 1px solid #2b5278; color: #f5f5f5;
+            padding: 13px 16px; border-radius: 12px; font-size: 1rem; outline: none; text-align: center;
         }
-        .welcome-input:focus { border-color: #89a1b2; }
         .welcome-submit-btn {
-            width: 100%; background: #2b5278; border: 1px solid #89a1b2;
-            color: #f5f5f5; padding: 13px; border-radius: 12px;
-            font-size: 1rem; font-weight: 600; cursor: pointer; transition: background 0.2s;
+            width: 100%; background: #2b5278; border: 1px solid #89a1b2; color: #f5f5f5;
+            padding: 13px; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer;
         }
-        .welcome-submit-btn:hover { background: #366491; }
 
         #app-container {
             flex: 1; display: flex; flex-direction: column; position: relative;
@@ -208,12 +114,12 @@
 
         .messages-stack-container {
             width: 100%; max-width: 340px; display: flex; flex-direction: column;
-            gap: 8px; justify-content: flex-end; min-height: 120px; margin-bottom: 6px;
+            gap: 8px; justify-content: flex-end; min-height: 100px; margin-bottom: 4px;
         }
         .message-card {
             background: rgba(23, 33, 43, 0.9); border: 1px solid #2b5278; border-radius: 14px;
             padding: 10px 12px; color: #f5f5f5; font-size: 0.9rem; line-height: 1.35; position: relative;
-            transition: all 0.3s ease; opacity: 1; transform: translateY(0); padding-right: 36px;
+            padding-right: 36px;
         }
         .message-card.sent { border-color: #89a1b2; background: rgba(43, 82, 120, 0.4); align-self: flex-end; }
         .message-card.received { border-color: #2b5278; align-self: flex-start; }
@@ -226,14 +132,14 @@
             position: absolute; right: 8px; bottom: 8px; background: none; border: none;
             color: #89a1b2; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;
         }
-        .message-tts-btn:hover { color: #f5f5f5; }
         .message-tts-btn svg { width: 18px; height: 18px; fill: currentColor; }
 
         .neon-mic-btn {
             background: transparent; border: 1px solid #89a1b2; border-radius: 50%;
-            width: 180px; height: 180px; display: flex; flex-direction: column;
+            width: 170px; height: 170px; display: flex; flex-direction: column;
             align-items: center; justify-content: center; cursor: pointer;
-            transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s; position: relative; outline: none; gap: 6px;
+            position: relative; outline: none; gap: 6px; flex-shrink: 0;
+            transition: transform 0.2s, border-color 0.2s;
         }
         .neon-mic-btn:active { transform: scale(0.96); border-color: #f5f5f5; }
         .neon-mic-btn.recording {
@@ -248,33 +154,80 @@
         }
         .recording-timer { color: #c94a4a; font-weight: bold; font-size: 0.9rem; display: none; }
         .recording-timer.active { display: block; }
-
-        .selected-recipient-inside {
-            color: #f5f5f5; font-size: 1.05rem; font-weight: 600; letter-spacing: 0.5px; display: none;
-        }
+        .selected-recipient-inside { color: #f5f5f5; font-size: 1.05rem; font-weight: 600; display: none; }
         .selected-recipient-inside.active { display: block; }
-        .mic-icon-placeholder svg { stroke: #89a1b2; fill: none; width: 48px; height: 48px; }
+        .mic-icon-placeholder svg { stroke: #89a1b2; fill: none; width: 46px; height: 46px; }
 
-        #contacts-screen {
+        /* Выдвижная панель текстового ввода с выбором языка */
+        #text-input-panel {
+            position: fixed;
+            bottom: 65px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            width: 92%;
+            max-width: 440px;
+            background: rgba(23, 33, 43, 0.95);
+            border: 1px solid #89a1b2;
+            border-radius: 16px;
+            padding: 12px;
+            z-index: 85;
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            opacity: 0;
+            transition: all 0.25s ease;
+        }
+        #text-input-panel.active {
+            display: flex;
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+        .text-panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .text-panel-title { font-size: 0.8rem; color: #89a1b2; font-weight: 500; }
+        .text-panel-close { background: none; border: none; color: #89a1b2; font-size: 1rem; cursor: pointer; }
+        
+        .text-panel-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .text-panel-input {
+            flex: 1;
+            background: #242f3d;
+            border: 1px solid #2b5278;
+            color: #f5f5f5;
+            padding: 10px 12px;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            outline: none;
+        }
+        .text-panel-input:focus { border-color: #89a1b2; }
+        .text-panel-send {
+            background: #2b5278;
+            border: 1px solid #89a1b2;
+            color: #f5f5f5;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .text-panel-send svg { width: 18px; height: 18px; fill: currentColor; }
+
+        #contacts-screen, #qr-screen, #settings-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #0e1621; z-index: 60; display: none; flex-direction: column;
             align-items: center; justify-content: center; padding: 20px; padding-bottom: 85px; gap: 16px; overflow-y: auto;
         }
-        #contacts-screen.active { display: flex !important; }
-
-        #qr-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #0e1621; z-index: 60; display: none; flex-direction: column;
-            align-items: center; justify-content: center; padding: 20px; padding-bottom: 85px; gap: 18px; overflow-y: auto;
-        }
-        #qr-screen.active { display: flex !important; }
-
-        #settings-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #0e1621; z-index: 60; display: none; flex-direction: column;
-            padding: 30px 20px; padding-bottom: 85px; gap: 12px; overflow-y: auto; width: 100%;
-        }
-        #settings-screen.active { display: flex !important; }
+        #contacts-screen.active, #qr-screen.active, #settings-screen.active { display: flex !important; }
 
         .contacts-wrapper-box { width: 100%; max-width: 380px; display: flex; flex-direction: column; gap: 16px; margin: auto; transition: all 0.25s ease; }
         .contacts-wrapper-box.expanded-mode { max-width: 440px; height: 100%; margin: 0 auto; }
@@ -296,26 +249,19 @@
 
         .saved-contacts-card {
             background: rgba(23, 33, 43, 0.7); border: 1px solid #89a1b2; border-radius: 16px;
-            padding: 14px; display: flex; flex-direction: column; gap: 12px; transition: all 0.25s ease;
+            padding: 14px; display: flex; flex-direction: column; gap: 12px;
         }
-        .contacts-wrapper-box.expanded-mode .saved-contacts-card {
-            flex: 1; overflow: hidden; display: flex; flex-direction: column;
-        }
-        .saved-contacts-header {
-            display: flex; justify-content: space-between; align-items: center;
-        }
+        .contacts-wrapper-box.expanded-mode .saved-contacts-card { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+        .saved-contacts-header { display: flex; justify-content: space-between; align-items: center; }
         .saved-contacts-title { font-size: 0.85rem; color: #89a1b2; font-weight: 500; }
         .toggle-expand-contacts-btn {
             background: none; border: 1px solid #2b5278; color: #89a1b2; font-size: 0.75rem;
-            padding: 4px 10px; border-radius: 10px; cursor: pointer; transition: all 0.2s; display: none;
+            padding: 4px 10px; border-radius: 10px; cursor: pointer; display: none;
         }
-        .toggle-expand-contacts-btn:hover { color: #f5f5f5; border-color: #89a1b2; }
         .toggle-expand-contacts-btn.visible { display: inline-block; }
 
         .contacts-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px 12px; }
-        .contacts-wrapper-box.expanded-mode .contacts-grid {
-            overflow-y: auto; flex: 1; padding-right: 4px; align-content: start;
-        }
+        .contacts-wrapper-box.expanded-mode .contacts-grid { overflow-y: auto; flex: 1; padding-right: 4px; align-content: start; }
 
         .contact-grid-item { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; position: relative; }
         .contact-avatar-wrapper { position: relative; width: 46px; height: 46px; }
@@ -324,186 +270,72 @@
             border: 1px solid #89a1b2; color: #f5f5f5; font-weight: bold; font-size: 0.95rem;
             display: flex; align-items: center; justify-content: center; overflow: hidden;
         }
-        .contacts-wrapper-box.expanded-mode .contact-avatar-wrapper,
-        .contacts-wrapper-box.expanded-mode .contact-grid-avatar {
-            width: 52px; height: 52px; font-size: 1.05rem;
-        }
         .contact-grid-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
         .online-status-dot {
             position: absolute; bottom: 0px; right: 0px; width: 12px; height: 12px;
-            background: #4ade80; border: 2px solid #0e1621; border-radius: 50%;
-            box-shadow: 0 0 8px rgba(74, 222, 128, 0.9); display: none; z-index: 2;
+            background: #4ade80; border: 2px solid #0e1621; border-radius: 50%; display: none; z-index: 2;
         }
         .contact-grid-item.online .online-status-dot { display: block; }
-
         .contact-grid-name { font-size: 0.72rem; color: #89a1b2; text-align: center; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .contact-grid-item.active .contact-grid-avatar { border-color: #f5f5f5; box-shadow: 0 0 8px rgba(137, 161, 178, 0.5); }
-        .contact-grid-item.active .contact-grid-name { color: #f5f5f5; font-weight: bold; }
 
         .add-contact-grid-circle {
             width: 46px; height: 46px; border-radius: 50%; background: rgba(43, 82, 120, 0.4);
             border: 2px dashed #89a1b2; color: #89a1b2; font-size: 1.4rem;
-            display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.2s, border-color 0.2s;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
         }
-        .contacts-wrapper-box.expanded-mode .add-contact-grid-circle {
-            width: 52px; height: 52px;
-        }
-        .add-contact-grid-circle:hover { transform: scale(1.08); border-color: #f5f5f5; color: #f5f5f5; }
 
         #add-contact-fullscreen-modal {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(14, 22, 33, 0.95);
-            z-index: 120;
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 30px;
-            gap: 20px;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(14, 22, 33, 0.95); z-index: 120; display: none; flex-direction: column;
+            align-items: center; justify-content: center; padding: 30px; gap: 20px;
         }
         #add-contact-fullscreen-modal.active { display: flex; }
         .add-modal-card {
-            width: 100%; max-width: 340px;
-            background: rgba(23, 33, 43, 0.85);
-            border: 1px solid #2b5278;
-            border-radius: 16px;
-            padding: 24px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 16px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-        }
-        .add-modal-icon-circle {
-            width: 64px; height: 64px; border-radius: 50%;
-            background: #2b5278; border: 2px solid #89a1b2;
-            color: #f5f5f5; font-size: 2rem; display: flex;
-            align-items: center; justify-content: center;
+            width: 100%; max-width: 340px; background: rgba(23, 33, 43, 0.85);
+            border: 1px solid #2b5278; border-radius: 16px; padding: 24px;
+            display: flex; flex-direction: column; align-items: center; gap: 16px;
         }
         .add-modal-input {
             width: 100%; background: #242f3d; border: 1px solid #2b5278;
             color: #fff; padding: 12px 14px; border-radius: 10px; font-size: 0.95rem; outline: none; text-align: center;
         }
-        .add-modal-actions { display: flex; gap: 10px; width: 100%; }
-        .modal-action-btn {
-            flex: 1; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 0.9rem; border: none; text-align: center;
-        }
+        .modal-action-btn { flex: 1; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer; border: none; }
         .modal-btn-confirm { background: #2b5278; color: #fff; }
         .modal-btn-cancel { background: rgba(201, 74, 74, 0.15); border: 1px solid #c94a4a; color: #c94a4a; }
 
-        /* Збільшені QR-коди, повноекранний перегляд та адаптивна плашка встановлення PWA */
         .qr-cards-wrapper { display: flex; gap: 14px; width: 100%; max-width: 440px; justify-content: center; }
         .qr-card {
             flex: 1; background: rgba(23, 33, 43, 0.75); border: 1px solid #89a1b2; border-radius: 18px;
             padding: 16px 10px; display: flex; flex-direction: column; align-items: center; gap: 12px;
         }
         .qr-card-title { color: #f5f5f5; font-size: 1rem; font-weight: 600; }
-        .qr-img-box {
-            background: #ffffff; padding: 8px; border-radius: 12px;
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
-            cursor: zoom-in; transition: transform 0.2s ease;
-        }
-        .qr-img-box:active { transform: scale(0.96); }
+        .qr-img-box { background: #ffffff; padding: 8px; border-radius: 12px; cursor: zoom-in; }
         .qr-img-box img { width: 145px; height: 145px; display: block; }
-        @media (max-width: 380px) {
-            .qr-img-box img { width: 124px; height: 124px; }
-        }
         .copy-link-action-btn {
             background: transparent; border: 1px solid #89a1b2; color: #89a1b2; padding: 9px 12px;
-            border-radius: 10px; font-size: 0.82rem; font-weight: 500; cursor: pointer;
-            display: flex; align-items: center; gap: 6px; width: 100%; justify-content: center;
+            border-radius: 10px; font-size: 0.82rem; cursor: pointer; width: 100%; text-align: center;
         }
-        .copy-link-action-btn:hover { color: #f5f5f5; border-color: #f5f5f5; }
 
-        #qr-fullscreen-modal {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(14, 22, 33, 0.96);
-            z-index: 150;
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 18px;
-            padding: 24px;
-            cursor: zoom-out;
-        }
-        #qr-fullscreen-modal.active { display: flex; }
-        .qr-fullscreen-title { font-size: 1.25rem; font-weight: 700; color: #f5f5f5; }
-        .qr-fullscreen-box {
-            background: #ffffff;
-            padding: 16px;
-            border-radius: 20px;
-            box-shadow: 0 0 30px rgba(137, 161, 178, 0.45);
-        }
-        .qr-fullscreen-box img { width: 270px; height: 270px; display: block; }
-        .qr-fullscreen-hint { font-size: 0.85rem; color: #89a1b2; text-align: center; }
-
-        .pwa-install-card {
-            width: 100%; max-width: 440px;
-            background: rgba(23, 33, 43, 0.8);
-            border: 1px solid #2b5278;
-            border-radius: 16px;
-            padding: 14px 16px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-        }
-        .pwa-install-btn {
-            background: #2b5278; border: 1px solid #89a1b2; color: #f5f5f5;
-            padding: 12px 22px; border-radius: 28px; font-size: 0.95rem; font-weight: 600;
-            cursor: pointer; display: flex; align-items: center; gap: 8px;
-            width: 100%; justify-content: center; transition: background 0.2s;
-        }
-        .pwa-install-btn:hover { background: #366491; }
-        .pwa-install-hint {
-            font-size: 0.78rem; color: #89a1b2; text-align: center; line-height: 1.35; display: none;
-        }
-        .pwa-install-hint.visible { display: block; }
-
-        .settings-header {
-            display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 1px solid #242f3d; padding-bottom: 12px; font-weight: bold; color: #89a1b2; font-size: 1.1rem;
-        }
+        .settings-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #242f3d; padding-bottom: 12px; color: #89a1b2; font-size: 1.1rem; }
         .settings-card {
             background: rgba(23, 33, 43, 0.7); border: 1px solid #89a1b2; border-radius: 14px;
-            padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            max-width: 480px; width: 100%; margin: 0 auto;
+            padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; max-width: 480px; width: 100%; margin: 0 auto;
         }
-        .settings-row {
-            display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding: 4px 0; color: #89a1b2; font-size: 0.95rem; transition: color 0.2s;
-        }
-        .settings-row:hover { color: #f5f5f5; }
-        .dropdown-arrow { font-size: 0.8rem; color: #89a1b2; transition: transform 0.2s, color 0.2s; }
-        .settings-row:hover .dropdown-arrow { color: #f5f5f5; }
+        .settings-row { display: flex; justify-content: space-between; align-items: center; cursor: pointer; color: #89a1b2; font-size: 0.95rem; }
+        .dropdown-arrow { font-size: 0.8rem; transition: transform 0.2s; }
         .dropdown-arrow.open { transform: rotate(180deg); }
-
         .sub-options-box { display: none; flex-direction: column; gap: 8px; padding-top: 6px; border-top: 1px solid #242f3d; }
         .sub-options-box.active { display: flex; }
-
         .sidebar-nav-btn {
-            background: #242f3d; border: 1px solid #2b5278; color: #89a1b2; padding: 12px 16px;
-            border-radius: 10px; font-size: 0.95rem; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 12px; width: 100%; justify-content: center; transition: color 0.2s;
+            background: #242f3d; border: 1px solid #2b5278; color: #89a1b2; padding: 12px;
+            border-radius: 10px; font-size: 0.95rem; cursor: pointer; width: 100%; text-align: center;
         }
-        .sidebar-nav-btn:hover { color: #f5f5f5; }
 
+        /* Пятикнопочный нижний бар с иконкой клавиатуры */
         .bottom-nav-bar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: #17212b;
-            border-top: 1px solid #2b5278;
-            padding: 8px 2px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            z-index: 70;
-            width: 100%;
-            flex-shrink: 0;
+            position: fixed; bottom: 0; left: 0; right: 0; background: #17212b;
+            border-top: 1px solid #2b5278; padding: 8px 2px; display: flex;
+            justify-content: space-between; align-items: center; z-index: 90; width: 100%;
             padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
         }
         .nav-item {
@@ -512,10 +344,7 @@
             padding: 6px 1px; border-radius: 8px; flex: 1; min-width: 0;
         }
         .nav-item svg { width: 22px; height: 22px; stroke: #89a1b2; fill: none; flex-shrink: 0; }
-        .nav-item small {
-            font-size: 0.64rem; font-weight: 500; color: #89a1b2;
-            white-space: nowrap; letter-spacing: -0.2px;
-        }
+        .nav-item small { font-size: 0.62rem; font-weight: 500; color: #89a1b2; white-space: nowrap; }
         .nav-item:hover svg, .nav-item.active svg { color: #f5f5f5; stroke: #f5f5f5; }
         .nav-item.active small { color: #f5f5f5; }
     </style>
@@ -525,7 +354,6 @@
     <div id="pull-refresh-indicator">🔄 Потягніть, щоб оновити...</div>
     <div id="menu-overlay" class="menu-overlay"></div>
 
-    <!-- Фірмове вікно першого входу Habla Mobile -->
     <div id="welcome-login-modal">
         <div class="welcome-card">
             <div class="welcome-logo-ring">
@@ -550,7 +378,7 @@
         </div>
         <div id="modal-nickname-section" style="display: none; flex-direction: column; gap: 6px;">
             <div style="font-size: 0.8rem; color: #89a1b2;" data-i18n="change_nickname">Змінити нікнейм:</div>
-            <input type="text" id="modal-nickname-input" class="modal-avatar-input" placeholder="Введіть новий нікнейм...">
+            <input type="text" id="modal-nickname-input" class="modal-avatar-input" placeholder="Новий нікнейм...">
         </div>
         <div style="font-size: 0.8rem; color: #89a1b2;" data-i18n="icon_bg_color">Колір фону іконки:</div>
         <div class="color-palette" id="color-palette">
@@ -561,7 +389,7 @@
             <div class="color-circle" style="background: #7928ca;" data-color="#7928ca"></div>
             <div class="color-circle" style="background: #0056b3;" data-color="#0056b3"></div>
         </div>
-        <div style="font-size: 0.8rem; color: #89a1b2;" data-i18n="avatar_url">Посилання на фото-аватарку (URL):</div>
+        <div style="font-size: 0.8rem; color: #89a1b2;" data-i18n="avatar_url">Посилання на аватарку (URL):</div>
         <input type="text" id="modal-avatar-input" class="modal-avatar-input" placeholder="https://...">
         <button id="modal-save-btn" class="modal-btn-save" data-i18n="save">Зберегти</button>
         <button id="modal-delete-btn" class="modal-btn-delete" data-i18n="delete_contact">Видалити контакт</button>
@@ -569,23 +397,13 @@
 
     <div id="add-contact-fullscreen-modal">
         <div class="add-modal-card">
-            <div class="add-modal-icon-circle">+</div>
             <div style="font-weight: bold; font-size: 1.1rem; color: #f5f5f5;">Додати новий контакт</div>
             <input type="text" id="fullscreen-contact-input" class="add-modal-input" placeholder="Введіть нікнейм...">
-            <div class="add-modal-actions">
+            <div style="display: flex; gap: 10px; width: 100%;">
                 <button id="fullscreen-cancel-btn" class="modal-action-btn modal-btn-cancel">Скасувати</button>
                 <button id="fullscreen-confirm-btn" class="modal-action-btn modal-btn-confirm">Додати</button>
             </div>
         </div>
-    </div>
-
-    <!-- Повноекранний перегляд QR-коду -->
-    <div id="qr-fullscreen-modal">
-        <div class="qr-fullscreen-title" id="qr-fullscreen-title">QR Code</div>
-        <div class="qr-fullscreen-box">
-            <img id="qr-fullscreen-img" src="" alt="Fullscreen QR">
-        </div>
-        <div class="qr-fullscreen-hint" data-i18n="qr_tap_close">Натисніть будь-де, щоб згорнути</div>
     </div>
 
     <div id="app-container">
@@ -599,6 +417,27 @@
                     <svg viewBox="0 0 24 24" stroke="#89a1b2" stroke-width="2" fill="none"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v1a7 7 0 0 1-14 0v-1"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
                 </div>
             </button>
+
+            <!-- Выдвижная панель текстового ввода с выбором языка -->
+            <div id="text-input-panel" class="text-input-panel">
+                <div class="text-panel-header">
+                    <span class="text-panel-title" data-i18n="text_input_title">Текстове повідомлення (переклад)</span>
+                    <button id="close-text-panel" class="text-panel-close">✕</button>
+                </div>
+                <select id="text-target-lang" class="lang-select" style="font-size:0.8rem; padding: 6px;">
+                    <option value="Spanish">Spanish</option>
+                    <option value="English">English</option>
+                    <option value="Ukrainian">Ukrainian</option>
+                    <option value="German">German</option>
+                    <option value="French">French</option>
+                </select>
+                <div class="text-panel-controls">
+                    <input type="text" id="panel-text-input" class="text-panel-input" placeholder="Введіть текст..." data-i18n-placeholder="test_text_placeholder" autocomplete="off">
+                    <button id="panel-text-send" class="text-panel-send" title="Надіслати">
+                        <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                    </button>
+                </div>
+            </div>
         </main>
 
         <div id="contacts-screen">
@@ -634,13 +473,6 @@
                     <button class="copy-link-action-btn" id="copy-pc-btn" data-i18n="copy_link">Copy Link</button>
                 </div>
             </div>
-            <div class="pwa-install-card" id="pwa-install-card">
-                <button class="pwa-install-btn" id="pwa-install-btn">
-                    <span>📲</span>
-                    <span data-i18n="install_app">Встановити додаток</span>
-                </button>
-                <div class="pwa-install-hint" id="pwa-install-hint"></div>
-            </div>
         </div>
 
         <div id="settings-screen">
@@ -648,11 +480,9 @@
                 <span data-i18n="settings_title">Налаштування</span>
                 <button id="close-settings-screen" style="background:none; border:none; color:#89a1b2; font-size:1.2rem; cursor:pointer;">✕</button>
             </div>
-
             <div class="settings-card">
                 <button id="update-app-btn" class="sidebar-nav-btn"><span data-i18n="update_app">Оновлення програми</span></button>
             </div>
-
             <div class="settings-card">
                 <div class="settings-row" id="toggle-lang-dropdown">
                     <span data-i18n="interface_lang">Мова інтерфейсу</span>
@@ -665,11 +495,9 @@
                         <option value="Ukrainian">Ukrainian</option>
                         <option value="German">German</option>
                         <option value="French">French</option>
-                        <option value="Russian" disabled>Russian</option>
                     </select>
                 </div>
             </div>
-
             <div class="settings-card">
                 <div class="settings-row" id="toggle-voice-dropdown">
                     <span data-i18n="voice_over">Озвучування перекладу</span>
@@ -685,30 +513,10 @@
                     </div>
                 </div>
             </div>
-
-            <div class="settings-card">
-                <div class="settings-row" id="btn-appearance">
-                    <span data-i18n="appearance">Зовнішній вигляд</span>
-                    <span class="dropdown-arrow">▼</span>
-                </div>
-            </div>
-
-            <div class="settings-card">
-                <div class="settings-row" id="btn-data-storage">
-                    <span data-i18n="data_storage">Дані та пам'ять</span>
-                    <span class="dropdown-arrow">▼</span>
-                </div>
-            </div>
-
-            <div class="settings-card">
-                <div class="settings-row" id="btn-help">
-                    <span data-i18n="help">Допомога</span>
-                    <span class="dropdown-arrow">▼</span>
-                </div>
-            </div>
         </div>
     </div>
 
+    <!-- Пятикнопочный нижний бар с иконкой клавиатуры -->
     <nav class="bottom-nav-bar">
         <button class="nav-item active" id="nav-home" title="Home">
             <svg viewBox="0 0 24 24" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
@@ -717,6 +525,10 @@
         <button class="nav-item" id="nav-contacts" title="Contacts">
             <svg viewBox="0 0 24 24" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
             <small data-i18n="tab_contacts">Contacts</small>
+        </button>
+        <button class="nav-item" id="nav-keyboard" title="Keyboard Input">
+            <svg viewBox="0 0 24 24" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect><line x1="6" y1="8" x2="6" y2="8"></line><line x1="10" y1="8" x2="10" y2="8"></line><line x1="14" y1="8" x2="14" y2="8"></line><line x1="18" y1="8" x2="18" y2="8"></line><line x1="6" y1="12" x2="6" y2="12"></line><line x1="10" y1="12" x2="14" y2="12"></line><line x1="18" y1="12" x2="18" y2="12"></line><line x1="6" y1="16" x2="18" y2="16"></line></svg>
+            <small data-i18n="tab_keyboard">Текст</small>
         </button>
         <button class="nav-item" id="nav-qr" title="QR Code">
             <svg viewBox="0 0 24 24" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
@@ -730,9 +542,7 @@
 
     <script>
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js').catch(() => {});
-            });
+            window.addEventListener('load', () => { navigator.serviceWorker.register('/sw.js').catch(() => {}); });
         }
 
         const socket = io();
@@ -750,166 +560,54 @@
         let localAddedContacts = JSON.parse(localStorage.getItem('habla_local_contacts') || '[]');
         let contactColors = JSON.parse(localStorage.getItem('habla_contact_colors') || '{}');
         let contactAvatars = JSON.parse(localStorage.getItem('habla_contact_avatars') || '{}');
-        let activeContactForModal = null;
-        let selectedModalColor = '#89a1b2';
-        let lastUsersData = {};
         let isContactsExpanded = false;
+        let lastUsersData = {};
 
         const translations = {
             Ukrainian: {
-                settings_title: "Налаштування",
-                update_app: "Оновлення програми",
-                interface_lang: "Мова інтерфейсу",
-                voice_over: "Озвучування перекладу",
-                force_voice: "Примусово озвучувати",
-                appearance: "Зовнішній вигляд",
-                data_storage: "Дані та пам'ять",
-                help: "Допомога",
-                change_nickname: "Змінити нікнейм:",
-                saved_contacts: "Збережені контакти",
-                profile_settings: "Profile Settings",
-                add: "Додати",
-                tab_home: "Головна",
-                tab_contacts: "Контакти",
-                tab_qr: "QR",
-                tab_settings: "Налаштування",
-                icon_bg_color: "Колір фону іконки:",
-                avatar_url: "Посилання на фото-аватарку (URL):",
-                save: "Зберегти",
-                delete_contact: "Видалити контакт",
-                show_all: "Показати всі",
-                collapse: "Згорнути",
-                copy_link: "Копіювати",
-                install_app: "Встановити додаток",
-                welcome_subtitle: "Введіть ваш нікнейм для миттєвого голосового перекладу та зв'язку",
-                welcome_enter: "Увійти",
-                qr_tap_close: "Натисніть будь-де, щоб згорнути",
-                ios_install_hint: "На iPhone/iPad: натисніть «Поділитися» (квадрат зі стрілкою внизу Safari) → «На початковий екран».",
-                manual_install_hint: "Відкрийте меню браузера (⋮) і виберіть «Встановити додаток» або «Додати на головний екран»."
+                settings_title: "Налаштування", update_app: "Оновлення програми", interface_lang: "Мова інтерфейсу",
+                voice_over: "Озвучування перекладу", force_voice: "Примусово озвучувати", saved_contacts: "Збережені контакти",
+                profile_settings: "Profile Settings", add: "Додати", tab_home: "Головна", tab_contacts: "Контакти",
+                tab_keyboard: "Текст", tab_qr: "QR", tab_settings: "Налаштування", save: "Зберегти",
+                delete_contact: "Видалити контакт", show_all: "Показати всі", collapse: "Згорнути",
+                copy_link: "Копіювати", install_app: "Встановити додаток", welcome_subtitle: "Введіть ваш нікнейм для миттєвого голосового перекладу",
+                welcome_enter: "Увійти", text_input_title: "Текстове повідомлення (переклад)", test_text_placeholder: "Введіть текст..."
             },
             English: {
-                settings_title: "Settings",
-                update_app: "Update App",
-                interface_lang: "Interface Language",
-                voice_over: "Voice-over Translation",
-                force_voice: "Force voice-over",
-                appearance: "Appearance",
-                data_storage: "Data & Storage",
-                help: "Help",
-                change_nickname: "Change Nickname:",
-                saved_contacts: "Saved Contacts",
-                profile_settings: "Profile Settings",
-                add: "Add",
-                tab_home: "Home",
-                tab_contacts: "Contacts",
-                tab_qr: "QR",
-                tab_settings: "Settings",
-                icon_bg_color: "Icon background color:",
-                avatar_url: "Avatar photo link (URL):",
-                save: "Save",
-                delete_contact: "Delete contact",
-                show_all: "Show all",
-                collapse: "Collapse",
-                copy_link: "Copy Link",
-                install_app: "Install App",
-                welcome_subtitle: "Enter your nickname for instant voice translation and messaging",
-                welcome_enter: "Enter",
-                qr_tap_close: "Tap anywhere to close",
-                ios_install_hint: "On iPhone/iPad: tap Share (square with arrow in Safari) → «Add to Home Screen».",
-                manual_install_hint: "Open browser menu (⋮) and select «Install app» or «Add to Home screen»."
+                settings_title: "Settings", update_app: "Update App", interface_lang: "Interface Language",
+                voice_over: "Voice-over Translation", force_voice: "Force voice-over", saved_contacts: "Saved Contacts",
+                profile_settings: "Profile Settings", add: "Add", tab_home: "Home", tab_contacts: "Contacts",
+                tab_keyboard: "Text", tab_qr: "QR", tab_settings: "Settings", save: "Save",
+                delete_contact: "Delete contact", show_all: "Show all", collapse: "Collapse",
+                copy_link: "Copy Link", install_app: "Install App", welcome_subtitle: "Enter your nickname for instant translation",
+                welcome_enter: "Enter", text_input_title: "Text message (translation)", test_text_placeholder: "Type a message..."
             },
             Spanish: {
-                settings_title: "Ajustes",
-                update_app: "Actualizar aplicación",
-                interface_lang: "Idioma de interfaz",
-                voice_over: "Voz de traducción",
-                force_voice: "Forzar voz",
-                appearance: "Apariencia",
-                data_storage: "Datos y almacenamiento",
-                help: "Ayuda",
-                change_nickname: "Cambiar apodo:",
-                saved_contacts: "Contactos guardados",
-                profile_settings: "Ajustes de perfil",
-                add: "Añadir",
-                tab_home: "Inicio",
-                tab_contacts: "Contactos",
-                tab_qr: "QR",
-                tab_settings: "Ajustes",
-                icon_bg_color: "Color de fondo del icono:",
-                avatar_url: "Enlace de avatar (URL):",
-                save: "Guardar",
-                delete_contact: "Eliminar contacto",
-                show_all: "Mostrar todos",
-                collapse: "Contraer",
-                copy_link: "Copiar enlace",
-                install_app: "Instalar aplicación",
-                welcome_subtitle: "Introduce tu apodo para traducción de voz instantánea",
-                welcome_enter: "Entrar",
-                qr_tap_close: "Toca en cualquier lugar para cerrar",
-                ios_install_hint: "En iPhone/iPad: pulsa Compartir en Safari → «Añadir a pantalla de inicio».",
-                manual_install_hint: "Abre el menú del navegador (⋮) y selecciona «Instalar aplicación»."
+                settings_title: "Ajustes", update_app: "Actualizar aplicación", interface_lang: "Idioma de interfaz",
+                voice_over: "Voz de traducción", force_voice: "Forzar voz", saved_contacts: "Contactos guardados",
+                profile_settings: "Ajustes de perfil", add: "Añadir", tab_home: "Inicio", tab_contacts: "Contactos",
+                tab_keyboard: "Texto", tab_qr: "QR", tab_settings: "Ajustes", save: "Guardar",
+                delete_contact: "Eliminar contacto", show_all: "Mostrar todos", collapse: "Contraer",
+                copy_link: "Copiar enlace", install_app: "Instalar aplicación", welcome_subtitle: "Introduce tu apodo",
+                welcome_enter: "Entrar", text_input_title: "Mensaje de texto (traducción)", test_text_placeholder: "Escribe un mensaje..."
             },
             German: {
-                settings_title: "Einstellungen",
-                update_app: "App aktualisieren",
-                interface_lang: "Benutzeroberflächensprache",
-                voice_over: "Übersetzungssprache",
-                force_voice: "Sprachausgabe erzwingen",
-                appearance: "Erscheinungsbild",
-                data_storage: "Daten & Speicher",
-                help: "Hilfe",
-                change_nickname: "Spitzname ändern:",
-                saved_contacts: "Gespeicherte Kontakte",
-                profile_settings: "Profileinstellungen",
-                add: "Hinzufügen",
-                tab_home: "Start",
-                tab_contacts: "Kontakte",
-                tab_qr: "QR",
-                tab_settings: "Einstellungen",
-                icon_bg_color: "Symbolhintergrundfarbe:",
-                avatar_url: "Avatar-Link (URL):",
-                save: "Speichern",
-                delete_contact: "Kontakt löschen",
-                show_all: "Alle anzeigen",
-                collapse: "Einklappen",
-                copy_link: "Link kopieren",
-                install_app: "App installieren",
-                welcome_subtitle: "Gib deinen Spitznamen für sofortige Sprachübersetzung ein",
-                welcome_enter: "Beitreten",
-                qr_tap_close: "Tippe irgendwo hin, um zu schließen",
-                ios_install_hint: "Auf iPhone/iPad: Tippe in Safari auf Teilen → «Zum Home-Bildschirm».",
-                manual_install_hint: "Öffne das Browser-Menü (⋮) und wähle «App installieren»."
+                settings_title: "Einstellungen", update_app: "App aktualisieren", interface_lang: "Sprache",
+                voice_over: "Übersetzungssprache", force_voice: "Sprachausgabe erzwingen", saved_contacts: "Kontakte",
+                profile_settings: "Profileinstellungen", add: "Hinzufügen", tab_home: "Start", tab_contacts: "Kontakte",
+                tab_keyboard: "Text", tab_qr: "QR", tab_settings: "Einstellungen", save: "Speichern",
+                delete_contact: "Löschen", show_all: "Alle anzeigen", collapse: "Einklappen",
+                copy_link: "Link kopieren", install_app: "Installieren", welcome_subtitle: "Gib deinen Spitznamen ein",
+                welcome_enter: "Beitreten", text_input_title: "Textnachricht (Übersetzung)", test_text_placeholder: "Nachricht eingeben..."
             },
             French: {
-                settings_title: "Paramètres",
-                update_app: "Mettre à jour l'application",
-                interface_lang: "Langue de l'interface",
-                voice_over: "Voix de traduction",
-                force_voice: "Forcer la voix",
-                appearance: "Apparence",
-                data_storage: "Données et stockage",
-                help: "Aide",
-                change_nickname: "Changer de pseudo:",
-                saved_contacts: "Contacts enregistrés",
-                profile_settings: "Paramètres du profil",
-                add: "Ajouter",
-                tab_home: "Accueil",
-                tab_contacts: "Contacts",
-                tab_qr: "QR",
-                tab_settings: "Paramètres",
-                icon_bg_color: "Couleur de fond de l'icône :",
-                avatar_url: "Lien d'avatar (URL) :",
-                save: "Enregistrer",
-                delete_contact: "Supprimer le contact",
-                show_all: "Tout afficher",
-                collapse: "Réduire",
-                copy_link: "Copier le lien",
-                install_app: "Installer l'application",
-                welcome_subtitle: "Entrez votre pseudo pour une traduction vocale instantanée",
-                welcome_enter: "Entrer",
-                qr_tap_close: "Appuyez n'importe où pour fermer",
-                ios_install_hint: "Sur iPhone/iPad : appuyez sur Partager dans Safari → «Sur l'écran d'accueil».",
-                manual_install_hint: "Ouvrez le menu du navigateur (⋮) et sélectionnez «Installer l'application»."
+                settings_title: "Paramètres", update_app: "Mettre à jour", interface_lang: "Langue",
+                voice_over: "Voix de traduction", force_voice: "Forcer la voix", saved_contacts: "Contacts",
+                profile_settings: "Profil", add: "Ajouter", tab_home: "Accueil", tab_contacts: "Contacts",
+                tab_keyboard: "Texte", tab_qr: "QR", tab_settings: "Paramètres", save: "Enregistrer",
+                delete_contact: "Supprimer", show_all: "Tout afficher", collapse: "Réduire",
+                copy_link: "Copier", install_app: "Installer", welcome_subtitle: "Entrez votre pseudo",
+                welcome_enter: "Entrer", text_input_title: "Message texte (traduction)", test_text_placeholder: "Écrivez un message..."
             }
         };
 
@@ -917,15 +615,24 @@
             const dict = translations[lang] || translations['Spanish'];
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.getAttribute('data-i18n');
-                if (dict[key]) {
-                    el.textContent = dict[key];
-                }
+                if (dict[key]) el.textContent = dict[key];
+            });
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const key = el.getAttribute('data-i18n-placeholder');
+                if (dict[key]) el.placeholder = dict[key];
             });
             safeRenderContactsGrid(lastUsersData);
         }
 
-        const selectedRecipientDisplay = document.getElementById('selected-recipient-display');
+        // Автоматическая синхронизация выпадающих списков языков
+        const textTargetLangSelect = document.getElementById('text-target-lang');
+        function syncLangDropdowns() {
+            if (!interfaceLangSelect || !textTargetLangSelect) return;
+            textTargetLangSelect.innerHTML = interfaceLangSelect.innerHTML;
+            textTargetLangSelect.value = interfaceLangSelect.value;
+        }
 
+        const selectedRecipientDisplay = document.getElementById('selected-recipient-display');
         function setRecipient(name) {
             if (!name) return;
             selectedRecipientName = name.trim();
@@ -934,20 +641,12 @@
                 selectedRecipientDisplay.textContent = selectedRecipientName;
                 selectedRecipientDisplay.classList.add('active');
             }
-
-            const messagesStack = document.getElementById('messages-stack');
-            if (messagesStack) {
-                messagesStack.innerHTML = '';
-            }
+            document.getElementById('messages-stack').innerHTML = '';
         }
-
-        if (selectedRecipientName) {
-            setRecipient(selectedRecipientName);
-        }
+        if (selectedRecipientName) setRecipient(selectedRecipientName);
 
         socket.on('sync-customizations', (customizations) => {
-            contactColors = {};
-            contactAvatars = {};
+            contactColors = {}; contactAvatars = {};
             for (let [name, data] of Object.entries(customizations)) {
                 if (data.color) contactColors[name] = data.color;
                 if (data.avatar) contactAvatars[name] = data.avatar;
@@ -959,7 +658,7 @@
         });
 
         function getDeviceLanguage() {
-            const navLang = (navigator.language || navigator.userLanguage || 'es').toLowerCase();
+            const navLang = (navigator.language || 'es').toLowerCase();
             if (navLang.startsWith('uk')) return 'Ukrainian';
             if (navLang.startsWith('en')) return 'English';
             if (navLang.startsWith('de')) return 'German';
@@ -968,94 +667,58 @@
         }
 
         let savedInterfaceLang = localStorage.getItem('habla_interface_lang') || getDeviceLanguage();
-        if (savedInterfaceLang === 'Russian') savedInterfaceLang = 'Spanish';
         interfaceLangSelect.value = savedInterfaceLang;
         applyLocalization(savedInterfaceLang);
+        syncLangDropdowns();
 
-        // Фірмове вікно першого входу Habla Mobile
         const welcomeLoginModal = document.getElementById('welcome-login-modal');
         const welcomeNicknameInput = document.getElementById('welcome-nickname-input');
         const welcomeSubmitBtn = document.getElementById('welcome-submit-btn');
 
         function completeFirstLogin() {
             const enteredName = welcomeNicknameInput ? welcomeNicknameInput.value.trim() : '';
-            if (!enteredName) {
-                if (welcomeNicknameInput) welcomeNicknameInput.focus();
-                return;
-            }
+            if (!enteredName) { if (welcomeNicknameInput) welcomeNicknameInput.focus(); return; }
             username = enteredName;
             localStorage.setItem('habla_username', username);
-            if (welcomeLoginModal) welcomeLoginModal.classList.remove('active');
+            welcomeLoginModal.classList.remove('active');
             updateProfileDisplay();
             joinWithLanguage();
             safeRenderContactsGrid(lastUsersData);
         }
 
         if (!username) {
-            if (welcomeLoginModal) welcomeLoginModal.classList.add('active');
+            welcomeLoginModal.classList.add('active');
             if (welcomeNicknameInput) setTimeout(() => welcomeNicknameInput.focus(), 100);
         }
-
-        if (welcomeSubmitBtn) {
-            welcomeSubmitBtn.addEventListener('click', completeFirstLogin);
-        }
-        if (welcomeNicknameInput) {
-            welcomeNicknameInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') completeFirstLogin();
-            });
-        }
+        welcomeSubmitBtn.addEventListener('click', completeFirstLogin);
+        welcomeNicknameInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') completeFirstLogin(); });
 
         interfaceLangSelect.addEventListener('change', () => {
             const newLang = interfaceLangSelect.value;
-            if (newLang === 'Russian') return;
             localStorage.setItem('habla_interface_lang', newLang);
             applyLocalization(newLang);
+            syncLangDropdowns();
             socket.emit('update-language', newLang);
             joinWithLanguage();
         });
 
-        // Синхронізуємо локально збережені контакти з сервером (щоб після рестарту Render відновлювався взаємний статус isMutual)
         function syncSavedContactsToServer() {
-            if (!username || !socket || !socket.connected) return;
-            const contactsToSync = new Set([
-                ...localAddedContacts,
-                ...recentContactsOrder,
-                ...(selectedRecipientName ? [selectedRecipientName] : [])
-            ]);
-            contactsToSync.forEach(contactName => {
-                const clean = (contactName || '').trim();
-                if (clean && clean.toLowerCase() !== username.toLowerCase()) {
-                    socket.emit('add-contact', clean);
-                }
+            if (!username || !socket.connected) return;
+            new Set([...localAddedContacts, ...recentContactsOrder, ...(selectedRecipientName ? [selectedRecipientName] : [])]).forEach(c => {
+                if (c && c.toLowerCase() !== username.toLowerCase()) socket.emit('add-contact', c);
             });
         }
 
         function joinWithLanguage() {
             if (username) {
-                socket.emit('join', {
-                    username: username.trim(),
-                    lang: interfaceLangSelect.value
-                });
+                socket.emit('join', { username: username.trim(), lang: interfaceLangSelect.value });
                 syncSavedContactsToServer();
             }
         }
 
-        socket.on('connect', () => {
-            joinWithLanguage();
-        });
-
-        document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'visible') {
-                joinWithLanguage();
-            }
-        });
-
-        // Періодична підтримка актуального статусу онлайн на ПК та смартфоні
-        setInterval(() => {
-            if (socket && socket.connected && username) {
-                joinWithLanguage();
-            }
-        }, 10000);
+        socket.on('connect', () => joinWithLanguage());
+        document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') joinWithLanguage(); });
+        setInterval(() => { if (socket.connected && username) joinWithLanguage(); }, 10000);
 
         const userDisplay = document.getElementById('user-display');
         const userAvatarLarge = document.getElementById('user-avatar-large');
@@ -1065,7 +728,6 @@
             userDisplay.textContent = displayUser;
             const customColor = contactColors[displayUser] || '#89a1b2';
             const customAvatarUrl = contactAvatars[displayUser];
-            
             if (customAvatarUrl) {
                 userAvatarLarge.innerHTML = `<img src="${escapeHtml(customAvatarUrl)}" alt="">`;
                 userAvatarLarge.style.background = 'none';
@@ -1076,44 +738,23 @@
             }
         }
 
-        if (toggleExpandContactsBtn) {
-            toggleExpandContactsBtn.addEventListener('click', () => {
-                isContactsExpanded = !isContactsExpanded;
-                if (contactsWrapperBox) {
-                    contactsWrapperBox.classList.toggle('expanded-mode', isContactsExpanded);
-                }
-                safeRenderContactsGrid(lastUsersData);
-            });
-        }
+        toggleExpandContactsBtn.addEventListener('click', () => {
+            isContactsExpanded = !isContactsExpanded;
+            contactsWrapperBox.classList.toggle('expanded-mode', isContactsExpanded);
+            safeRenderContactsGrid(lastUsersData);
+        });
 
-        // Розбираємо відповідь сервера { users: [{ name, isOnline, ... }], isAdmin }
         function parseServerUsersPayload(payload) {
-            const allServerNames = [];
-            const onlineNames = [];
-
-            const list = Array.isArray(payload)
-                ? payload
-                : (payload && Array.isArray(payload.users) ? payload.users : []);
-
+            const allServerNames = [], onlineNames = [];
+            const list = Array.isArray(payload) ? payload : (payload && Array.isArray(payload.users) ? payload.users : []);
             list.forEach(entry => {
                 if (!entry) return;
-                if (typeof entry === 'string') {
-                    const clean = entry.trim();
-                    if (clean) {
-                        allServerNames.push(clean);
-                        onlineNames.push(clean);
-                    }
-                } else if (typeof entry === 'object') {
-                    const clean = String(entry.name || entry.username || '').trim();
-                    if (clean) {
-                        allServerNames.push(clean);
-                        if (entry.isOnline === true) {
-                            onlineNames.push(clean);
-                        }
-                    }
+                const clean = String(entry.name || entry || '').trim();
+                if (clean) {
+                    allServerNames.push(clean);
+                    if (entry.isOnline === true || typeof entry === 'string') onlineNames.push(clean);
                 }
             });
-
             return { allServerNames, onlineNames };
         }
 
@@ -1121,193 +762,94 @@
             try {
                 if (!contactsGridContainer) return;
                 contactsGridContainer.innerHTML = '';
-                
                 const { allServerNames, onlineNames } = parseServerUsersPayload(onlineUsers);
                 const onlineLowerSet = new Set(onlineNames.map(n => n.toLowerCase()));
 
-                let allContactsSet = new Set([
-                    ...recentContactsOrder.map(n => (n || '').trim()),
-                    ...localAddedContacts.map(n => (n || '').trim()),
-                    ...allServerNames
-                ]);
-                if (username) {
-                    for (let item of allContactsSet) {
-                        if (item.toLowerCase() === username.toLowerCase()) {
-                            allContactsSet.delete(item);
-                        }
-                    }
-                }
-                let fullContactsList = Array.from(allContactsSet).filter(Boolean);
+                let fullContactsList = Array.from(new Set([...recentContactsOrder, ...localAddedContacts, ...allServerNames])).filter(n => n && n.toLowerCase() !== (username || '').toLowerCase());
+                const dict = translations[interfaceLangSelect.value] || translations['Ukrainian'];
 
-                const currentLang = interfaceLangSelect ? interfaceLangSelect.value : 'Ukrainian';
-                const dict = translations[currentLang] || translations['Ukrainian'];
-
-                if (toggleExpandContactsBtn) {
-                    if (fullContactsList.length > 5) {
-                        toggleExpandContactsBtn.classList.add('visible');
-                        toggleExpandContactsBtn.textContent = isContactsExpanded
-                            ? dict.collapse
-                            : `${dict.show_all} (${fullContactsList.length})`;
-                    } else {
-                        toggleExpandContactsBtn.classList.remove('visible');
-                        isContactsExpanded = false;
-                        if (contactsWrapperBox) contactsWrapperBox.classList.remove('expanded-mode');
-                    }
+                if (fullContactsList.length > 5) {
+                    toggleExpandContactsBtn.classList.add('visible');
+                    toggleExpandContactsBtn.textContent = isContactsExpanded ? dict.collapse : `${dict.show_all} (${fullContactsList.length})`;
+                } else {
+                    toggleExpandContactsBtn.classList.remove('visible');
+                    isContactsExpanded = false;
+                    contactsWrapperBox.classList.remove('expanded-mode');
                 }
 
-                // Кнопка + Add ЗАВЖДИ стоїть першою в сітці
                 const addGridItem = document.createElement('div');
                 addGridItem.className = 'contact-grid-item';
-                
-                const addCircle = document.createElement('div');
-                addCircle.className = 'add-contact-grid-circle';
-                addCircle.textContent = '+';
-                addCircle.title = 'Додати новий контакт';
-
-                const addName = document.createElement('div');
-                addName.className = 'contact-grid-name';
-                addName.textContent = 'Add';
-
-                addGridItem.appendChild(addCircle);
-                addGridItem.appendChild(addName);
-
-                addGridItem.addEventListener('click', () => {
-                    openFullscreenAddContactModal();
-                });
-
+                addGridItem.innerHTML = `<div class="add-contact-grid-circle">+</div><div class="contact-grid-name">Add</div>`;
+                addGridItem.addEventListener('click', () => openFullscreenAddContactModal());
                 contactsGridContainer.appendChild(addGridItem);
 
-                const visibleContacts = isContactsExpanded ? fullContactsList : fullContactsList.slice(0, 5);
-
-                visibleContacts.forEach(name => {
+                (isContactsExpanded ? fullContactsList : fullContactsList.slice(0, 5)).forEach(name => {
                     const itemDiv = document.createElement('div');
                     itemDiv.className = 'contact-grid-item';
-                    if (selectedRecipientName && selectedRecipientName.toLowerCase() === name.toLowerCase()) {
-                        itemDiv.classList.add('active');
-                    }
-                    if (onlineLowerSet.has(name.toLowerCase())) {
-                        itemDiv.classList.add('online');
-                    }
+                    if (selectedRecipientName && selectedRecipientName.toLowerCase() === name.toLowerCase()) itemDiv.classList.add('active');
+                    if (onlineLowerSet.has(name.toLowerCase())) itemDiv.classList.add('online');
 
                     const avatarWrapper = document.createElement('div');
                     avatarWrapper.className = 'contact-avatar-wrapper';
-
                     const avatarDiv = document.createElement('div');
                     avatarDiv.className = 'contact-grid-avatar';
-                    const customColor = contactColors[name] || '#2b5278';
                     const customAvatarUrl = contactAvatars[name];
 
                     if (customAvatarUrl) {
                         avatarDiv.innerHTML = `<img src="${escapeHtml(customAvatarUrl)}" alt="">`;
                     } else {
                         avatarDiv.textContent = name.charAt(0).toUpperCase();
-                        avatarDiv.style.background = customColor;
+                        avatarDiv.style.background = contactColors[name] || '#2b5278';
                     }
 
-                    const onlineDot = document.createElement('div');
-                    onlineDot.className = 'online-status-dot';
-
                     avatarWrapper.appendChild(avatarDiv);
-                    avatarWrapper.appendChild(onlineDot);
-
-                    const nameDiv = document.createElement('div');
-                    nameDiv.className = 'contact-grid-name';
-                    nameDiv.textContent = name;
+                    avatarWrapper.appendChild(document.createElement('div')).className = 'online-status-dot';
 
                     itemDiv.appendChild(avatarWrapper);
-                    itemDiv.appendChild(nameDiv);
+                    itemDiv.appendChild(document.createElement('div')).className = 'contact-grid-name';
+                    itemDiv.lastChild.textContent = name;
 
                     itemDiv.addEventListener('click', () => {
                         setRecipient(name);
                         isContactsExpanded = false;
-                        if (contactsWrapperBox) contactsWrapperBox.classList.remove('expanded-mode');
+                        contactsWrapperBox.classList.remove('expanded-mode');
                         closeAllScreens();
                         setActiveNav(navHome);
                         safeRenderContactsGrid(lastUsersData);
                     });
-
-                    itemDiv.addEventListener('contextmenu', (e) => {
-                        e.preventDefault();
-                        triggerSettings(name, e);
-                    });
-
+                    itemDiv.addEventListener('contextmenu', (e) => { e.preventDefault(); triggerSettings(name, e); });
                     contactsGridContainer.appendChild(itemDiv);
                 });
-            } catch (err) {
-                console.error("Помилка відображення контактів:", err);
-            }
+            } catch (err) { console.error(err); }
         }
 
         const fullscreenModal = document.getElementById('add-contact-fullscreen-modal');
         const fullscreenInput = document.getElementById('fullscreen-contact-input');
-        const fullscreenConfirmBtn = document.getElementById('fullscreen-confirm-btn');
-        const fullscreenCancelBtn = document.getElementById('fullscreen-cancel-btn');
-
-        function openFullscreenAddContactModal() {
-            if (fullscreenInput) fullscreenInput.value = '';
-            if (fullscreenModal) fullscreenModal.classList.add('active');
-            if (fullscreenInput) fullscreenInput.focus();
-        }
-
-        function closeFullscreenAddContactModal() {
-            if (fullscreenModal) fullscreenModal.classList.remove('active');
-        }
-
-        if (fullscreenCancelBtn) fullscreenCancelBtn.addEventListener('click', closeFullscreenAddContactModal);
-        
-        if (fullscreenConfirmBtn) fullscreenConfirmBtn.addEventListener('click', () => {
+        function openFullscreenAddContactModal() { fullscreenInput.value = ''; fullscreenModal.classList.add('active'); fullscreenInput.focus(); }
+        document.getElementById('fullscreen-cancel-btn').addEventListener('click', () => fullscreenModal.classList.remove('active'));
+        document.getElementById('fullscreen-confirm-btn').addEventListener('click', () => {
             const targetName = fullscreenInput.value.trim();
-            if (targetName && targetName.toLowerCase() !== (username || '').toLowerCase()) {
+            if (targetName && targetName.toLowerCase() !== username.toLowerCase()) {
                 socket.emit('add-contact', targetName);
-                if (!localAddedContacts.some(n => n.toLowerCase() === targetName.toLowerCase())) {
+                if (!localAddedContacts.includes(targetName)) {
                     localAddedContacts.push(targetName);
                     localStorage.setItem('habla_local_contacts', JSON.stringify(localAddedContacts));
                 }
-                closeFullscreenAddContactModal();
+                fullscreenModal.classList.remove('active');
                 safeRenderContactsGrid(lastUsersData);
-            } else {
-                alert('Введіть коректне ім\'я контакту!');
             }
         });
 
-        if (fullscreenInput) fullscreenInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') fullscreenConfirmBtn.click();
-        });
-
-        // ----------------------------------------------------
-        // ЛОГІКА СТРІЧКИ ПОВІДОМЛЕНЬ
-        // ----------------------------------------------------
+        // Стек повідомлень
         const messagesStack = document.getElementById('messages-stack');
         let displayedMessages = [];
-
         function addMessageToStack(text, sender, isSent = false) {
-            if (!messagesStack) return;
             const card = document.createElement('div');
             card.className = `message-card ${isSent ? 'sent' : 'received'}`;
-            
-            const senderTag = document.createElement('div');
-            senderTag.className = 'message-sender-tag';
-            senderTag.textContent = isSent ? `Ви ➔ ${selectedRecipientName || 'Контакт'}` : sender;
-
-            const textNode = document.createElement('div');
-            textNode.textContent = text;
-
-            const ttsBtn = document.createElement('button');
-            ttsBtn.className = 'message-tts-btn';
-            ttsBtn.title = 'Прослухати';
-            ttsBtn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>`;
-            ttsBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                speakText(text);
-            });
-
-            card.appendChild(senderTag);
-            card.appendChild(textNode);
-            card.appendChild(ttsBtn);
-
+            card.innerHTML = `<div class="message-sender-tag">${isSent ? `Ви ➔ ${selectedRecipientName || 'Контакт'}` : sender}</div><div>${escapeHtml(text)}</div><button class="message-tts-btn" title="Прослухати"><svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg></button>`;
+            card.querySelector('.message-tts-btn').addEventListener('click', (e) => { e.stopPropagation(); speakText(text); });
             messagesStack.appendChild(card);
             displayedMessages.push(card);
-
             updateStackStyles();
         }
 
@@ -1326,229 +868,123 @@
             displayedMessages = displayedMessages.filter(c => c.parentNode !== null);
         }
 
-        // ----------------------------------------------------
-        // ЛОГІКА МІКРОФОНА: ПУЛЬСАЦІЯ ТА СЕКУНДОМІР
-        // ----------------------------------------------------
-        let mediaRecorder;
-        let audioChunks = [];
-        let isRecording = false;
+        // Логика выдвижной панели текстового ввода
+        const textInputPanel = document.getElementById('text-input-panel');
+        const panelTextInput = document.getElementById('panel-text-input');
+        const panelTextSend = document.getElementById('panel-text-send');
+        const closeTextPanel = document.getElementById('close-text-panel');
+        const navKeyboard = document.getElementById('nav-keyboard');
 
-        const micButton = document.getElementById('mic-button');
+        function toggleTextPanel() {
+            const isOpen = textInputPanel.classList.contains('active');
+            if (isOpen) {
+                textInputPanel.classList.remove('active');
+            } else {
+                textInputPanel.classList.add('active');
+                panelTextInput.focus();
+            }
+        }
 
-        micButton.addEventListener('click', async () => {
+        navKeyboard.addEventListener('click', toggleTextPanel);
+        closeTextPanel.addEventListener('click', () => textInputPanel.classList.remove('active'));
+
+        function sendPanelTextMessage() {
+            const text = panelTextInput.value.trim();
+            if (!text) return;
             if (!selectedRecipientName) {
                 alert('Будь ласка, оберіть співрозмовника у меню Контакти!');
                 return;
             }
+            socket.emit('text-message', {
+                sender: username,
+                recipient: selectedRecipientName,
+                text: text,
+                targetLang: textTargetLangSelect.value
+            });
+            panelTextInput.value = '';
+            textInputPanel.classList.remove('active');
+        }
 
+        panelTextSend.addEventListener('click', sendPanelTextMessage);
+        panelTextInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') { e.preventDefault(); sendPanelTextMessage(); } });
+
+        // Микрофон
+        let mediaRecorder, audioChunks = [], isRecording = false;
+        const micButton = document.getElementById('mic-button');
+
+        micButton.addEventListener('click', async () => {
+            if (!selectedRecipientName) { alert('Оберіть співрозмовника у Контактах!'); return; }
             if (!isRecording) {
                 try {
                     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                     mediaRecorder = new MediaRecorder(stream);
                     audioChunks = [];
-
-                    mediaRecorder.ondataavailable = (event) => {
-                        if (event.data.size > 0) audioChunks.push(event.data);
-                    };
-
+                    mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
                     mediaRecorder.onstop = () => {
-                        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
                         const reader = new FileReader();
-                        reader.readAsDataURL(audioBlob);
-                        reader.onloadend = () => {
-                            const base64Audio = reader.result;
-                            socket.emit('voice-message', {
-                                sender: username,
-                                recipient: selectedRecipientName,
-                                audio: base64Audio
-                            });
-                        };
-                        stream.getTracks().forEach(track => track.stop());
+                        reader.readAsDataURL(new Blob(audioChunks, { type: 'audio/webm' }));
+                        reader.onloadend = () => socket.emit('voice-message', { sender: username, recipient: selectedRecipientName, audio: reader.result });
+                        stream.getTracks().forEach(t => t.stop());
                     };
-
                     mediaRecorder.start();
                     isRecording = true;
                     micButton.classList.add('recording');
-                    
-                    const recordingTimer = document.getElementById('recording-timer');
-                    let recordSeconds = 0;
-                    if (recordingTimer) {
-                        recordingTimer.textContent = '● 00:00';
-                        recordingTimer.classList.add('active');
-                    }
-                    window.recordTimerInterval = setInterval(() => {
-                        recordSeconds++;
-                        const mins = String(Math.floor(recordSeconds / 60)).padStart(2, '0');
-                        const secs = String(recordSeconds % 60).padStart(2, '0');
-                        if (recordingTimer) recordingTimer.textContent = `● ${mins}:${secs}`;
+                    const timer = document.getElementById('recording-timer');
+                    timer.textContent = '● 00:00'; timer.classList.add('active');
+                    let secs = 0;
+                    window.recInterval = setInterval(() => {
+                        secs++;
+                        timer.textContent = `● ${String(Math.floor(secs/60)).padStart(2,'0')}:${String(secs%60).padStart(2,'0')}`;
                     }, 1000);
-
-                } catch (err) {
-                    console.error("Помилка мікрофона:", err);
-                    alert("Не вдалося отримати доступ до мікрофона.");
-                }
+                } catch (err) { alert("Немає доступу до мікрофона."); }
             } else {
-                if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-                    mediaRecorder.stop();
-                }
+                if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
                 isRecording = false;
                 micButton.classList.remove('recording');
-                const recordingTimer = document.getElementById('recording-timer');
-                if (recordingTimer) recordingTimer.classList.remove('active');
-                if (window.recordTimerInterval) clearInterval(window.recordTimerInterval);
+                document.getElementById('recording-timer').classList.remove('active');
+                clearInterval(window.recInterval);
             }
         });
 
         socket.on('incoming-message', (data) => {
-            if (data.text) {
-                const isMySent = (data.sender === username);
-
-                if (isMySent || data.sender === selectedRecipientName) {
-                    addMessageToStack(data.text, data.sender || 'Контакт', isMySent);
-                }
-
-                const soundToggle = document.getElementById('sound-toggle');
-                if (soundToggle && soundToggle.checked) {
-                    speakText(data.text);
-                }
+            if (data.text && (data.sender === username || data.sender === selectedRecipientName)) {
+                addMessageToStack(data.text, data.sender || 'Контакт', data.sender === username);
+                if (document.getElementById('sound-toggle').checked) speakText(data.text);
             }
         });
 
         const ttsLangMap = { 'Ukrainian': 'uk-UA', 'English': 'en-US', 'Spanish': 'es-ES', 'German': 'de-DE', 'French': 'fr-FR' };
-
-        function speakText(textToSpeech) {
+        function speakText(text) {
             if (!('speechSynthesis' in window)) return;
             window.speechSynthesis.cancel();
-            const utterance = new SpeechSynthesisUtterance(textToSpeech);
-            const activeLang = interfaceLangSelect.value;
-            utterance.lang = ttsLangMap[activeLang] || 'es-ES';
-            utterance.rate = 1.0;
-            utterance.pitch = 1.0;
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = ttsLangMap[interfaceLangSelect.value] || 'es-ES';
             window.speechSynthesis.speak(utterance);
         }
 
-        const updateAppBtn = document.getElementById('update-app-btn');
-        if (updateAppBtn) {
-            updateAppBtn.addEventListener('click', async () => {
-                updateAppBtn.textContent = 'Перевірка...';
-                try {
-                    if ('serviceWorker' in navigator) {
-                        const registration = await navigator.serviceWorker.getRegistration();
-                        if (registration) await registration.update();
-                    }
-                    if ('caches' in window) {
-                        const cacheNames = await caches.keys();
-                        await Promise.all(cacheNames.map(name => caches.delete(name)));
-                    }
-                    setTimeout(() => window.location.reload(true), 400);
-                } catch (err) {
-                    window.location.reload(true);
-                }
-            });
-        }
+        document.getElementById('update-app-btn').addEventListener('click', async () => {
+            try {
+                if ('serviceWorker' in navigator) (await navigator.serviceWorker.getRegistration())?.update();
+                if ('caches' in window) await Promise.all((await caches.keys()).map(name => caches.delete(name)));
+                setTimeout(() => window.location.reload(true), 400);
+            } catch (e) { window.location.reload(true); }
+        });
 
-        // ----------------------------------------------------
-        // ВКЛАДКА QR, ПОВНОЕКРАННИЙ QR ТА ВСТАНОВЛЕННЯ PWA
-        // ----------------------------------------------------
         const currentAppUrl = window.location.origin;
-        const qrHighResUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(currentAppUrl)}`;
-        document.getElementById('qr-android-img').src = qrHighResUrl;
-        document.getElementById('qr-pc-img').src = qrHighResUrl;
+        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(currentAppUrl)}`;
+        document.getElementById('qr-android-img').src = qrUrl;
+        document.getElementById('qr-pc-img').src = qrUrl;
+        document.getElementById('copy-android-btn').addEventListener('click', () => navigator.clipboard.writeText(currentAppUrl).then(() => alert('Скопійовано!')));
+        document.getElementById('copy-pc-btn').addEventListener('click', () => navigator.clipboard.writeText(currentAppUrl).then(() => alert('Скопійовано!')));
 
-        const qrFullscreenModal = document.getElementById('qr-fullscreen-modal');
-        const qrFullscreenTitle = document.getElementById('qr-fullscreen-title');
-        const qrFullscreenImg = document.getElementById('qr-fullscreen-img');
-        const qrAndroidBox = document.getElementById('qr-android-box');
-        const qrPcBox = document.getElementById('qr-pc-box');
-
-        function openFullscreenQr(titleText) {
-            if (!qrFullscreenModal) return;
-            qrFullscreenTitle.textContent = titleText;
-            qrFullscreenImg.src = qrHighResUrl;
-            qrFullscreenModal.classList.add('active');
-        }
-
-        if (qrAndroidBox) {
-            qrAndroidBox.addEventListener('click', () => openFullscreenQr('Android / iOS'));
-        }
-        if (qrPcBox) {
-            qrPcBox.addEventListener('click', () => openFullscreenQr('PC / Web'));
-        }
-        if (qrFullscreenModal) {
-            qrFullscreenModal.addEventListener('click', () => {
-                qrFullscreenModal.classList.remove('active');
-            });
-        }
-
-        document.getElementById('copy-android-btn').addEventListener('click', () => {
-            navigator.clipboard.writeText(currentAppUrl).then(() => alert('Посилання скопійовано!'));
+        document.getElementById('toggle-lang-dropdown').addEventListener('click', () => {
+            document.getElementById('lang-options-box').classList.toggle('active');
+            document.getElementById('lang-arrow').classList.toggle('open');
         });
-        document.getElementById('copy-pc-btn').addEventListener('click', () => {
-            navigator.clipboard.writeText(currentAppUrl).then(() => alert('Посилання скопійовано!'));
+        document.getElementById('toggle-voice-dropdown').addEventListener('click', () => {
+            document.getElementById('voice-options-box').classList.toggle('active');
+            document.getElementById('voice-arrow').classList.toggle('open');
         });
-
-        let deferredInstallPrompt = null;
-        const pwaInstallCard = document.getElementById('pwa-install-card');
-        const pwaInstallBtn = document.getElementById('pwa-install-btn');
-        const pwaInstallHint = document.getElementById('pwa-install-hint');
-
-        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-        if (isStandalone && pwaInstallCard) {
-            pwaInstallCard.style.display = 'none';
-        }
-
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredInstallPrompt = e;
-            if (pwaInstallCard) pwaInstallCard.style.display = 'flex';
-        });
-
-        window.addEventListener('appinstalled', () => {
-            deferredInstallPrompt = null;
-            if (pwaInstallCard) pwaInstallCard.style.display = 'none';
-        });
-
-        if (pwaInstallBtn) {
-            pwaInstallBtn.addEventListener('click', async () => {
-                const activeLang = interfaceLangSelect ? interfaceLangSelect.value : 'Ukrainian';
-                const dict = translations[activeLang] || translations['Ukrainian'];
-
-                if (deferredInstallPrompt) {
-                    deferredInstallPrompt.prompt();
-                    const choiceResult = await deferredInstallPrompt.userChoice;
-                    if (choiceResult.outcome === 'accepted') {
-                        deferredInstallPrompt = null;
-                        if (pwaInstallCard) pwaInstallCard.style.display = 'none';
-                    }
-                } else if (pwaInstallHint) {
-                    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-                    pwaInstallHint.textContent = isIOS ? dict.ios_install_hint : dict.manual_install_hint;
-                    pwaInstallHint.classList.toggle('visible');
-                }
-            });
-        }
-
-        const toggleLangDropdown = document.getElementById('toggle-lang-dropdown');
-        const langOptionsBox = document.getElementById('lang-options-box');
-        const langArrow = document.getElementById('lang-arrow');
-
-        toggleLangDropdown.addEventListener('click', () => {
-            langOptionsBox.classList.toggle('active');
-            langArrow.classList.toggle('open');
-        });
-
-        const toggleVoiceDropdown = document.getElementById('toggle-voice-dropdown');
-        const voiceOptionsBox = document.getElementById('voice-options-box');
-        const voiceArrow = document.getElementById('voice-arrow');
-
-        toggleVoiceDropdown.addEventListener('click', () => {
-            voiceOptionsBox.classList.toggle('active');
-            voiceArrow.classList.toggle('open');
-        });
-
-        document.getElementById('btn-appearance').addEventListener('click', () => { alert('Зовнішній вигляд: Темна неон тема активована.'); });
-        document.getElementById('btn-data-storage').addEventListener('click', () => { alert('Дані та пам\'ять: Кеш успішно оптимізовано.'); });
-        document.getElementById('btn-help').addEventListener('click', () => { alert('Допомога: Habla Mobile 3.0 — голосовий перекладач та месенджер.'); });
 
         const navHome = document.getElementById('nav-home');
         const navContacts = document.getElementById('nav-contacts');
@@ -1558,168 +994,86 @@
         const qrScreen = document.getElementById('qr-screen');
         const contactsScreen = document.getElementById('contacts-screen');
         const settingsScreen = document.getElementById('settings-screen');
-        const menuOverlay = document.getElementById('menu-overlay');
 
-        function setActiveNav(selectedItem) {
-            navItems.forEach(item => item.classList.remove('active'));
-            if (selectedItem) selectedItem.classList.add('active');
-        }
-
+        function setActiveNav(item) { navItems.forEach(n => n.classList.remove('active')); if (item) item.classList.add('active'); }
         function closeAllScreens() {
-            if (qrScreen) qrScreen.classList.remove('active');
-            if (contactsScreen) contactsScreen.classList.remove('active');
-            if (settingsScreen) settingsScreen.classList.remove('active');
-            if (fullscreenModal) fullscreenModal.classList.remove('active');
-            if (qrFullscreenModal) qrFullscreenModal.classList.remove('active');
-            isContactsExpanded = false;
-            if (contactsWrapperBox) contactsWrapperBox.classList.remove('expanded-mode');
+            qrScreen.classList.remove('active'); contactsScreen.classList.remove('active'); settingsScreen.classList.remove('active');
+            isContactsExpanded = false; contactsWrapperBox.classList.remove('expanded-mode');
         }
 
         navHome.addEventListener('click', () => { closeAllScreens(); setActiveNav(navHome); });
         navContacts.addEventListener('click', () => {
-            const isCurrentlyOpen = contactsScreen && contactsScreen.classList.contains('active');
+            const isOpen = contactsScreen.classList.contains('active');
             closeAllScreens();
-            if (isCurrentlyOpen) {
-                setActiveNav(navHome);
-            } else {
-                joinWithLanguage();
-                setActiveNav(navContacts);
-                if (contactsScreen) contactsScreen.classList.add('active');
-                setTimeout(() => { safeRenderContactsGrid(lastUsersData); }, 10);
-            }
+            if (isOpen) setActiveNav(navHome); else { joinWithLanguage(); setActiveNav(navContacts); contactsScreen.classList.add('active'); safeRenderContactsGrid(lastUsersData); }
         });
         navQr.addEventListener('click', () => {
-            const isCurrentlyOpen = qrScreen && qrScreen.classList.contains('active');
+            const isOpen = qrScreen.classList.contains('active');
             closeAllScreens();
-            if (isCurrentlyOpen) {
-                setActiveNav(navHome);
-            } else {
-                setActiveNav(navQr);
-                if (qrScreen) qrScreen.classList.add('active');
-            }
+            if (isOpen) setActiveNav(navHome); else { setActiveNav(navQr); qrScreen.classList.add('active'); }
         });
         navSettings.addEventListener('click', () => {
-            const isCurrentlyOpen = settingsScreen && settingsScreen.classList.contains('active');
+            const isOpen = settingsScreen.classList.contains('active');
             closeAllScreens();
-            if (isCurrentlyOpen) {
-                setActiveNav(navHome);
-            } else {
-                setActiveNav(navSettings);
-                if (settingsScreen) settingsScreen.classList.add('active');
-            }
+            if (isOpen) setActiveNav(navHome); else { setActiveNav(navSettings); settingsScreen.classList.add('active'); }
         });
-
         document.getElementById('close-settings-screen').addEventListener('click', () => { closeAllScreens(); setActiveNav(navHome); });
 
         const contactModal = document.getElementById('contact-modal');
-        const modalContactTitle = document.getElementById('modal-contact-title');
-        const closeContactModal = document.getElementById('close-contact-modal');
-        const modalDeleteBtn = document.getElementById('modal-delete-btn');
-        const modalSaveBtn = document.getElementById('modal-save-btn');
-        const modalAvatarInput = document.getElementById('modal-avatar-input');
-        const modalNicknameSection = document.getElementById('modal-nickname-section');
-        const modalNicknameInput = document.getElementById('modal-nickname-input');
-        const colorCircles = document.querySelectorAll('.color-circle');
-
-        closeContactModal.addEventListener('click', () => { contactModal.classList.remove('active'); menuOverlay.classList.remove('active'); });
-        menuOverlay.addEventListener('click', () => { contactModal.classList.remove('active'); menuOverlay.classList.remove('active'); });
+        let activeContactForModal = null, selectedModalColor = '#89a1b2';
+        document.getElementById('close-contact-modal').addEventListener('click', () => { contactModal.classList.remove('active'); document.getElementById('menu-overlay').classList.remove('active'); });
 
         function triggerSettings(targetName, e) {
             e.preventDefault();
             activeContactForModal = targetName;
             const isSelf = (targetName === username);
-            modalContactTitle.textContent = isSelf ? `Мій профіль (${targetName})` : targetName;
-            modalDeleteBtn.style.display = isSelf ? 'none' : 'block';
-            
-            if (modalNicknameSection && modalNicknameInput) {
-                modalNicknameSection.style.display = isSelf ? 'flex' : 'none';
-                modalNicknameInput.value = isSelf ? username : '';
-            }
-
-            selectedModalColor = contactColors[targetName] || '#89a1b2';
-            colorCircles.forEach(c => {
-                if (c.getAttribute('data-color') === selectedModalColor) c.classList.add('selected');
-                else c.classList.remove('selected');
-            });
-            modalAvatarInput.value = contactAvatars[targetName] || '';
+            document.getElementById('modal-contact-title').textContent = isSelf ? `Мій профіль (${targetName})` : targetName;
+            document.getElementById('modal-delete-btn').style.display = isSelf ? 'none' : 'block';
+            document.getElementById('modal-nickname-section').style.display = isSelf ? 'flex' : 'none';
+            if (isSelf) document.getElementById('modal-nickname-input').value = username;
+            document.getElementById('modal-avatar-input').value = contactAvatars[targetName] || '';
             contactModal.classList.add('active');
-            menuOverlay.classList.add('active');
+            document.getElementById('menu-overlay').classList.add('active');
         }
 
         document.getElementById('profile-settings-trigger').addEventListener('click', (e) => triggerSettings(username, e));
+        document.querySelectorAll('.color-circle').forEach(c => c.addEventListener('click', () => {
+            document.querySelectorAll('.color-circle').forEach(el => el.classList.remove('selected'));
+            c.classList.add('selected'); selectedModalColor = c.getAttribute('data-color');
+        }));
 
-        colorCircles.forEach(circle => {
-            circle.addEventListener('click', () => {
-                colorCircles.forEach(c => c.classList.remove('selected'));
-                circle.classList.add('selected');
-                selectedModalColor = circle.getAttribute('data-color');
-            });
-        });
-
-        modalSaveBtn.addEventListener('click', () => {
+        document.getElementById('modal-save-btn').addEventListener('click', () => {
             if (!activeContactForModal) return;
-            const color = selectedModalColor;
-            const avatar = modalAvatarInput.value.trim();
-
-            if (activeContactForModal === username && modalNicknameInput) {
-                const newNick = modalNicknameInput.value.trim();
+            const avatar = document.getElementById('modal-avatar-input').value.trim();
+            if (activeContactForModal === username) {
+                const newNick = document.getElementById('modal-nickname-input').value.trim();
                 if (newNick && newNick !== username) {
-                    const oldUsername = username;
-                    username = newNick;
-                    localStorage.setItem('habla_username', username);
-                    activeContactForModal = username;
-                    delete contactColors[oldUsername];
-                    delete contactAvatars[oldUsername];
-                    joinWithLanguage();
+                    delete contactColors[username]; delete contactAvatars[username];
+                    username = newNick; localStorage.setItem('habla_username', username);
+                    activeContactForModal = username; joinWithLanguage();
                 }
             }
-
-            contactColors[activeContactForModal] = color;
-            if (avatar) contactAvatars[activeContactForModal] = avatar;
-            else delete contactAvatars[activeContactForModal];
-
-            socket.emit('update-customization', { targetName: activeContactForModal, color: color, avatar: avatar });
-            contactModal.classList.remove('active');
-            menuOverlay.classList.remove('active');
-            updateProfileDisplay();
-            safeRenderContactsGrid(lastUsersData);
+            contactColors[activeContactForModal] = selectedModalColor;
+            if (avatar) contactAvatars[activeContactForModal] = avatar; else delete contactAvatars[activeContactForModal];
+            socket.emit('update-customization', { targetName: activeContactForModal, color: selectedModalColor, avatar });
+            contactModal.classList.remove('active'); document.getElementById('menu-overlay').classList.remove('active');
+            updateProfileDisplay(); safeRenderContactsGrid(lastUsersData);
         });
 
-        modalDeleteBtn.addEventListener('click', () => {
+        document.getElementById('modal-delete-btn').addEventListener('click', () => {
             if (!activeContactForModal || activeContactForModal === username) return;
             if (confirm(`Видалити контакт ${activeContactForModal}?`)) {
                 localAddedContacts = localAddedContacts.filter(n => n !== activeContactForModal);
                 localStorage.setItem('habla_local_contacts', JSON.stringify(localAddedContacts));
-                recentContactsOrder = recentContactsOrder.filter(n => n !== activeContactForModal);
-                localStorage.setItem('habla_recent_contacts', JSON.stringify(recentContactsOrder));
-                delete contactColors[activeContactForModal];
-                delete contactAvatars[activeContactForModal];
-                
-                if (selectedRecipientName === activeContactForModal) {
-                    localStorage.removeItem('habla_selected_recipient');
-                    selectedRecipientName = null;
-                    if (selectedRecipientDisplay) {
-                        selectedRecipientDisplay.textContent = '';
-                        selectedRecipientDisplay.classList.remove('active');
-                    }
-                }
-
-                socket.emit('update-customization', { targetName: activeContactForModal, color: '#89a1b2', avatar: '' });
-                contactModal.classList.remove('active');
-                menuOverlay.classList.remove('active');
+                delete contactColors[activeContactForModal]; delete contactAvatars[activeContactForModal];
+                if (selectedRecipientName === activeContactForModal) { localStorage.removeItem('habla_selected_recipient'); selectedRecipientName = null; }
+                contactModal.classList.remove('active'); document.getElementById('menu-overlay').classList.remove('active');
                 safeRenderContactsGrid(lastUsersData);
             }
         });
 
-        socket.on('update-users', (payload) => {
-            lastUsersData = payload;
-            safeRenderContactsGrid(payload);
-        });
-
-        function escapeHtml(text) {
-            const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
-            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
-        }
+        socket.on('update-users', (payload) => { lastUsersData = payload; safeRenderContactsGrid(payload); });
+        function escapeHtml(text) { const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }; return text.replace(/[&<>"']/g, m => map[m]); }
 
         updateProfileDisplay();
         safeRenderContactsGrid();
