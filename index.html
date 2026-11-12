@@ -143,7 +143,7 @@
             border-radius: 8px; font-weight: bold; cursor: pointer; text-align: center; font-size: 0.9rem;
         }
         .modal-btn-delete {
-            background: rgba(255, 59, 48, 0.2); border: 1px solid #ff3b30; color: #ff3b30;
+            background: rgba(201, 74, 74, 0.15); border: 1px solid #c94a4a; color: #c94a4a;
             padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; text-align: center; font-size: 0.9rem;
         }
 
@@ -189,16 +189,16 @@
         }
         .neon-mic-btn:active { transform: scale(0.96); border-color: #f5f5f5; }
         .neon-mic-btn.recording {
-            border-color: #ff3b30 !important;
-            box-shadow: 0 0 20px rgba(255, 59, 48, 0.6);
-            animation: pulse-red 1.2s infinite;
+            border-color: #c94a4a !important;
+            box-shadow: 0 0 18px rgba(201, 74, 74, 0.45);
+            animation: pulse-red 1.4s infinite;
         }
         @keyframes pulse-red {
-            0% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.5); }
-            70% { box-shadow: 0 0 0 18px rgba(255, 59, 48, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0); }
+            0% { box-shadow: 0 0 0 0 rgba(201, 74, 74, 0.4); }
+            70% { box-shadow: 0 0 0 16px rgba(201, 74, 74, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(201, 74, 74, 0); }
         }
-        .recording-timer { color: #ff3b30; font-weight: bold; font-size: 0.9rem; display: none; }
+        .recording-timer { color: #c94a4a; font-weight: bold; font-size: 0.9rem; display: none; }
         .recording-timer.active { display: block; }
 
         .selected-recipient-inside {
@@ -268,13 +268,6 @@
         }
         .add-contact-grid-circle:hover { transform: scale(1.1); border-color: #f5f5f5; color: #f5f5f5; }
 
-        .contacts-bottom-actions {
-            display: flex; justify-content: space-around; align-items: center;
-            background: rgba(23, 33, 43, 0.7); border: 1px solid #89a1b2; border-radius: 14px; padding: 10px;
-        }
-        .action-icon-btn { background: none; border: none; color: #89a1b2; font-size: 1.2rem; cursor: pointer; padding: 6px; border-radius: 8px; }
-        .action-icon-btn:hover { color: #f5f5f5; background: #242f3d; }
-
         #add-contact-fullscreen-modal {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -315,7 +308,7 @@
             flex: 1; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 0.9rem; border: none; text-align: center;
         }
         .modal-btn-confirm { background: #2b5278; color: #fff; }
-        .modal-btn-cancel { background: rgba(255, 59, 48, 0.2); border: 1px solid #ff3b30; color: #ff3b30; }
+        .modal-btn-cancel { background: rgba(201, 74, 74, 0.15); border: 1px solid #c94a4a; color: #c94a4a; }
 
         .qr-cards-wrapper { display: flex; gap: 16px; width: 100%; max-width: 400px; justify-content: center; }
         .qr-card {
@@ -344,19 +337,21 @@
             max-width: 480px; width: 100%; margin: 0 auto;
         }
         .settings-row {
-            display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding: 4px 0; color: #f5f5f5; font-size: 0.95rem;
+            display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding: 4px 0; color: #89a1b2; font-size: 0.95rem; transition: color 0.2s;
         }
-        .settings-row:hover { color: #89a1b2; }
-        .dropdown-arrow { font-size: 0.8rem; color: #89a1b2; transition: transform 0.2s; }
+        .settings-row:hover { color: #f5f5f5; }
+        .dropdown-arrow { font-size: 0.8rem; color: #89a1b2; transition: transform 0.2s, color 0.2s; }
+        .settings-row:hover .dropdown-arrow { color: #f5f5f5; }
         .dropdown-arrow.open { transform: rotate(180deg); }
 
         .sub-options-box { display: none; flex-direction: column; gap: 8px; padding-top: 6px; border-top: 1px solid #242f3d; }
         .sub-options-box.active { display: flex; }
 
         .sidebar-nav-btn {
-            background: #242f3d; border: 1px solid #2b5278; color: #f5f5f5; padding: 12px 16px;
-            border-radius: 10px; font-size: 0.95rem; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 12px; width: 100%; justify-content: center;
+            background: #242f3d; border: 1px solid #2b5278; color: #89a1b2; padding: 12px 16px;
+            border-radius: 10px; font-size: 0.95rem; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 12px; width: 100%; justify-content: center; transition: color 0.2s;
         }
+        .sidebar-nav-btn:hover { color: #f5f5f5; }
 
         .bottom-nav-bar {
             position: fixed;
@@ -392,24 +387,28 @@
             <span id="modal-contact-title" class="modal-title">Контакт</span>
             <button id="close-contact-modal" class="modal-close-btn">✕</button>
         </div>
+        <div id="modal-nickname-section" style="display: none; flex-direction: column; gap: 6px;">
+            <div style="font-size: 0.8rem; color: #89a1b2;" data-i18n="change_nickname">Змінити нікнейм:</div>
+            <input type="text" id="modal-nickname-input" class="modal-avatar-input" placeholder="Введіть новий нікнейм...">
+        </div>
         <div style="font-size: 0.8rem; color: #89a1b2;" data-i18n="icon_bg_color">Колір фону іконки:</div>
         <div class="color-palette" id="color-palette">
             <div class="color-circle" style="background: #89a1b2;" data-color="#89a1b2"></div>
             <div class="color-circle" style="background: #2b5278;" data-color="#2b5278"></div>
             <div class="color-circle" style="background: #4a6fa5;" data-color="#4a6fa5"></div>
-            <div class="color-circle" style="background: #ff3b30;" data-color="#ff3b30"></div>
+            <div class="color-circle" style="background: #c94a4a;" data-color="#c94a4a"></div>
             <div class="color-circle" style="background: #7928ca;" data-color="#7928ca"></div>
             <div class="color-circle" style="background: #0056b3;" data-color="#0056b3"></div>
         </div>
         <div style="font-size: 0.8rem; color: #89a1b2;" data-i18n="avatar_url">Посилання на фото-аватарку (URL):</div>
         <input type="text" id="modal-avatar-input" class="modal-avatar-input" placeholder="https://...">
-        <button id="modal-save-btn" class="modal-btn-save" data-i18n="save">💾 Зберегти</button>
-        <button id="modal-delete-btn" class="modal-btn-delete" data-i18n="delete_contact">🗑 Видалити контакт</button>
+        <button id="modal-save-btn" class="modal-btn-save" data-i18n="save">Зберегти</button>
+        <button id="modal-delete-btn" class="modal-btn-delete" data-i18n="delete_contact">Видалити контакт</button>
     </div>
 
     <div id="add-contact-fullscreen-modal">
         <div class="add-modal-card">
-            <div class="add-modal-icon-circle">➕</div>
+            <div class="add-modal-icon-circle">+</div>
             <div style="font-weight: bold; font-size: 1.1rem; color: #f5f5f5;">Додати новий контакт</div>
             <input type="text" id="fullscreen-contact-input" class="add-modal-input" placeholder="Введіть нікнейм...">
             <div class="add-modal-actions">
@@ -425,7 +424,7 @@
 
             <button id="mic-button" class="neon-mic-btn" title="Натисніть для запису голосу">
                 <div id="selected-recipient-display" class="selected-recipient-inside"></div>
-                <div id="recording-timer" class="recording-timer">🔴 00:00</div>
+                <div id="recording-timer" class="recording-timer">● 00:00</div>
                 <div class="mic-icon-placeholder">
                     <svg viewBox="0 0 24 24" stroke="#89a1b2" stroke-width="2" fill="none"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v1a7 7 0 0 1-14 0v-1"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
                 </div>
@@ -446,12 +445,6 @@
                     <div class="saved-contacts-title" id="label-saved-contacts" data-i18n="saved_contacts">Збережені контакти</div>
                     <div class="contacts-grid" id="contacts-grid-container"></div>
                 </div>
-
-                <div class="contacts-bottom-actions">
-                    <button class="action-icon-btn" id="sidebar-add-btn" title="Додати контакт">➕</button>
-                    <button class="action-icon-btn" id="sidebar-settings-btn" title="Налаштування">⚙️</button>
-                    <button class="action-icon-btn" id="sidebar-call-btn" title="Зв'язок">📞</button>
-                </div>
             </div>
         </div>
 
@@ -460,15 +453,15 @@
                 <div class="qr-card">
                     <div class="qr-card-title">Android App</div>
                     <div class="qr-img-box"><img id="qr-android-img" src="" alt="Android QR"></div>
-                    <button class="copy-link-action-btn" id="copy-android-btn">📋 Copy Link</button>
+                    <button class="copy-link-action-btn" id="copy-android-btn">Copy Link</button>
                 </div>
                 <div class="qr-card">
                     <div class="qr-card-title">PC App</div>
                     <div class="qr-img-box"><img id="qr-pc-img" src="" alt="PC QR"></div>
-                    <button class="copy-link-action-btn" id="copy-pc-btn">📋 Copy Link</button>
+                    <button class="copy-link-action-btn" id="copy-pc-btn">Copy Link</button>
                 </div>
             </div>
-            <button class="ios-download-btn" id="ios-download-btn">🍎 Download on iOS</button>
+            <button class="ios-download-btn" id="ios-download-btn">Download on iOS</button>
         </div>
 
         <div id="settings-screen">
@@ -478,7 +471,7 @@
             </div>
 
             <div class="settings-card">
-                <button id="update-app-btn" class="sidebar-nav-btn">🔄 <span data-i18n="update_app">Оновлення програми</span></button>
+                <button id="update-app-btn" class="sidebar-nav-btn"><span data-i18n="update_app">Оновлення програми</span></button>
             </div>
 
             <div class="settings-card">
@@ -516,24 +509,23 @@
 
             <div class="settings-card">
                 <div class="settings-row" id="btn-appearance">
-                    <span data-i18n="appearance">🎨 Зовнішній вигляд</span>
+                    <span data-i18n="appearance">Зовнішній вигляд</span>
+                    <span class="dropdown-arrow">▼</span>
                 </div>
             </div>
 
             <div class="settings-card">
                 <div class="settings-row" id="btn-data-storage">
-                    <span data-i18n="data_storage">💾 Дані та пам'ять</span>
+                    <span data-i18n="data_storage">Дані та пам'ять</span>
+                    <span class="dropdown-arrow">▼</span>
                 </div>
             </div>
 
             <div class="settings-card">
                 <div class="settings-row" id="btn-help">
-                    <span data-i18n="help">❓ Допомога</span>
+                    <span data-i18n="help">Допомога</span>
+                    <span class="dropdown-arrow">▼</span>
                 </div>
-            </div>
-            
-            <div class="settings-card">
-                <button id="reset-user-btn" class="sidebar-nav-btn" style="background: rgba(255, 59, 48, 0.15); border-color: #ff3b30; color: #ff3b30;">🔄 <span data-i18n="change_nickname">Змінити нікнейм</span></button>
             </div>
         </div>
     </div>
@@ -573,10 +565,10 @@
                 interface_lang: "Мова інтерфейсу",
                 voice_over: "Озвучування перекладу",
                 force_voice: "Примусово озвучувати",
-                appearance: "🎨 Зовнішній вигляд",
-                data_storage: "💾 Дані та пам'ять",
-                help: "❓ Допомога",
-                change_nickname: "Змінити нікнейм",
+                appearance: "Зовнішній вигляд",
+                data_storage: "Дані та пам'ять",
+                help: "Допомога",
+                change_nickname: "Змінити нікнейм:",
                 saved_contacts: "Збережені контакти",
                 profile_settings: "Profile Settings",
                 add: "Додати",
@@ -586,8 +578,8 @@
                 tab_settings: "Налаштування",
                 icon_bg_color: "Колір фону іконки:",
                 avatar_url: "Посилання на фото-аватарку (URL):",
-                save: "💾 Зберегти",
-                delete_contact: "🗑 Видалити контакт"
+                save: "Зберегти",
+                delete_contact: "Видалити контакт"
             },
             English: {
                 settings_title: "Settings",
@@ -595,10 +587,10 @@
                 interface_lang: "Interface Language",
                 voice_over: "Voice-over Translation",
                 force_voice: "Force voice-over",
-                appearance: "🎨 Appearance",
-                data_storage: "💾 Data & Storage",
-                help: "❓ Help",
-                change_nickname: "Change Nickname",
+                appearance: "Appearance",
+                data_storage: "Data & Storage",
+                help: "Help",
+                change_nickname: "Change Nickname:",
                 saved_contacts: "Saved Contacts",
                 profile_settings: "Profile Settings",
                 add: "Add",
@@ -608,8 +600,8 @@
                 tab_settings: "Settings",
                 icon_bg_color: "Icon background color:",
                 avatar_url: "Avatar photo link (URL):",
-                save: "💾 Save",
-                delete_contact: "🗑 Delete contact"
+                save: "Save",
+                delete_contact: "Delete contact"
             },
             Spanish: {
                 settings_title: "Ajustes",
@@ -617,10 +609,10 @@
                 interface_lang: "Idioma de interfaz",
                 voice_over: "Voz de traducción",
                 force_voice: "Forzar voz",
-                appearance: "🎨 Apariencia",
-                data_storage: "💾 Datos y almacenamiento",
-                help: "❓ Ayuda",
-                change_nickname: "Cambiar apodo",
+                appearance: "Apariencia",
+                data_storage: "Datos y almacenamiento",
+                help: "Ayuda",
+                change_nickname: "Cambiar apodo:",
                 saved_contacts: "Contactos guardados",
                 profile_settings: "Ajustes de perfil",
                 add: "Añadir",
@@ -630,8 +622,8 @@
                 tab_settings: "Ajustes",
                 icon_bg_color: "Color de fondo del icono:",
                 avatar_url: "Enlace de avatar (URL):",
-                save: "💾 Guardar",
-                delete_contact: "🗑 Eliminar contacto"
+                save: "Guardar",
+                delete_contact: "Eliminar contacto"
             },
             German: {
                 settings_title: "Einstellungen",
@@ -639,10 +631,10 @@
                 interface_lang: "Benutzeroberflächensprache",
                 voice_over: "Übersetzungssprache",
                 force_voice: "Sprachausgabe erzwingen",
-                appearance: "🎨 Erscheinungsbild",
-                data_storage: "💾 Daten & Speicher",
-                help: "❓ Hilfe",
-                change_nickname: "Spitzname ändern",
+                appearance: "Erscheinungsbild",
+                data_storage: "Daten & Speicher",
+                help: "Hilfe",
+                change_nickname: "Spitzname ändern:",
                 saved_contacts: "Gespeicherte Kontakte",
                 profile_settings: "Profileinstellungen",
                 add: "Hinzufügen",
@@ -652,8 +644,8 @@
                 tab_settings: "Einstellungen",
                 icon_bg_color: "Symbolhintergrundfarbe:",
                 avatar_url: "Avatar-Link (URL):",
-                save: "💾 Speichern",
-                delete_contact: "🗑 Kontakt löschen"
+                save: "Speichern",
+                delete_contact: "Kontakt löschen"
             },
             French: {
                 settings_title: "Paramètres",
@@ -661,10 +653,10 @@
                 interface_lang: "Langue de l'interface",
                 voice_over: "Voix de traduction",
                 force_voice: "Forcer la voix",
-                appearance: "🎨 Apparence",
-                data_storage: "💾 Données et stockage",
-                help: "❓ Aide",
-                change_nickname: "Changer de pseudo",
+                appearance: "Apparence",
+                data_storage: "Données et stockage",
+                help: "Aide",
+                change_nickname: "Changer de pseudo:",
                 saved_contacts: "Contacts enregistrés",
                 profile_settings: "Paramètres du profil",
                 add: "Ajouter",
@@ -674,8 +666,8 @@
                 tab_settings: "Paramètres",
                 icon_bg_color: "Couleur de fond de l'icône :",
                 avatar_url: "Lien d'avatar (URL) :",
-                save: "💾 Enregistrer",
-                delete_contact: "🗑 Supprimer le contact"
+                save: "Enregistrer",
+                delete_contact: "Supprimer le contact"
             }
         };
 
@@ -1009,14 +1001,14 @@
                     const recordingTimer = document.getElementById('recording-timer');
                     let recordSeconds = 0;
                     if (recordingTimer) {
-                        recordingTimer.textContent = '🔴 00:00';
+                        recordingTimer.textContent = '● 00:00';
                         recordingTimer.classList.add('active');
                     }
                     window.recordTimerInterval = setInterval(() => {
                         recordSeconds++;
                         const mins = String(Math.floor(recordSeconds / 60)).padStart(2, '0');
                         const secs = String(recordSeconds % 60).padStart(2, '0');
-                        if (recordingTimer) recordingTimer.textContent = `🔴 ${mins}:${secs}`;
+                        if (recordingTimer) recordingTimer.textContent = `● ${mins}:${secs}`;
                     }, 1000);
 
                 } catch (err) {
@@ -1064,16 +1056,10 @@
             window.speechSynthesis.speak(utterance);
         }
 
-        document.getElementById('reset-user-btn').addEventListener('click', () => {
-            localStorage.removeItem('habla_username');
-            localStorage.removeItem('habla_selected_recipient');
-            location.reload();
-        });
-
         const updateAppBtn = document.getElementById('update-app-btn');
         if (updateAppBtn) {
             updateAppBtn.addEventListener('click', async () => {
-                updateAppBtn.textContent = '⏳ Перевірка...';
+                updateAppBtn.textContent = 'Перевірка...';
                 try {
                     if ('serviceWorker' in navigator) {
                         const registration = await navigator.serviceWorker.getRegistration();
@@ -1182,11 +1168,6 @@
         });
 
         document.getElementById('close-settings-screen').addEventListener('click', () => { closeAllScreens(); setActiveNav(navHome); });
-        document.getElementById('sidebar-settings-btn').addEventListener('click', () => {
-            closeAllScreens();
-            if (settingsScreen) settingsScreen.classList.add('active');
-            setActiveNav(navSettings);
-        });
 
         const contactModal = document.getElementById('contact-modal');
         const modalContactTitle = document.getElementById('modal-contact-title');
@@ -1194,6 +1175,8 @@
         const modalDeleteBtn = document.getElementById('modal-delete-btn');
         const modalSaveBtn = document.getElementById('modal-save-btn');
         const modalAvatarInput = document.getElementById('modal-avatar-input');
+        const modalNicknameSection = document.getElementById('modal-nickname-section');
+        const modalNicknameInput = document.getElementById('modal-nickname-input');
         const colorCircles = document.querySelectorAll('.color-circle');
 
         closeContactModal.addEventListener('click', () => { contactModal.classList.remove('active'); menuOverlay.classList.remove('active'); });
@@ -1202,8 +1185,14 @@
         function triggerSettings(targetName, e) {
             e.preventDefault();
             activeContactForModal = targetName;
-            modalContactTitle.textContent = targetName === username ? `⚙️ Мій профіль (${targetName})` : `⚙️ ${targetName}`;
-            modalDeleteBtn.style.display = targetName === username ? 'none' : 'block';
+            const isSelf = (targetName === username);
+            modalContactTitle.textContent = isSelf ? `Мій профіль (${targetName})` : targetName;
+            modalDeleteBtn.style.display = isSelf ? 'none' : 'block';
+            
+            if (modalNicknameSection && modalNicknameInput) {
+                modalNicknameSection.style.display = isSelf ? 'flex' : 'none';
+                modalNicknameInput.value = isSelf ? username : '';
+            }
 
             selectedModalColor = contactColors[targetName] || '#89a1b2';
             colorCircles.forEach(c => {
@@ -1229,6 +1218,20 @@
             if (!activeContactForModal) return;
             const color = selectedModalColor;
             const avatar = modalAvatarInput.value.trim();
+
+            if (activeContactForModal === username && modalNicknameInput) {
+                const newNick = modalNicknameInput.value.trim();
+                if (newNick && newNick !== username) {
+                    const oldUsername = username;
+                    username = newNick;
+                    localStorage.setItem('habla_username', username);
+                    activeContactForModal = username;
+                    delete contactColors[oldUsername];
+                    delete contactAvatars[oldUsername];
+                    joinWithLanguage();
+                }
+            }
+
             contactColors[activeContactForModal] = color;
             if (avatar) contactAvatars[activeContactForModal] = avatar;
             else delete contactAvatars[activeContactForModal];
