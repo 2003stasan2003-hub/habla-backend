@@ -1014,12 +1014,29 @@
             joinWithLanguage();
         });
 
+        // Синхронізуємо локально збережені контакти з сервером (щоб після рестарту Render відновлювався взаємний статус isMutual)
+        function syncSavedContactsToServer() {
+            if (!username || !socket || !socket.connected) return;
+            const contactsToSync = new Set([
+                ...localAddedContacts,
+                ...recentContactsOrder,
+                ...(selectedRecipientName ? [selectedRecipientName] : [])
+            ]);
+            contactsToSync.forEach(contactName => {
+                const clean = (contactName || '').trim();
+                if (clean && clean.toLowerCase() !== username.toLowerCase()) {
+                    socket.emit('add-contact', clean);
+                }
+            });
+        }
+
         function joinWithLanguage() {
             if (username) {
                 socket.emit('join', {
                     username: username.trim(),
                     lang: interfaceLangSelect.value
                 });
+                syncSavedContactsToServer();
             }
         }
 
@@ -1069,43 +1086,35 @@
             });
         }
 
-        // Універсальний парсер онлайн-користувачів (підтримує і масиви, і об'єкти від сервера)
-        function normalizeOnlineUsers(onlineUsers) {
-            if (!onlineUsers) return [];
-            const names = [];
+        // Розбираємо відповідь сервера { users: [{ name, isOnline, ... }], isAdmin }
+        function parseServerUsersPayload(payload) {
+            const allServerNames = [];
+            const onlineNames = [];
 
-            function extractName(entry) {
-                if (!entry) return '';
-                if (typeof entry === 'string') return entry.trim();
-                if (typeof entry === 'object') {
-                    return String(entry.username || entry.name || entry.nick || entry.user || '').trim();
-                }
-                return '';
-            }
+            const list = Array.isArray(payload)
+                ? payload
+                : (payload && Array.isArray(payload.users) ? payload.users : []);
 
-            if (Array.isArray(onlineUsers)) {
-                onlineUsers.forEach(item => {
-                    const n = extractName(item);
-                    if (n) names.push(n);
-                });
-            } else if (typeof onlineUsers === 'object') {
-                if (Array.isArray(onlineUsers.users)) {
-                    onlineUsers.users.forEach(item => {
-                        const n = extractName(item);
-                        if (n) names.push(n);
-                    });
-                } else {
-                    Object.entries(onlineUsers).forEach(([key, val]) => {
-                        const fromVal = extractName(val);
-                        if (fromVal) {
-                            names.push(fromVal);
-                        } else if (typeof key === 'string' && key.length < 40 && !key.includes('_')) {
-                            names.push(key.trim());
+            list.forEach(entry => {
+                if (!entry) return;
+                if (typeof entry === 'string') {
+                    const clean = entry.trim();
+                    if (clean) {
+                        allServerNames.push(clean);
+                        onlineNames.push(clean);
+                    }
+                } else if (typeof entry === 'object') {
+                    const clean = String(entry.name || entry.username || '').trim();
+                    if (clean) {
+                        allServerNames.push(clean);
+                        if (entry.isOnline === true) {
+                            onlineNames.push(clean);
                         }
-                    });
+                    }
                 }
-            }
-            return Array.from(new Set(names)).filter(Boolean);
+            });
+
+            return { allServerNames, onlineNames };
         }
 
         function safeRenderContactsGrid(onlineUsers = lastUsersData) {
@@ -1113,13 +1122,13 @@
                 if (!contactsGridContainer) return;
                 contactsGridContainer.innerHTML = '';
                 
-                const onlineNames = normalizeOnlineUsers(onlineUsers);
+                const { allServerNames, onlineNames } = parseServerUsersPayload(onlineUsers);
                 const onlineLowerSet = new Set(onlineNames.map(n => n.toLowerCase()));
 
                 let allContactsSet = new Set([
                     ...recentContactsOrder.map(n => (n || '').trim()),
                     ...localAddedContacts.map(n => (n || '').trim()),
-                    ...onlineNames
+                    ...allServerNames
                 ]);
                 if (username) {
                     for (let item of allContactsSet) {
