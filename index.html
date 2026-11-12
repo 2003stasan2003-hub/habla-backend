@@ -736,6 +736,12 @@
         }
 
         const socket = io();
+        socket.onAny((event, data) => console.log('СЕРВЕР НАДІСЛАВ:', event, data));
+
+        const contactsGridContainer = document.getElementById('contacts-grid-container');
+        const contactsWrapperBox = document.getElementById('contacts-wrapper-box');
+        const toggleExpandContactsBtn = document.getElementById('toggle-expand-contacts-btn');
+        const interfaceLangSelect = document.getElementById('interface-lang');
 
         const translations = {
             Ukrainian: {
@@ -895,6 +901,16 @@
             }
         };
 
+        let selectedRecipientName = localStorage.getItem('habla_selected_recipient') || null;
+        let recentContactsOrder = JSON.parse(localStorage.getItem('habla_recent_contacts') || '[]');
+        let localAddedContacts = JSON.parse(localStorage.getItem('habla_local_contacts') || '[]');
+        let contactColors = JSON.parse(localStorage.getItem('habla_contact_colors') || '{}');
+        let contactAvatars = JSON.parse(localStorage.getItem('habla_contact_avatars') || '{}');
+        let activeContactForModal = null;
+        let selectedModalColor = '#89a1b2';
+        let lastUsersData = [];
+        let isContactsExpanded = false;
+
         function applyLocalization(lang) {
             const dict = translations[lang] || translations['Spanish'];
             document.querySelectorAll('[data-i18n]').forEach(el => {
@@ -905,16 +921,6 @@
             });
             safeRenderContactsGrid(lastUsersData);
         }
-
-        let selectedRecipientName = localStorage.getItem('habla_selected_recipient') || null;
-        let recentContactsOrder = JSON.parse(localStorage.getItem('habla_recent_contacts') || '[]');
-        let localAddedContacts = JSON.parse(localStorage.getItem('habla_local_contacts') || '[]');
-        let contactColors = JSON.parse(localStorage.getItem('habla_contact_colors') || '{}');
-        let contactAvatars = JSON.parse(localStorage.getItem('habla_contact_avatars') || '{}');
-        let activeContactForModal = null;
-        let selectedModalColor = '#89a1b2';
-        let lastUsersData = [];
-        let isContactsExpanded = false;
 
         const selectedRecipientDisplay = document.getElementById('selected-recipient-display');
 
@@ -959,7 +965,6 @@
             return 'Spanish';
         }
 
-        const interfaceLangSelect = document.getElementById('interface-lang');
         let savedInterfaceLang = localStorage.getItem('habla_interface_lang') || getDeviceLanguage();
         if (savedInterfaceLang === 'Russian') savedInterfaceLang = 'Spanish';
         interfaceLangSelect.value = savedInterfaceLang;
@@ -1054,10 +1059,6 @@
                 userAvatarLarge.style.color = '#0e1621';
             }
         }
-
-        const contactsGridContainer = document.getElementById('contacts-grid-container');
-        const contactsWrapperBox = document.getElementById('contacts-wrapper-box');
-        const toggleExpandContactsBtn = document.getElementById('toggle-expand-contacts-btn');
 
         if (toggleExpandContactsBtn) {
             toggleExpandContactsBtn.addEventListener('click', () => {
