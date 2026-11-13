@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Habla Mobile 3.0</title>
+    <title>Habla Mobile 3.1</title>
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#0e1621">
     <script src="/socket.io/socket.io.js"></script>
@@ -466,7 +466,6 @@
                     <span class="dropdown-arrow" id="lang-arrow">▼</span>
                 </div>
                 <div class="sub-options-box" id="lang-options-box">
-                    <!-- Російська мова додана до списку, але повністю заблокована (disabled) -->
                     <select id="interface-lang" class="lang-select">
                         <option value="Ukrainian">Ukrainian</option>
                         <option value="English">English</option>
@@ -541,8 +540,10 @@
         let selectedRecipientName = localStorage.getItem('habla_selected_recipient') || null;
         let recentContactsOrder = JSON.parse(localStorage.getItem('habla_recent_contacts') || '[]');
         let localAddedContacts = JSON.parse(localStorage.getItem('habla_local_contacts') || '[]');
-        let contactColors = JSON.parse(localStorage.getItem('habla_contact_colors') || '{}');
-        let contactAvatars = JSON.parse(localStorage.getItem('habla_contact_avatars') || '{}');
+        
+        // Синхронізовані з сервера кеші (тепер аватарки не зникають при оновленні)
+        let contactColors = {};
+        let contactAvatars = {};
         let isContactsExpanded = false;
         let lastUsersData = {};
 
@@ -620,14 +621,13 @@
         }
         if (selectedRecipientName) setRecipient(selectedRecipientName);
 
+        // Оновлення аватарок та кольорів з серверного стану
         socket.on('sync-customizations', (customizations) => {
             contactColors = {}; contactAvatars = {};
             for (let [name, data] of Object.entries(customizations)) {
                 if (data.color) contactColors[name] = data.color;
                 if (data.avatar) contactAvatars[name] = data.avatar;
             }
-            localStorage.setItem('habla_contact_colors', JSON.stringify(contactColors));
-            localStorage.setItem('habla_contact_avatars', JSON.stringify(contactAvatars));
             updateProfileDisplay();
             safeRenderContactsGrid(lastUsersData);
         });
@@ -642,7 +642,7 @@
         }
 
         let savedInterfaceLang = localStorage.getItem('habla_interface_lang') || getDeviceLanguage();
-        if (savedInterfaceLang === 'Russian') savedInterfaceLang = 'Ukrainian'; // Захист від вибору забороненої мови
+        if (savedInterfaceLang === 'Russian') savedInterfaceLang = 'Ukrainian';
         interfaceLangSelect.value = savedInterfaceLang;
         applyLocalization(savedInterfaceLang);
 
@@ -670,7 +670,7 @@
 
         interfaceLangSelect.addEventListener('change', () => {
             const newLang = interfaceLangSelect.value;
-            if (newLang === 'Russian') return; // Запобігання вибору
+            if (newLang === 'Russian') return;
             localStorage.setItem('habla_interface_lang', newLang);
             applyLocalization(newLang);
             socket.emit('update-language', newLang);
@@ -833,7 +833,6 @@
             card.className = `message-card ${isSent ? 'sent' : 'received'}`;
             
             let contentHtml = '';
-            // Якщо це двоярусне повідомлення (є оригінал і він відрізняється від перекладу)
             if (originalText && originalText.trim() !== text.trim() && !isSent) {
                 const detectedLang = detectMessageLanguage(originalText);
                 contentHtml = `
@@ -1103,6 +1102,8 @@
             }
             contactColors[activeContactForModal] = selectedModalColor;
             if (avatar) contactAvatars[activeContactForModal] = avatar; else delete contactAvatars[activeContactForModal];
+            
+            // Відправляємо кастомізацію на сервер, щоб вона не злітала при оновленні
             socket.emit('update-customization', { targetName: activeContactForModal, color: selectedModalColor, avatar });
             contactModal.classList.remove('active'); document.getElementById('menu-overlay').classList.remove('active');
             updateProfileDisplay(); safeRenderContactsGrid(lastUsersData);
