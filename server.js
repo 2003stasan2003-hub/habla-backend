@@ -1,14 +1,18 @@
-const express = require('express');
-const http = require('http');
-const { Server } = require('socket.io');
-const path = require('path');
-const fs = require('fs');
-const axios = require('axios');
-const FormData = require('form-data');
+import express from 'express';
+import http from 'http';
+import { Server } from 'socket.io';
+import path from 'path';
+import fs from 'fs';
+import axios from 'axios';
+import FormData from 'form-data';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, { maxHttpBufferSize: 10 * 1024 * 1024 }); // Збільшено ліміт для передачі картинок з галереї
+const io = new Server(server, { maxHttpBufferSize: 10 * 1024 * 1024 });
 
 const PORT = process.env.PORT || 10000;
 const GROQ_API_KEY = process.env.GROQ_API_KEY || "";
