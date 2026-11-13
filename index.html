@@ -70,6 +70,15 @@
             width: 100%; background: #242f3d; border: 1px solid #2b5278;
             color: #fff; padding: 8px 10px; border-radius: 6px; font-size: 0.85rem; outline: none;
         }
+        
+        /* Кнопка вибору зображення з галереї */
+        .gallery-file-btn {
+            background: #242f3d; border: 1px dashed #89a1b2; color: #89a1b2;
+            padding: 10px; border-radius: 8px; font-size: 0.85rem; cursor: pointer; text-align: center;
+            display: block; width: 100%; transition: background 0.2s;
+        }
+        .gallery-file-btn:hover { background: rgba(137, 161, 178, 0.1); color: #f5f5f5; border-color: #f5f5f5; }
+
         .modal-btn-save { background: #2b5278; color: #fff; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; text-align: center; }
         .modal-btn-delete { background: rgba(201, 74, 74, 0.15); border: 1px solid #c94a4a; color: #c94a4a; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; text-align: center; }
 
@@ -128,7 +137,6 @@
         .message-card.fade-out { opacity: 0; transform: translateY(-20px) scale(0.85); }
         .message-sender-tag { font-size: 0.7rem; color: #89a1b2; margin-bottom: 4px; font-weight: 600; }
         
-        /* Двоярусний блок повідомлення (оригінал з міткою мови + переклад) */
         .dual-msg-wrapper { display: flex; flex-direction: column; gap: 4px; width: 100%; }
         .msg-original-row { display: flex; align-items: center; gap: 6px; font-size: 0.82rem; color: #89a1b2; border-bottom: 1px solid rgba(137, 161, 178, 0.2); padding-bottom: 3px; }
         .lang-badge { background: rgba(137, 161, 178, 0.2); color: #f5f5f5; font-size: 0.65rem; padding: 1px 5px; border-radius: 4px; font-weight: bold; text-transform: uppercase; }
@@ -349,6 +357,7 @@
         </div>
     </div>
 
+    <!-- Модальне вікно налаштування контакту / профілю з вибором з галереї (JPEG, PNG) -->
     <div id="contact-modal">
         <div class="modal-header">
             <span id="modal-contact-title" class="modal-title">Контакт</span>
@@ -367,8 +376,14 @@
             <div class="color-circle" style="background: #7928ca;" data-color="#7928ca"></div>
             <div class="color-circle" style="background: #0056b3;" data-color="#0056b3"></div>
         </div>
-        <div style="font-size: 0.8rem; color: #89a1b2;" data-i18n="avatar_url">Посилання на аватарку (URL):</div>
-        <input type="text" id="modal-avatar-input" class="modal-avatar-input" placeholder="https://...">
+        
+        <div style="font-size: 0.8rem; color: #89a1b2;">Фото аватарки (з галереї JPEG / PNG):</div>
+        <label class="gallery-file-btn">
+            📁 Вибрати фото з галереї
+            <input type="file" id="modal-avatar-file" accept="image/jpeg, image/png, image/*" style="display: none;">
+        </label>
+        <input type="hidden" id="modal-avatar-input">
+
         <button id="modal-save-btn" class="modal-btn-save" data-i18n="save">Зберегти</button>
         <button id="modal-delete-btn" class="modal-btn-delete" data-i18n="delete_contact">Видалити контакт</button>
     </div>
@@ -687,7 +702,7 @@
             const customColor = contactColors[displayUser] || '#89a1b2';
             const customAvatarUrl = contactAvatars[displayUser];
             if (customAvatarUrl) {
-                userAvatarLarge.innerHTML = `<img src="${escapeHtml(customAvatarUrl)}" alt="">`;
+                userAvatarLarge.innerHTML = `<img src="${customAvatarUrl}" alt="">`;
                 userAvatarLarge.style.background = 'none';
             } else {
                 userAvatarLarge.innerHTML = displayUser.charAt(0).toUpperCase();
@@ -754,7 +769,7 @@
                     const customAvatarUrl = contactAvatars[name];
 
                     if (customAvatarUrl) {
-                        avatarDiv.innerHTML = `<img src="${escapeHtml(customAvatarUrl)}" alt="">`;
+                        avatarDiv.innerHTML = `<img src="${customAvatarUrl}" alt="">`;
                     } else {
                         avatarDiv.textContent = name.charAt(0).toUpperCase();
                         avatarDiv.style.background = contactColors[name] || '#2b5278';
@@ -801,18 +816,16 @@
         const messagesStack = document.getElementById('messages-stack');
         let displayedMessages = [];
 
-        // Визначення мови тексту (простий евристичний перевірка на латиницю/інші мови)
         function detectMessageLanguage(text) {
             if (!text) return 'uk';
             const latinChars = text.match(/[a-zA-Z]/g);
             const cyrillicChars = text.match(/[а-яА-ЯіїєґІЇЄҐ]/g);
             if (latinChars && (!cyrillicChars || latinChars.length > cyrillicChars.length)) {
-                return 'en'; // або інша латинська мова
+                return 'en';
             }
             return 'uk';
         }
 
-        // Функція додавання повідомлення в стек із розумним двоярусним форматом
         function addMessageToStack(text, sender, isSent = false) {
             const card = document.createElement('div');
             card.className = `message-card ${isSent ? 'sent' : 'received'}`;
@@ -820,7 +833,6 @@
             const detectedLang = detectMessageLanguage(text);
             const mainInterfaceLang = interfaceLangSelect.value.toLowerCase();
             
-            // Якщо це іншомовна фраза (наприклад, латиницею при українському інтерфейсі), формуємо двоярусну картку
             let contentHtml = '';
             if (!isSent && detectedLang !== 'uk' && !mainInterfaceLang.startsWith('en')) {
                 contentHtml = `
@@ -1064,6 +1076,18 @@
             document.querySelectorAll('.color-circle').forEach(el => el.classList.remove('selected'));
             c.classList.add('selected'); selectedModalColor = c.getAttribute('data-color');
         }));
+
+        // Обробник вибору зображення з галереї (JPEG, PNG)
+        document.getElementById('modal-avatar-file').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(uploadEvent) {
+                    document.getElementById('modal-avatar-input').value = uploadEvent.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
 
         document.getElementById('modal-save-btn').addEventListener('click', () => {
             if (!activeContactForModal) return;
