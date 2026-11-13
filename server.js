@@ -27,53 +27,6 @@ let activeSockets = {};
 let userLanguages = {};
 let userCustomizations = {};
 
-// Глибокий локальний фільтр для 100% блокування російської мови без помилок API
-function isRussianText(text) {
-    if (!text) return false;
-    const lower = text.toLowerCase();
-    
-    // Специфічні російські літери, яких немає в українській та інших латинських мовах
-    if (/[ыэъё]/.test(lower)) return true;
-
-    // Повний набір найпоширеніших російських слів, займенників, часток та конструкцій
-    const ruWords = [
-        'что', 'как', 'это', 'ты', 'я', 'он', 'она', 'мы', 'вы', 'они',
-        'меня', 'тебя', 'его', 'ее', 'нас', 'вас', 'их', 'мне', 'тебе',
-        'сказать', 'говорить', 'русски', 'по-русски', 'русский', 'язык',
-        'привет', 'пока', 'спасибо', 'пожалуйста', 'нет', 'да', 'хочу',
-        'ответь', 'скажи', 'что-нибудь', 'все', 'всё', 'тут', 'здесь',
-        'почему', 'зачем', 'когда', 'куда', 'откуда', 'сейчас', 'только',
-        'быть', 'есть', 'был', 'была', 'были', 'будет', 'буду', 'будем',
-        'не', 'ни', 'ли', 'же', 'бы', 'ль', 'вот', 'вон', 'даже', 'лишь',
-        'просто', 'очень', 'тоже', 'также', 'ну', 'ага', 'угу'
-    ];
-    
-    // Перевірка на наявність окремих російських слів у тексті
-    const words = lower.replace(/[^\p{L}\s]/gu, '').split(/\s+/);
-    for (let word of words) {
-        if (ruWords.includes(word)) return true;
-    }
-
-    // Додаткові характерні русизми та словосполучення
-    const ruPhrases = [
-        'по русски', 'по руському', 'что ты', 'как дела', 'как ты', 
-        'меня зовут', 'скажи мне', 'ответь мне', 'что это'
-    ];
-    return ruPhrases.some(phrase => lower.includes(phrase));
-}
-
-// Повідомлення про нерозуміння російської мови (усі варіанти згідно з побажанням)
-function getNotUnderstoodMessage(lang) {
-    switch (lang) {
-        case 'Ukrainian': return 'Я не розумію по-російски.';
-        case 'English': return "I don't understand Russian.";
-        case 'German': return 'Ich verstehe kein Russisch.';
-        case 'French': return "Je ne comprends pas le russe.";
-        case 'Spanish': return 'No entiendo ruso.';
-        default: return 'Я не розумію по-російски.';
-    }
-}
-
 // Аудіо транскрипція через еталонний whisper-large-v3 (для мікрофона)
 async function transcribeAudio(audioBuffer) {
     if (!GROQ_API_KEY) throw new Error("GROQ_API_KEY не заданий!");
@@ -101,25 +54,25 @@ async function transcribeAudio(audioBuffer) {
     }
 }
 
-// Переклад звичайного тексту (коли текст НЕ російський)
+// Професійний літературний переклад без кальок через llama-3.3-70b-versatile
 async function translateText(text, targetLang) {
     if (!GROQ_API_KEY || !text) return text;
     
     let langName = targetLang;
-    if (targetLang === 'Ukrainian') langName = 'clean, natural literary Ukrainian language (сучасна літературна українська мова без русизмів і кальки)';
-    if (targetLang === 'English') langName = 'English';
-    if (targetLang === 'Spanish') langName = 'Spanish';
-    if (targetLang === 'German') langName = 'German';
-    if (targetLang === 'French') langName = 'French';
+    if (targetLang === 'Ukrainian') langName = 'clean, natural literary Ukrainian language (сучасна літературна українська мова без кальок і русизмів)';
+    if (targetLang === 'English') langName = 'natural English';
+    if (targetLang === 'Spanish') langName = 'natural Spanish';
+    if (targetLang === 'German') langName = 'natural German';
+    if (targetLang === 'French') langName = 'natural French';
 
     try {
         const response = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
-            model: "llama-3.3-70b-versatile", // Для перекладу залишаємо базову модель, оскільки транскрипція і перевірка вже захищені
+            model: "llama-3.3-70b-versatile",
             messages: [
-                { role: "system", content: `You are a professional translator. Translate the given text accurately and naturally into ${langName}. Return ONLY the translated text without quotes, comments, or extra explanations.` },
+                { role: "system", content: `You are a professional native translator. Translate the given text accurately and naturally into ${langName}. Return ONLY the translated text without quotes, comments, or extra explanations.` },
                 { role: "user", content: text }
             ],
-            temperature: 0.2,
+            temperature: 0.3,
             max_tokens: 300
         }, {
             headers: {
@@ -174,13 +127,6 @@ io.on('connection', (socket) => {
 
             if (!rawText || !recipient) return;
 
-            // Залізне блокування російської мови для текстового вводу
-            if (isRussianText(rawText)) {
-                const errorMsg = getNotUnderstoodMessage(recipientLang);
-                socket.emit('incoming-message', { sender: 'System', text: errorMsg, isSelf: false });
-                return;
-            }
-
             const translatedText = await translateText(rawText, recipientLang);
             const cleanRecipient = recipient.toLowerCase().trim();
             const recipientSocketId = Object.keys(activeSockets).find(
@@ -209,14 +155,6 @@ io.on('connection', (socket) => {
             if (!transcribedText.trim()) return;
 
             const recipientLang = userLanguages[recipient] || 'Ukrainian';
-
-            // Залізне блокування російської мови для голосу з мікрофона
-            if (isRussianText(transcribedText)) {
-                const errorMsg = getNotUnderstoodMessage(recipientLang);
-                socket.emit('incoming-message', { sender: 'System', text: errorMsg, isSelf: false });
-                return;
-            }
-
             const translatedText = await translateText(transcribedText, recipientLang);
 
             const cleanRecipient = recipient.toLowerCase().trim();
