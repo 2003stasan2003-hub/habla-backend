@@ -55,14 +55,23 @@ async function transcribeAudio(audioBuffer) {
 
 async function translateText(text, targetLang) {
     if (!GROQ_API_KEY || !text) return text;
+    
+    // Переводимо назви мов у зручний формат для моделі
+    let langName = targetLang;
+    if (targetLang === 'Ukrainian') langName = 'clean, natural literary Ukrainian language (сучасна літературна українська мова без русизмів і кальки)';
+    if (targetLang === 'English') langName = 'English';
+    if (targetLang === 'Spanish') langName = 'Spanish';
+    if (targetLang === 'German') langName = 'German';
+    if (targetLang === 'French') langName = 'French';
+
     try {
         const response = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
             model: "llama-3.3-70b-versatile",
             messages: [
-                { role: "system", content: `You are a professional translator. Translate the given text accurately into ${targetLang}. Return ONLY the translated text without quotes or extra explanations.` },
+                { role: "system", content: `You are a professional translator. Translate the given text accurately and naturally into ${langName}. Return ONLY the translated text without quotes, comments, or extra explanations.` },
                 { role: "user", content: text }
             ],
-            temperature: 0.3
+            temperature: 0.2
         }, {
             headers: {
                 'Authorization': `Bearer ${GROQ_API_KEY}`,
@@ -81,7 +90,7 @@ io.on('connection', (socket) => {
 
     socket.on('join', (data) => {
         const username = typeof data === 'string' ? data : data?.username;
-        const lang = typeof data === 'object' ? data?.lang : 'Spanish';
+        const lang = typeof data === 'object' ? data?.lang : 'Ukrainian';
         if (username) {
             activeSockets[socket.id] = username.trim();
             userLanguages[username.trim()] = lang;
@@ -114,20 +123,24 @@ io.on('connection', (socket) => {
             const sender = data.sender;
             const recipient = data.recipient;
             const rawText = (data.text || '').trim();
-            const targetLang = userLanguages[recipient] || 'Spanish';
+            
+            // Визначаємо мову отримувача як цільову для перекладу
+            const recipientLang = userLanguages[recipient] || 'Ukrainian';
 
             if (!rawText || !recipient) return;
 
-            const translatedText = await translateText(rawText, targetLang);
+            const translatedText = await translateText(rawText, recipientLang);
             const cleanRecipient = recipient.toLowerCase().trim();
             const recipientSocketId = Object.keys(activeSockets).find(
                 id => activeSockets[id] && activeSockets[id].toLowerCase().trim() === cleanRecipient
             );
 
-            socket.emit('incoming-message', { sender, text: rawText, isSelf: true });
+            // Відправнику показуємо його оригінальний текст
+            socket.emit('incoming-message', { sender, text: rawText, isSelf: true, originalText: rawText });
 
+            // Отримувачу відправляємо перекладений текст
             if (recipientSocketId) {
-                io.to(recipientSocketId).emit('incoming-message', { sender, text: translatedText, isSelf: false });
+                io.to(recipientSocketId).emit('incoming-message', { sender, text: translatedText, isSelf: false, originalText: rawText });
             }
         } catch (e) {
             console.error("❌ Помилка обробки текстового повідомлення:", e);
@@ -145,18 +158,21 @@ io.on('connection', (socket) => {
             const transcribedText = await transcribeAudio(audioBuffer);
             if (!transcribedText.trim()) return;
 
-            const targetLang = userLanguages[recipient] || 'Spanish';
-            const translatedText = await translateText(transcribedText, targetLang);
+            // Визначаємо мову отримувача як цільову для перекладу
+            const recipientLang = userLanguages[recipient] || 'Ukrainian';
+            const translatedText = await translateText(transcribedText, recipientLang);
 
             const cleanRecipient = recipient.toLowerCase().trim();
             const recipientSocketId = Object.keys(activeSockets).find(
                 id => activeSockets[id] && activeSockets[id].toLowerCase().trim() === cleanRecipient
             );
 
-            socket.emit('incoming-message', { sender, text: transcribedText, isSelf: true });
+            // Відправнику йде те, що він сказав (розпізнаний текст)
+            socket.emit('incoming-message', { sender, text: transcribedText, isSelf: true, originalText: transcribedText });
 
+            // Отримувачу йде повноцінний переклад цільовою мовою
             if (recipientSocketId) {
-                io.to(recipientSocketId).emit('incoming-message', { sender, text: translatedText, isSelf: false });
+                io.to(recipientSocketId).emit('incoming-message', { sender, text: translatedText, isSelf: false, originalText: transcribedText });
             }
         } catch (e) {
             console.error("❌ Помилка обробки голосового повідомлення:", e);
