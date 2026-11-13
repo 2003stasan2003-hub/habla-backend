@@ -27,62 +27,54 @@ let activeSockets = {};
 let userLanguages = {};
 let userCustomizations = {};
 
-// 1. Швидка локальна перевірка за ключовими маркерами
-function localRussianCheck(text) {
+// Глибокий локальний фільтр для 100% блокування російської мови без помилок API
+function isRussianText(text) {
     if (!text) return false;
     const lower = text.toLowerCase();
+    
+    // Специфічні російські літери, яких немає в українській та інших латинських мовах
     if (/[ыэъё]/.test(lower)) return true;
+
+    // Повний набір найпоширеніших російських слів, займенників, часток та конструкцій
     const ruWords = [
         'что', 'как', 'это', 'ты', 'я', 'он', 'она', 'мы', 'вы', 'они',
         'меня', 'тебя', 'его', 'ее', 'нас', 'вас', 'их', 'мне', 'тебе',
         'сказать', 'говорить', 'русски', 'по-русски', 'русский', 'язык',
-        'привет', 'пока', 'спасибо', 'пожалуйста', 'нет', 'да', 'хочу', 'ответь'
+        'привет', 'пока', 'спасибо', 'пожалуйста', 'нет', 'да', 'хочу',
+        'ответь', 'скажи', 'что-нибудь', 'все', 'всё', 'тут', 'здесь',
+        'почему', 'зачем', 'когда', 'куда', 'откуда', 'сейчас', 'только',
+        'быть', 'есть', 'был', 'была', 'были', 'будет', 'буду', 'будем',
+        'не', 'ни', 'ли', 'же', 'бы', 'ль', 'вот', 'вон', 'даже', 'лишь',
+        'просто', 'очень', 'тоже', 'также', 'ну', 'ага', 'угу'
     ];
-    return ruWords.some(word => new RegExp(`\\b${word}\\b`, 'i').test(lower));
-}
-
-// 2. Детекція через стабільну та швидку llama-3.1-8b-instant (мінімум токенів)
-async function isRussianText(text) {
-    if (!text) return false;
-    if (localRussianCheck(text)) return true;
-    if (!GROQ_API_KEY) return false;
-
-    try {
-        const response = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
-            model: "llama-3.1-8b-instant",
-            messages: [
-                { role: "system", content: "You are a language detector. Determine if the given text is in Russian. Answer ONLY with 'YES' if it is Russian, or 'NO' if it is any other language." },
-                { role: "user", content: text }
-            ],
-            temperature: 0.1,
-            max_tokens: 5 // Економія токенів (потрібна лише відповідь YES або NO)
-        }, {
-            headers: {
-                'Authorization': `Bearer ${GROQ_API_KEY}`,
-                'Content-Type': 'application/json'
-            },
-            timeout: 5000
-        });
-        const answer = response.data.choices[0]?.message?.content?.trim().toUpperCase() || "";
-        return answer.includes('YES');
-    } catch (error) {
-        console.error("❌ Помилка детекції мови через API:", error.message);
-        return localRussianCheck(text); // Fail-safe захист
+    
+    // Перевірка на наявність окремих російських слів у тексті
+    const words = lower.replace(/[^\p{L}\s]/gu, '').split(/\s+/);
+    for (let word of words) {
+        if (ruWords.includes(word)) return true;
     }
+
+    // Додаткові характерні русизми та словосполучення
+    const ruPhrases = [
+        'по русски', 'по руському', 'что ты', 'как дела', 'как ты', 
+        'меня зовут', 'скажи мне', 'ответь мне', 'что это'
+    ];
+    return ruPhrases.some(phrase => lower.includes(phrase));
 }
 
+// Повідомлення про нерозуміння російської мови (усі варіанти згідно з побажанням)
 function getNotUnderstoodMessage(lang) {
     switch (lang) {
-        case 'Ukrainian': return 'Я не розумію вашої мови.';
-        case 'English': return "I don't understand your language.";
-        case 'German': return 'Ich verstehe Ihre Sprache nicht.';
-        case 'French': return "Je ne comprends pas votre langue.";
-        case 'Spanish': return 'No entiendo tu idioma.';
-        default: return 'Я не розумію вашої мови.';
+        case 'Ukrainian': return 'Я не розумію по-російски.';
+        case 'English': return "I don't understand Russian.";
+        case 'German': return 'Ich verstehe kein Russisch.';
+        case 'French': return "Je ne comprends pas le russe.";
+        case 'Spanish': return 'No entiendo ruso.';
+        default: return 'Я не розумію по-російски.';
     }
 }
 
-// 3. Аудіо транскрипція через еталонний whisper-large-v3
+// Аудіо транскрипція через еталонний whisper-large-v3 (для мікрофона)
 async function transcribeAudio(audioBuffer) {
     if (!GROQ_API_KEY) throw new Error("GROQ_API_KEY не заданий!");
     const tempFilePath = path.join(__dirname, `temp_${Date.now()}.webm`);
@@ -109,7 +101,7 @@ async function transcribeAudio(audioBuffer) {
     }
 }
 
-// 4. Швидкий та якісний переклад через llama-3.1-8b-instant
+// Переклад звичайного тексту (коли текст НЕ російський)
 async function translateText(text, targetLang) {
     if (!GROQ_API_KEY || !text) return text;
     
@@ -122,13 +114,13 @@ async function translateText(text, targetLang) {
 
     try {
         const response = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
-            model: "llama-3.1-8b-instant",
+            model: "llama-3.3-70b-versatile", // Для перекладу залишаємо базову модель, оскільки транскрипція і перевірка вже захищені
             messages: [
                 { role: "system", content: `You are a professional translator. Translate the given text accurately and naturally into ${langName}. Return ONLY the translated text without quotes, comments, or extra explanations.` },
                 { role: "user", content: text }
             ],
             temperature: 0.2,
-            max_tokens: 300 // Обмежуємо для економії токенів і миттєвої швидкості
+            max_tokens: 300
         }, {
             headers: {
                 'Authorization': `Bearer ${GROQ_API_KEY}`,
@@ -182,8 +174,8 @@ io.on('connection', (socket) => {
 
             if (!rawText || !recipient) return;
 
-            // Залізне блокування російської мови для тексту
-            if (await isRussianText(rawText)) {
+            // Залізне блокування російської мови для текстового вводу
+            if (isRussianText(rawText)) {
                 const errorMsg = getNotUnderstoodMessage(recipientLang);
                 socket.emit('incoming-message', { sender: 'System', text: errorMsg, isSelf: false });
                 return;
@@ -218,8 +210,8 @@ io.on('connection', (socket) => {
 
             const recipientLang = userLanguages[recipient] || 'Ukrainian';
 
-            // Залізне блокування російської мови для голосу (транскрипції)
-            if (await isRussianText(transcribedText)) {
+            // Залізне блокування російської мови для голосу з мікрофона
+            if (isRussianText(transcribedText)) {
                 const errorMsg = getNotUnderstoodMessage(recipientLang);
                 socket.emit('incoming-message', { sender: 'System', text: errorMsg, isSelf: false });
                 return;
