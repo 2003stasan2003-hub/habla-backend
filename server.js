@@ -27,7 +27,7 @@ let activeSockets = {};
 let userLanguages = {};
 let userCustomizations = {};
 
-// Точна перевірка мови через штучний інтелект (Groq)
+// Сувора детекція мови через Groq API
 async function isRussianText(text) {
     if (!GROQ_API_KEY || !text) return false;
     try {
@@ -52,7 +52,7 @@ async function isRussianText(text) {
     }
 }
 
-// Повідомлення про нерозуміння мовою отримувача
+// Локалізоване повідомлення про нерозуміння мовою отримувача
 function getNotUnderstoodMessage(lang) {
     switch (lang) {
         case 'Ukrainian': return 'Я не розумію вашої мови.';
@@ -163,13 +163,14 @@ io.on('connection', (socket) => {
 
             if (!rawText || !recipient) return;
 
-            // Суворе блокування російської мови через ШІ
+            // 1. Миттєва перевірка та повне блокування російської мови до будь-якої пересилки
             if (await isRussianText(rawText)) {
                 const errorMsg = getNotUnderstoodMessage(recipientLang);
                 socket.emit('incoming-message', { sender: 'System', text: errorMsg, isSelf: false });
                 return;
             }
 
+            // 2. Нормальний процес перекладу та відправки
             const translatedText = await translateText(rawText, recipientLang);
             const cleanRecipient = recipient.toLowerCase().trim();
             const recipientSocketId = Object.keys(activeSockets).find(
@@ -199,13 +200,14 @@ io.on('connection', (socket) => {
 
             const recipientLang = userLanguages[recipient] || 'Ukrainian';
 
-            // Суворе блокування російської мови у голосі через ШІ
+            // 1. Блокування російської мови для голосових повідомлень через ШІ
             if (await isRussianText(transcribedText)) {
                 const errorMsg = getNotUnderstoodMessage(recipientLang);
                 socket.emit('incoming-message', { sender: 'System', text: errorMsg, isSelf: false });
                 return;
             }
 
+            // 2. Переклад розпізнаного голосу
             const translatedText = await translateText(transcribedText, recipientLang);
 
             const cleanRecipient = recipient.toLowerCase().trim();
