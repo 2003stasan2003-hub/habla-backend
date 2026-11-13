@@ -24,6 +24,17 @@
             transition: transform 0.2s ease; border-bottom: 1px solid #242f3d;
         }
 
+        /* Мікро-плашка у верхній частині */
+        .top-mini-watermark {
+            font-size: 0.55rem;
+            color: rgba(137, 161, 178, 0.45);
+            text-align: center;
+            letter-spacing: 0.3px;
+            margin-bottom: 2px;
+            user-select: none;
+            width: 100%;
+        }
+
         .switch { position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider {
@@ -399,6 +410,9 @@
 
     <div id="app-container">
         <main class="main-screen">
+            <!-- Дрібна локалізована плашка у самій верхній частині екрана -->
+            <div id="top-watermark" class="top-mini-watermark">© 2026 Habla Mobile. Усі права захищено.</div>
+
             <div id="messages-stack" class="messages-stack-container"></div>
 
             <button id="mic-button" class="neon-mic-btn" title="Натисніть для запису голосу">
@@ -517,12 +531,13 @@
             <small data-i18n="tab_qr">QR</small>
         </button>
         <button class="nav-item" id="nav-settings" title="Settings">
-            <svg viewBox="0 0 24 24" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+            <svg viewBox="0 0 24 24" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06-.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
             <small data-i18n="tab_settings">Налаштування</small>
         </button>
     </nav>
 
     <script>
+        // Дата створення: 13.11.2026, 18:41
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => { navigator.serviceWorker.register('/sw.js').catch(() => {}); });
         }
@@ -541,7 +556,6 @@
         let recentContactsOrder = JSON.parse(localStorage.getItem('habla_recent_contacts') || '[]');
         let localAddedContacts = JSON.parse(localStorage.getItem('habla_local_contacts') || '[]');
         
-        // Синхронізовані з сервера кеші (тепер аватарки не зникають при оновленні)
         let contactColors = {};
         let contactAvatars = {};
         let isContactsExpanded = false;
@@ -555,7 +569,8 @@
                 tab_keyboard: "Текст", tab_qr: "QR", tab_settings: "Налаштування", save: "Зберегти",
                 delete_contact: "Видалити контакт", show_all: "Показати всі", collapse: "Згорнути",
                 copy_link: "Копіювати", install_app: "Встановити додаток", welcome_subtitle: "Введіть ваш нікнейм для миттєвого голосового перекладу",
-                welcome_enter: "Увійти", test_text_placeholder: "Введіть текст..."
+                welcome_enter: "Увійти", test_text_placeholder: "Введіть текст...",
+                watermark: "© 2026 Habla Mobile. Усі права захищено."
             },
             English: {
                 settings_title: "Settings", update_app: "Update App", interface_lang: "Interface Language",
@@ -564,7 +579,8 @@
                 tab_keyboard: "Text", tab_qr: "QR", tab_settings: "Settings", save: "Save",
                 delete_contact: "Delete contact", show_all: "Show all", collapse: "Collapse",
                 copy_link: "Copy Link", install_app: "Install App", welcome_subtitle: "Enter your nickname for instant translation",
-                welcome_enter: "Enter", test_text_placeholder: "Type a message..."
+                welcome_enter: "Enter", test_text_placeholder: "Type a message...",
+                watermark: "© 2026 Habla Mobile. All rights reserved."
             },
             Spanish: {
                 settings_title: "Ajustes", update_app: "Actualizar aplicación", interface_lang: "Idioma de interfaz",
@@ -573,7 +589,8 @@
                 tab_keyboard: "Texto", tab_qr: "QR", tab_settings: "Ajustes", save: "Guardar",
                 delete_contact: "Eliminar contacto", show_all: "Mostrar todos", collapse: "Contraer",
                 copy_link: "Copiar enlace", install_app: "Instalar aplicación", welcome_subtitle: "Introduce tu apodo",
-                welcome_enter: "Entrar", test_text_placeholder: "Escribe un mensaje..."
+                welcome_enter: "Entrar", test_text_placeholder: "Escribe un mensaje...",
+                watermark: "© 2026 Habla Mobile. Todos los derechos reservados."
             },
             German: {
                 settings_title: "Einstellungen", update_app: "App aktualisieren", interface_lang: "Sprache",
@@ -582,7 +599,8 @@
                 tab_keyboard: "Text", tab_qr: "QR", tab_settings: "Einstellungen", save: "Speichern",
                 delete_contact: "Löschen", show_all: "Alle anzeigen", collapse: "Einklappen",
                 copy_link: "Link kopieren", install_app: "Installieren", welcome_subtitle: "Gib deinen Spitznamen ein",
-                welcome_enter: "Beitreten", test_text_placeholder: "Nachricht eingeben..."
+                welcome_enter: "Beitreten", test_text_placeholder: "Nachricht eingeben...",
+                watermark: "© 2026 Habla Mobile. Alle Rechte vorbehalten."
             },
             French: {
                 settings_title: "Paramètres", update_app: "Mettre à jour", interface_lang: "Langue",
@@ -591,7 +609,8 @@
                 tab_keyboard: "Texte", tab_qr: "QR", tab_settings: "Paramètres", save: "Enregistrer",
                 delete_contact: "Supprimer", show_all: "Tout afficher", collapse: "Réduire",
                 copy_link: "Copier", install_app: "Installer", welcome_subtitle: "Entrez votre pseudo",
-                welcome_enter: "Entrer", test_text_placeholder: "Écrivez un message..."
+                welcome_enter: "Entrer", test_text_placeholder: "Écrivez un message...",
+                watermark: "© 2026 Habla Mobile. Tous droits réservés."
             }
         };
 
@@ -605,6 +624,8 @@
                 const key = el.getAttribute('data-i18n-placeholder');
                 if (dict[key]) el.placeholder = dict[key];
             });
+            const watermarkEl = document.getElementById('top-watermark');
+            if (watermarkEl && dict['watermark']) watermarkEl.textContent = dict['watermark'];
             safeRenderContactsGrid(lastUsersData);
         }
 
@@ -621,7 +642,6 @@
         }
         if (selectedRecipientName) setRecipient(selectedRecipientName);
 
-        // Оновлення аватарок та кольорів з серверного стану
         socket.on('sync-customizations', (customizations) => {
             contactColors = {}; contactAvatars = {};
             for (let [name, data] of Object.entries(customizations)) {
@@ -1103,7 +1123,6 @@
             contactColors[activeContactForModal] = selectedModalColor;
             if (avatar) contactAvatars[activeContactForModal] = avatar; else delete contactAvatars[activeContactForModal];
             
-            // Відправляємо кастомізацію на сервер, щоб вона не злітала при оновленні
             socket.emit('update-customization', { targetName: activeContactForModal, color: selectedModalColor, avatar });
             contactModal.classList.remove('active'); document.getElementById('menu-overlay').classList.remove('active');
             updateProfileDisplay(); safeRenderContactsGrid(lastUsersData);
