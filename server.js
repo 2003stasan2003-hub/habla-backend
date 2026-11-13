@@ -1,252 +1,121 @@
-import express from 'express';
-import { createServer } from 'http';
-import { Server } from 'socket.io';
-import cors from 'cors';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
+const path = require('path');
+const fs = require('fs');
+const axios = require('axios');
+const FormData = require('form-data');
 
 const app = express();
-const server = createServer(app);
-const io = new Server(server, {
-    cors: {
-        origin: "*",
-        methods: ["GET", "POST"]
-    }
+const server = http.createServer(app);
+const io = new Server(server);
+
+const PORT = process.env.PORT || 10000;
+const GROQ_API_KEY = process.env.GROQ_API_KEY || "";
+
+app.use(express.static(path.join(__dirname)));
+
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-app.use(cors());
-app.use(express.json({ limit: '10mb' }));
+let activeSockets = {};
+let userLanguages = {};
+let userCustomizations = {};
 
-app.get('/ping', (req, res) => {
-    res.status(200).send('pong');
-});
-
-app.use('/.well-known', express.static('.well-known'));
-app.use(express.static(__dirname));
-
-let currentGroqLimits = { requests: '---', tokens: '---' };
-
-const activeSockets = {}; 
-const allKnownUsers = new Set(); 
-const userContacts = {}; 
-const userLanguages = {}; 
-const userCustomizations = {}; 
-
-function checkIsAdmin(username) {
-    if (!username) return false;
-    const lower = username.toLowerCase().trim();
-    return lower === 'stasan' || lower === 'admin' || lower === 'стасан';
-}
-
-function hasContactCaseInsensitive(ownerName, targetName) {
-    const set = userContacts[ownerName];
-    if (!set || !targetName) return false;
-    const targetLower = targetName.toLowerCase().trim();
-    for (let item of set) {
-        if (item && item.toLowerCase().trim() === targetLower) {
-            return true;
-        }
-    }
-    return false;
-}
-
-function isUserOnlineCaseInsensitive(onlineLowerSet, targetName) {
-    if (!targetName) return false;
-    return onlineLowerSet.has(targetName.toLowerCase().trim());
-}
-
-function updateUsers() {
-    const onlineNames = new Set(Object.values(activeSockets));
-    const onlineLowerSet = new Set(
-        Array.from(onlineNames).map(n => (n || '').toLowerCase().trim()).filter(Boolean)
-    );
-    
-    for (let [id, socket] of io.of("/").sockets) {
-        const currentUsername = activeSockets[id];
-        if (!currentUsername) continue;
-
-        const isAdmin = checkIsAdmin(currentUsername);
-
-        const usersList = Array.from(allKnownUsers).map(name => {
-            if (name.toLowerCase().trim() === currentUsername.toLowerCase().trim()) return null;
-
-            const isOnline = isUserOnlineCaseInsensitive(onlineLowerSet, name);
-            const myAdd = hasContactCaseInsensitive(currentUsername, name);
-            const theirAdd = hasContactCaseInsensitive(name, currentUsername);
-            const isMutual = myAdd && theirAdd;
-
-            if (!isAdmin && !myAdd) {
-                return null;
-            }
-
-            return {
-                name: name,
-                isOnline: isOnline,
-                myAdd: myAdd,
-                theirAdd: theirAdd,
-                isMutual: isMutual
-            };
-        }).filter(Boolean);
-
-        socket.emit('update-users', { users: usersList, isAdmin });
-    }
-
-    io.emit('onlineCount', onlineNames.size);
-}
-
-async function getActiveModel(apiKey) {
-    try {
-        const response = await fetch('https://api.groq.com/openai/v1/models', {
-            method: 'GET',
-            headers: { 'Authorization': `Bearer ${apiKey}` }
-        });
-        const data = await response.json();
-        if (response.ok && data.data && data.data.length > 0) {
-            const chatModels = data.data.filter(m => {
-                const id = m.id.toLowerCase();
-                const isChat = id.includes('llama') || id.includes('mixtral') || id.includes('gemma') || id.includes('gpt') || id.includes('qwen');
-                const isSystem = id.includes('guard') || id.includes('whisper') || id.includes('embed') || id.includes('tool') || id.includes('audio');
-                return isChat && !isSystem;
-            });
-            if (chatModels.length > 0) return chatModels[0].id;
-            return data.data[0].id;
-        }
-    } catch (e) {
-        console.error("Помилка отримання списку моделей:", e.message);
-    }
-    return "llama-3.1-70b-versatile";
-}
-
-async function translateText(text, targetLanguage) {
-    const apiKey = process.env.GROQ_API_KEY;
-    if (!apiKey || !text || !targetLanguage) return text;
-
-    const modelName = await getActiveModel(apiKey);
+async function transcribeAudio(audioBuffer) {
+    if (!GROQ_API_KEY) throw new Error("GROQ_API_KEY не заданий!");
+    const tempFilePath = path.join(__dirname, `temp_${Date.now()}.webm`);
+    fs.writeFileSync(tempFilePath, audioBuffer);
 
     try {
-        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-            method: 'POST',
+        const formData = new FormData();
+        formData.append('file', fs.createReadStream(tempFilePath));
+        formData.append('model', 'whisper-large-v3');
+        // Дозволяємо Whisper самостійно визначати мову на льоту (без жорсткої прив'язки до 'uk')
+        formData.append('temperature', '0'); // Зменшуємо ймовірність галюцинацій на шумах
+
+        const response = await axios.post('https://api.groq.com/openai/v1/audio/transcriptions', formData, {
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
-            },
-            body: JSON.stringify({
-                model: modelName,
-                messages: [
-                    {
-                        role: "system",
-                        content: `You are a professional translator. Translate the given text accurately and naturally into ${targetLanguage}. Return ONLY the translated text without any extra notes or formatting.`
-                    },
-                    { role: "user", content: text }
-                ],
-                max_tokens: 250
-            })
+                ...formData.getHeaders(),
+                'Authorization': `Bearer ${GROQ_API_KEY}`
+            }
         });
-
-        const data = await response.json();
-
-        if (response.ok) {
-            const remReq = response.headers.get('x-ratelimit-remaining-requests');
-            const remTok = response.headers.get('x-ratelimit-remaining-tokens');
-            if (remReq) {
-                currentGroqLimits = { requests: remReq, tokens: remTok };
-                io.emit('groq-limits', currentGroqLimits);
-            }
-
-            if (data.choices && data.choices[0] && data.choices[0].message) {
-                return data.choices[0].message.content.trim();
-            }
-        }
+        fs.unlinkSync(tempFilePath);
+        return response.data.text || "";
     } catch (error) {
-        console.error(`❌ Помилка перекладу:`, error.message);
+        if (fs.existsSync(tempFilePath)) fs.unlinkSync(tempFilePath);
+        console.error("❌ Помилка транскрипції Groq:", error.response?.data || error.message);
+        return "";
     }
+}
 
-    return text;
+async function translateText(text, targetLang) {
+    if (!GROQ_API_KEY || !text) return text;
+    try {
+        const response = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
+            model: "llama-3.3-70b-versatile",
+            messages: [
+                { role: "system", content: `You are a professional translator. Translate the given text accurately into ${targetLang}. Return ONLY the translated text without quotes or extra explanations.` },
+                { role: "user", content: text }
+            ],
+            temperature: 0.3
+        }, {
+            headers: {
+                'Authorization': `Bearer ${GROQ_API_KEY}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        return response.data.choices[0]?.message?.content?.trim() || text;
+    } catch (error) {
+        console.error("❌ Помилка перекладу Groq:", error.response?.data || error.message);
+        return text;
+    }
 }
 
 io.on('connection', (socket) => {
-    console.log(`Користувач підключився: ${socket.id}`);
-    socket.emit('groq-limits', currentGroqLimits);
+    console.log(`👤 Користувач підключився: ${socket.id}`);
 
     socket.on('join', (data) => {
-        let username, lang;
-        if (typeof data === 'object' && data !== null) {
-            username = data.username;
-            lang = data.lang || 'Spanish';
-        } else {
-            username = data;
-            lang = 'Spanish';
+        const username = typeof data === 'string' ? data : data?.username;
+        const lang = typeof data === 'object' ? data?.lang : 'Spanish';
+        if (username) {
+            activeSockets[socket.id] = username.trim();
+            userLanguages[username.trim()] = lang;
+            socket.emit('sync-customizations', userCustomizations);
+            broadcastUsers();
         }
-
-        if (!username) return;
-        username = username.trim();
-        activeSockets[socket.id] = username;
-        allKnownUsers.add(username);
-        userLanguages[username] = lang;
-
-        if (!userContacts[username]) {
-            userContacts[username] = new Set();
-        }
-
-        if (userCustomizations[username]) {
-            socket.emit('sync-customizations', userCustomizations[username]);
-        }
-
-        updateUsers();
     });
 
-    socket.on('update-language', (newLang) => {
+    socket.on('update-language', (lang) => {
         const username = activeSockets[socket.id];
-        if (username && newLang) {
-            userLanguages[username] = newLang;
+        if (username) {
+            userLanguages[username] = lang;
         }
     });
 
-    socket.on('update-customization', ({ targetName, color, avatar }) => {
-        const username = activeSockets[socket.id];
-        if (!username || !targetName) return;
+    socket.on('add-contact', (contactName) => {
+        broadcastUsers();
+    });
 
-        if (!userCustomizations[username]) {
-            userCustomizations[username] = {};
-        }
-        userCustomizations[username][targetName] = { color, avatar };
-
-        for (let [id, name] of Object.entries(activeSockets)) {
-            if (name === username) {
-                io.to(id).emit('sync-customizations', userCustomizations[username]);
-            }
+    socket.on('update-customization', (data) => {
+        const { targetName, color, avatar } = data;
+        if (targetName) {
+            userCustomizations[targetName] = { color, avatar };
+            io.emit('sync-customizations', userCustomizations);
         }
     });
 
-    socket.on('add-contact', (targetName) => {
-        const username = activeSockets[socket.id];
-        if (!username || !targetName) return;
-        const cleanTarget = targetName.trim();
-        if (!cleanTarget || username.toLowerCase() === cleanTarget.toLowerCase()) return;
-
-        allKnownUsers.add(cleanTarget);
-        if (!userContacts[username]) {
-            userContacts[username] = new Set();
-        }
-        userContacts[username].add(cleanTarget);
-        updateUsers();
-    });
-
-    // Текстове повідомлення з перекладом
     socket.on('text-message', async (data) => {
         try {
             const sender = data.sender;
             const recipient = data.recipient;
             const rawText = (data.text || '').trim();
-            const targetLang = data.targetLang || userLanguages[recipient] || 'Spanish';
+            const targetLang = userLanguages[recipient] || 'Spanish';
 
             if (!rawText || !recipient) return;
 
             const translatedText = await translateText(rawText, targetLang);
-
             const cleanRecipient = recipient.toLowerCase().trim();
             const recipientSocketId = Object.keys(activeSockets).find(
                 id => activeSockets[id] && activeSockets[id].toLowerCase().trim() === cleanRecipient
@@ -262,59 +131,50 @@ io.on('connection', (socket) => {
         }
     });
 
-    // Голосове повідомлення через Whisper
     socket.on('voice-message', async (data) => {
         try {
-            const sender = data.sender;
-            const recipient = data.recipient;
-            const audioBase64 = data.audio;
+            const { sender, recipient, audio } = data;
+            if (!audio || !recipient) return;
 
-            if (!audioBase64 || !recipient) return;
-
-            const base64Data = audioBase64.split(';base64,').pop();
+            const base64Data = audio.replace(/^data:audio\/webm;base64,/, "");
             const audioBuffer = Buffer.from(base64Data, 'base64');
 
-            const apiKey = process.env.GROQ_API_KEY;
-            if (!apiKey) return;
+            const transcribedText = await transcribeAudio(audioBuffer);
+            if (!transcribedText.trim()) return;
 
-            const formData = new FormData();
-            const blob = new Blob([audioBuffer], { type: 'audio/webm' });
-            formData.append('file', blob, 'audio.webm');
-            formData.append('model', 'whisper-large-v3');
-
-            const transcriptionResponse = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${apiKey}` },
-                body: formData
-            });
-
-            const transcriptionData = await transcriptionResponse.json();
-            if (!transcriptionResponse.ok || !transcriptionData.text) return;
-
-            const recognizedText = transcriptionData.text.trim();
-            const recipientLang = userLanguages[recipient] || 'Spanish';
-            const translatedText = await translateText(recognizedText, recipientLang);
+            const targetLang = userLanguages[recipient] || 'Spanish';
+            const translatedText = await translateText(transcribedText, targetLang);
 
             const cleanRecipient = recipient.toLowerCase().trim();
             const recipientSocketId = Object.keys(activeSockets).find(
                 id => activeSockets[id] && activeSockets[id].toLowerCase().trim() === cleanRecipient
             );
 
-            socket.emit('incoming-message', { sender, text: recognizedText, isSelf: true });
+            socket.emit('incoming-message', { sender, text: transcribedText, isSelf: true });
 
             if (recipientSocketId) {
                 io.to(recipientSocketId).emit('incoming-message', { sender, text: translatedText, isSelf: false });
             }
         } catch (e) {
-            console.error("❌ Помилка голосу:", e);
+            console.error("❌ Помилка обробки голосового повідомлення:", e);
         }
     });
 
     socket.on('disconnect', () => {
+        console.log(`❌ Користувач відключився: ${socket.id}`);
         delete activeSockets[socket.id];
-        updateUsers();
+        broadcastUsers();
     });
 });
 
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
+function broadcastUsers() {
+    const uniqueUsers = Array.from(new Set(Object.values(activeSockets))).map(name => ({
+        name,
+        isOnline: true
+    }));
+    io.emit('update-users', uniqueUsers);
+}
+
+server.listen(PORT, () => {
+    console.log(`🚀 Сервер запущено на порту ${PORT}`);
+});
