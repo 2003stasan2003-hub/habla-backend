@@ -1,15 +1,16 @@
 {
   "name": "habla-backend",
-  "version": "1.0.0",
-  "type": "module",
+  "version": "3.1.0",
+  "description": "Habla Mobile Real-time Multilingual Messenger",
   "main": "server.js",
+  "type": "module",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
-    "cors": "^2.8.5",
+    "axios": "^1.6.8",
     "express": "^4.19.2",
-    "groq-sdk": "^0.7.0",
+    "form-data": "^4.0.0",
     "socket.io": "^4.7.5"
   }
 }
