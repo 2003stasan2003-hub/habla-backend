@@ -27,7 +27,7 @@ let activeSockets = {};
 let userLanguages = {};
 let userCustomizations = {};
 
-// Аудіо транскрипція через еталонний whisper-large-v3 (для мікрофона)
+// Аудіо транскрипція через Whisper з підказкою української мови для уникнення плутанини
 async function transcribeAudio(audioBuffer) {
     if (!GROQ_API_KEY) throw new Error("GROQ_API_KEY не заданий!");
     const tempFilePath = path.join(__dirname, `temp_${Date.now()}.webm`);
@@ -37,6 +37,7 @@ async function transcribeAudio(audioBuffer) {
         const formData = new FormData();
         formData.append('file', fs.createReadStream(tempFilePath));
         formData.append('model', 'whisper-large-v3');
+        formData.append('language', 'uk'); // Жорстко вказуємо Whisper розпізнавати українську
         formData.append('temperature', '0');
 
         const response = await axios.post('https://api.groq.com/openai/v1/audio/transcriptions', formData, {
@@ -54,25 +55,34 @@ async function transcribeAudio(audioBuffer) {
     }
 }
 
-// Професійний літературний переклад без кальок через llama-3.3-70b-versatile
+// Залізний літературний переклад без кальок і суворо без російської мови
 async function translateText(text, targetLang) {
     if (!GROQ_API_KEY || !text) return text;
     
     let langName = targetLang;
-    if (targetLang === 'Ukrainian') langName = 'clean, natural literary Ukrainian language (сучасна літературна українська мова без кальок і русизмів)';
-    if (targetLang === 'English') langName = 'natural English';
-    if (targetLang === 'Spanish') langName = 'natural Spanish';
-    if (targetLang === 'German') langName = 'natural German';
-    if (targetLang === 'French') langName = 'natural French';
+    if (targetLang === 'Ukrainian') {
+        langName = 'pure, modern, natural literary Ukrainian language (сучасна літературна українська мова, без жодних русизмів, кальки чи суржику)';
+    } else if (targetLang === 'English') {
+        langName = 'natural English';
+    } else if (targetLang === 'Spanish') {
+        langName = 'natural Spanish';
+    } else if (targetLang === 'German') {
+        langName = 'natural German';
+    } else if (targetLang === 'French') {
+        langName = 'natural French';
+    }
 
     try {
         const response = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
             model: "llama-3.3-70b-versatile",
             messages: [
-                { role: "system", content: `You are a professional native translator. Translate the given text accurately and naturally into ${langName}. Return ONLY the translated text without quotes, comments, or extra explanations.` },
+                { 
+                    role: "system", 
+                    content: `You are a professional native translator. Translate the given text accurately, fluently, and naturally into ${langName}. NEVER translate into Russian. If the target language is Ukrainian, use exclusively rich, clean Ukrainian vocabulary without any Russian words or grammatical influences. Return ONLY the translated text without quotes or extra explanations.` 
+                },
                 { role: "user", content: text }
             ],
-            temperature: 0.3,
+            temperature: 0.2,
             max_tokens: 300
         }, {
             headers: {
@@ -165,7 +175,7 @@ io.on('connection', (socket) => {
             socket.emit('incoming-message', { sender, text: transcribedText, isSelf: true, originalText: transcribedText });
 
             if (recipientSocketId) {
-                io.to(recipientSocketId).emit('incoming-message', { sender, text: translatedText, isSelf: false, originalText: transcribedText });
+                io.to(recipientSocketId).emit('incoming-message', { sender, text: translatedText, isSelf: false, originalText: rendTranslated(translatedText) });
             }
         } catch (e) {
             console.error("❌ Помилка обробки голосового повідомлення:", e);
@@ -178,6 +188,8 @@ io.on('connection', (socket) => {
         broadcastUsers();
     });
 });
+
+function rendTranslated(text) { return text; }
 
 function broadcastUsers() {
     const uniqueUsers = Array.from(new Set(Object.values(activeSockets))).map(name => ({
