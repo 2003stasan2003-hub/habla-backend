@@ -25,11 +25,36 @@ app.get('/', (req, res) => {
 
 let activeSockets = {};
 let userLanguages = {};
-let userCustomizations = {}; // Серверне сховище для аватарок і кольорів
+let userCustomizations = {};
 
-// Сувора детекція мови через Groq API
+// 1. Швидка локальна перевірка за ключовими маркерами та словами
+function localRussianCheck(text) {
+    if (!text) return false;
+    const lower = text.toLowerCase();
+    
+    // Специфічні російські літери або сполучення
+    if (/[ыэъё]/.test(lower)) return true;
+    
+    // Поширені російські займенники, службові слова та фрази
+    const ruWords = [
+        'что', 'как', 'это', 'ты', 'я', 'он', 'она', 'мы', 'вы', 'они',
+        'меня', 'тебя', 'его', 'ее', 'нас', 'вас', 'их', 'мне', 'тебе',
+        'сказать', 'говорить', 'русски', 'по-русски', 'русский', 'язык',
+        'привет', 'пока', 'спасибо', 'пожалуйста', 'нет', 'да', 'хочу'
+    ];
+    
+    return ruWords.some(word => new RegExp(`\\b${word}\\b`, 'i').test(lower));
+}
+
+// 2. Інтелектуальна перевірка через Groq API з принципом безпеки (Fail-Safe)
 async function isRussianText(text) {
-    if (!GROQ_API_KEY || !text) return false;
+    if (!text) return false;
+    
+    // Спочатку перевіряємо локально (миттєво)
+    if (localRussianCheck(text)) return true;
+
+    if (!GROQ_API_KEY) return false;
+
     try {
         const response = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
             model: "llama-3.3-70b-versatile",
@@ -42,13 +67,15 @@ async function isRussianText(text) {
             headers: {
                 'Authorization': `Bearer ${GROQ_API_KEY}`,
                 'Content-Type': 'application/json'
-            }
+            },
+            timeout: 5000 // Тайм-аут 5 секунд
         });
         const answer = response.data.choices[0]?.message?.content?.trim().toUpperCase() || "";
         return answer.includes('YES');
     } catch (error) {
-        console.error("❌ Помилка детекції мови:", error.message);
-        return false;
+        console.error("❌ Помилка детекції мови через API:", error.message);
+        // Fail-safe: якщо сталася помилка мережі, але локальний фільтр підозрює текст, краще заблокувати
+        return localRussianCheck(text);
     }
 }
 
@@ -130,7 +157,6 @@ io.on('connection', (socket) => {
         if (username) {
             activeSockets[socket.id] = username.trim();
             userLanguages[username.trim()] = lang;
-            // Відправляємо актуальні кастомні аватарки та кольори новому або оновленому клієнту
             socket.emit('sync-customizations', userCustomizations);
             broadcastUsers();
         }
@@ -164,7 +190,7 @@ io.on('connection', (socket) => {
 
             if (!rawText || !recipient) return;
 
-            // Блокування російської мови до відправки
+            // Суворе блокування російської мови до будь-якої пересилки
             if (await isRussianText(rawText)) {
                 const errorMsg = getNotUnderstoodMessage(recipientLang);
                 socket.emit('incoming-message', { sender: 'System', text: errorMsg, isSelf: false });
