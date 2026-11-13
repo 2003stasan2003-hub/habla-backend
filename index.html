@@ -191,30 +191,45 @@
         }
         #contacts-screen.active, #settings-screen.active { display: flex !important; }
 
-        /* Виправлений екран QR: адаптивний вертикальний скрол без зрізання рамок */
+        /* Экран QR: две карточки рядом в рядок, адаптированные и без обрезаний */
         #qr-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #0e1621; z-index: 60; display: none; flex-direction: column;
-            align-items: center; justify-content: flex-start; 
-            padding: 20px 16px; padding-top: 40px; padding-bottom: 95px; 
-            gap: 16px; overflow-y: auto; box-sizing: border-box;
+            align-items: center; justify-content: center; 
+            padding: 20px 10px; padding-bottom: 90px; 
+            box-sizing: border-box; overflow-y: auto;
         }
         #qr-screen.active { display: flex !important; }
 
         .qr-cards-wrapper { 
-            display: flex; flex-direction: column; gap: 14px; width: 100%; 
-            max-width: 380px; align-items: center; margin: auto; 
+            display: flex; flex-direction: row; gap: 10px; width: 100%; 
+            max-width: 440px; justify-content: center; align-items: stretch; margin: auto; 
         }
         .qr-card {
-            width: 100%; background: rgba(23, 33, 43, 0.85); border: 1px solid #89a1b2; border-radius: 18px;
-            padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 12px;
+            flex: 1; background: rgba(23, 33, 43, 0.85); border: 1px solid #89a1b2; border-radius: 16px;
+            padding: 12px 8px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; gap: 10px;
         }
-        .qr-card-title { color: #f5f5f5; font-size: 1rem; font-weight: 600; }
-        .qr-img-box { background: #ffffff; padding: 8px; border-radius: 12px; cursor: zoom-in; }
-        .qr-img-box img { width: 150px; height: 150px; display: block; }
+        .qr-card-title { color: #f5f5f5; font-size: 0.9rem; font-weight: 600; text-align: center; }
+        
+        .qr-img-box { 
+            background: #ffffff; padding: 6px; border-radius: 10px; cursor: pointer; 
+            transition: transform 0.25s ease; display: flex; align-items: center; justify-content: center;
+        }
+        .qr-img-box img { width: 120px; height: 120px; display: block; object-fit: contain; }
+
+        /* Полноэкранный режим QR-кода при нажатии */
+        .qr-img-box.fullscreen {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(14, 22, 33, 0.95); z-index: 150;
+            display: flex; align-items: center; justify-content: center; padding: 20px;
+        }
+        .qr-img-box.fullscreen img {
+            width: min(80vw, 350px); height: min(80vw, 350px);
+        }
+
         .copy-link-action-btn {
-            background: transparent; border: 1px solid #89a1b2; color: #89a1b2; padding: 10px 12px;
-            border-radius: 10px; font-size: 0.85rem; cursor: pointer; width: 100%; text-align: center;
+            background: transparent; border: 1px solid #89a1b2; color: #89a1b2; padding: 8px 6px;
+            border-radius: 10px; font-size: 0.75rem; cursor: pointer; width: 100%; text-align: center;
         }
 
         .contacts-wrapper-box { width: 100%; max-width: 380px; display: flex; flex-direction: column; gap: 16px; margin: auto; transition: all 0.25s ease; }
@@ -420,7 +435,7 @@
             </div>
         </div>
 
-        <!-- Виправлений блок QR-екрану -->
+        <!-- Экран QR с двумя карточками в рядок и кликабельными QR-кодами -->
         <div id="qr-screen">
             <div class="qr-cards-wrapper">
                 <div class="qr-card">
@@ -933,8 +948,21 @@
         const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(currentAppUrl)}`;
         document.getElementById('qr-android-img').src = qrUrl;
         document.getElementById('qr-pc-img').src = qrUrl;
-        document.getElementById('copy-android-btn').addEventListener('click', () => navigator.clipboard.writeText(currentAppUrl).then(() => alert('Скопійовано!')));
-        document.getElementById('copy-pc-btn').addEventListener('click', () => navigator.clipboard.writeText(currentAppUrl).then(() => alert('Скопійовано!')));
+        
+        document.getElementById('copy-android-btn').addEventListener('click', () => {
+            navigator.clipboard.writeText(currentAppUrl).then(() => alert('Скопійовано!'));
+        });
+        document.getElementById('copy-pc-btn').addEventListener('click', () => {
+            navigator.clipboard.writeText(currentAppUrl).then(() => alert('Скопійовано!'));
+        });
+
+        // Кликабельные QR-коды для разворачивания на весь экран
+        document.querySelectorAll('.qr-img-box').forEach(box => {
+            box.addEventListener('click', (e) => {
+                e.stopPropagation();
+                box.classList.toggle('fullscreen');
+            });
+        });
 
         document.getElementById('toggle-lang-dropdown').addEventListener('click', () => {
             document.getElementById('lang-options-box').classList.toggle('active');
@@ -959,6 +987,7 @@
             qrScreen.classList.remove('active'); contactsScreen.classList.remove('active'); settingsScreen.classList.remove('active');
             isContactsExpanded = false; contactsWrapperBox.classList.remove('expanded-mode');
             testTextBox.classList.remove('active');
+            document.querySelectorAll('.qr-img-box').forEach(b => b.classList.remove('fullscreen'));
         }
 
         navHome.addEventListener('click', () => { closeAllScreens(); setActiveNav(navHome); });
@@ -1029,7 +1058,7 @@
             if (!activeContactForModal || activeContactForModal === username) return;
             if (confirm(`Видалити контакт ${activeContactForModal}?`)) {
                 localAddedContacts = localAddedContacts.filter(n => n !== activeContactForModal);
-                localStorage.setItem('hab4_local_contacts', JSON.stringify(localAddedContacts));
+                localStorage.setItem('habla_local_contacts', JSON.stringify(localAddedContacts));
                 delete contactColors[activeContactForModal]; delete contactAvatars[activeContactForModal];
                 if (selectedRecipientName === activeContactForModal) { localStorage.removeItem('habla_selected_recipient'); selectedRecipientName = null; }
                 contactModal.classList.remove('active'); document.getElementById('menu-overlay').classList.remove('active');
