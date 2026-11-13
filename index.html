@@ -141,7 +141,7 @@
 
         .main-screen {
             flex: 1; display: flex; flex-direction: column; align-items: center;
-            justify-content: center; position: relative; padding: 10px 20px 75px 20px; width: 100%;
+            justify-content: center; position: relative; padding: 10px 20px 95px 20px; width: 100%;
             max-width: 480px; margin: 0 auto; gap: 10px;
         }
 
@@ -150,7 +150,6 @@
             gap: 6px; justify-content: flex-end; min-height: 80px; margin-bottom: 2px;
         }
         
-        /* Логіка каскадного зменшення для 5 повідомлень */
         .message-card {
             background: rgba(23, 33, 43, 0.9); border: 1px solid #2b5278; border-radius: 12px;
             padding: 8px 10px; color: #f5f5f5; font-size: 0.88rem; line-height: 1.3; position: relative;
@@ -159,7 +158,6 @@
         .message-card.sent { border-color: #89a1b2; background: rgba(43, 82, 120, 0.4); align-self: flex-end; }
         .message-card.received { border-color: #2b5278; align-self: flex-start; }
 
-        /* Каскад до 5 попередніх повідомлень */
         .message-card.older-1 { opacity: 0.85; transform: scale(0.95); }
         .message-card.older-2 { opacity: 0.65; transform: scale(0.90); }
         .message-card.older-3 { opacity: 0.45; transform: scale(0.85); }
@@ -188,18 +186,16 @@
             transition: border-color 0.2s;
         }
         .neon-mic-btn:active { border-color: #f5f5f5; }
-        .neon-mic-btn.recording {
-            border-color: #c94a4a !important;
-        }
+        .neon-mic-btn.recording { border-color: #c94a4a !important; }
         .recording-timer { color: #c94a4a; font-weight: bold; font-size: 0.85rem; display: none; }
         .recording-timer.active { display: block; }
         .selected-recipient-inside { color: #f5f5f5; font-size: 1rem; font-weight: 600; display: none; }
         .selected-recipient-inside.active { display: block; }
         .mic-icon-placeholder svg { stroke: #89a1b2; fill: none; width: 40px; height: 40px; }
 
-        /* Підняте та адапїоване поле вводу для ноутбуків та мобільних */
+        /* Надійне вище положення поля вводу для Android та ПК */
         .test-text-box {
-            position: absolute; bottom: 68px; left: 50%; transform: translateX(-50%);
+            position: absolute; bottom: 85px; left: 50%; transform: translateX(-50%);
             width: 90%; max-width: 360px; display: none; align-items: center; gap: 8px;
             background: rgba(23, 33, 43, 0.98); border: 1px solid #89a1b2; border-radius: 14px;
             padding: 8px 10px 8px 14px; z-index: 85; box-shadow: 0 8px 25px rgba(0,0,0,0.8);
@@ -452,7 +448,7 @@
                 </div>
             </button>
 
-            <!-- Підняте вище поле вводу тексту -->
+            <!-- Підняте вище поле вводу тексту для Android та ПК -->
             <div class="test-text-box" id="test-text-box">
                 <input type="text" id="test-text-input" class="test-text-input" placeholder="Введіть текст..." data-i18n-placeholder="test_text_placeholder" autocomplete="off">
                 <button id="test-text-send-btn" class="test-text-send-btn" title="Надіслати">
@@ -567,7 +563,7 @@
     </nav>
 
     <script>
-        // Дата створення: 13.11.2026, 19:10
+        // Дата створення: 13.11.2026, 19:15
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => { navigator.serviceWorker.register('/sw.js').catch(() => {}); });
         }
@@ -892,7 +888,6 @@
             return 'uk';
         }
 
-        // Оновлена логіка каскаду на 5 повідомлень
         function addMessageToStack(text, sender, isSent = false, originalText = null) {
             const card = document.createElement('div');
             card.className = `message-card ${isSent ? 'sent' : 'received'}`;
@@ -995,7 +990,6 @@
         const micButton = document.getElementById('mic-button');
         let audioContext, analyser, microphone, javascriptNode;
 
-        // Жива пульсація мікрофона в такт голосу
         function startAudioVisualization(stream) {
             try {
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -1014,11 +1008,8 @@
                     const array = new Uint8Array(analyser.frequencyBinCount);
                     analyser.getByteFrequencyData(array);
                     let values = 0;
-                    for (let i = 0; i < array.length; i++) {
-                        values += array[i];
-                    }
+                    for (let i = 0; i < array.length; i++) { values += array[i]; }
                     const average = values / array.length;
-                    // Динамічний масштаб кнопки мікрофона в такт голосу
                     const scale = 1 + Math.min(average / 45, 0.35);
                     micButton.style.transform = `scale(${scale})`;
                 };
