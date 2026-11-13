@@ -128,6 +128,12 @@
         .message-card.fade-out { opacity: 0; transform: translateY(-20px) scale(0.85); }
         .message-sender-tag { font-size: 0.7rem; color: #89a1b2; margin-bottom: 4px; font-weight: 600; }
         
+        /* Двоярусний блок повідомлення (оригінал з міткою мови + переклад) */
+        .dual-msg-wrapper { display: flex; flex-direction: column; gap: 4px; width: 100%; }
+        .msg-original-row { display: flex; align-items: center; gap: 6px; font-size: 0.82rem; color: #89a1b2; border-bottom: 1px solid rgba(137, 161, 178, 0.2); padding-bottom: 3px; }
+        .lang-badge { background: rgba(137, 161, 178, 0.2); color: #f5f5f5; font-size: 0.65rem; padding: 1px 5px; border-radius: 4px; font-weight: bold; text-transform: uppercase; }
+        .msg-translation-row { font-size: 0.95rem; color: #f5f5f5; }
+
         .message-tts-btn {
             position: absolute; right: 8px; bottom: 8px; background: none; border: none;
             color: #89a1b2; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;
@@ -159,28 +165,16 @@
         .mic-icon-placeholder svg { stroke: #89a1b2; fill: none; width: 46px; height: 46px; }
 
         .test-text-box {
-            width: 100%;
-            max-width: 340px;
-            display: none;
-            align-items: center;
-            gap: 8px;
-            background: rgba(23, 33, 43, 0.95);
-            border: 1px solid #89a1b2;
-            border-radius: 14px;
-            padding: 6px 8px 6px 12px;
-            margin-top: 4px;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+            width: 100%; max-width: 340px; display: none; align-items: center; gap: 8px;
+            background: rgba(23, 33, 43, 0.95); border: 1px solid #89a1b2; border-radius: 14px;
+            padding: 6px 8px 6px 12px; margin-top: 4px; box-shadow: 0 6px 20px rgba(0,0,0,0.6);
         }
         .test-text-box.active { display: flex; }
-        .test-text-input {
-            flex: 1; background: transparent; border: none; color: #f5f5f5;
-            font-size: 0.9rem; outline: none; min-width: 0;
-        }
+        .test-text-input { flex: 1; background: transparent; border: none; color: #f5f5f5; font-size: 0.9rem; outline: none; min-width: 0; }
         .test-text-input::placeholder { color: #6b8294; }
         .test-text-send-btn {
-            background: #2b5278; border: 1px solid #89a1b2; color: #f5f5f5;
-            width: 34px; height: 34px; border-radius: 10px; display: flex;
-            align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;
+            background: #2b5278; border: 1px solid #89a1b2; color: #f5f5f5; width: 34px; height: 34px;
+            border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;
         }
         .test-text-send-btn svg { width: 16px; height: 16px; fill: currentColor; }
 
@@ -191,12 +185,10 @@
         }
         #contacts-screen.active, #settings-screen.active { display: flex !important; }
 
-        /* Экран QR: две карточки рядом в рядок, адаптированные и без обрезаний */
         #qr-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #0e1621; z-index: 60; display: none; flex-direction: column;
-            align-items: center; justify-content: center; 
-            padding: 20px 10px; padding-bottom: 90px; 
+            align-items: center; justify-content: center; padding: 20px 10px; padding-bottom: 90px; 
             box-sizing: border-box; overflow-y: auto;
         }
         #qr-screen.active { display: flex !important; }
@@ -217,15 +209,12 @@
         }
         .qr-img-box img { width: 120px; height: 120px; display: block; object-fit: contain; }
 
-        /* Полноэкранный режим QR-кода при нажатии */
         .qr-img-box.fullscreen {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background: rgba(14, 22, 33, 0.95); z-index: 150;
             display: flex; align-items: center; justify-content: center; padding: 20px;
         }
-        .qr-img-box.fullscreen img {
-            width: min(80vw, 350px); height: min(80vw, 350px);
-        }
+        .qr-img-box.fullscreen img { width: min(80vw, 350px); height: min(80vw, 350px); }
 
         .copy-link-action-btn {
             background: transparent; border: 1px solid #89a1b2; color: #89a1b2; padding: 8px 6px;
@@ -435,7 +424,6 @@
             </div>
         </div>
 
-        <!-- Экран QR с двумя карточками в рядок и кликабельными QR-кодами -->
         <div id="qr-screen">
             <div class="qr-cards-wrapper">
                 <div class="qr-card">
@@ -812,10 +800,50 @@
 
         const messagesStack = document.getElementById('messages-stack');
         let displayedMessages = [];
+
+        // Визначення мови тексту (простий евристичний перевірка на латиницю/інші мови)
+        function detectMessageLanguage(text) {
+            if (!text) return 'uk';
+            const latinChars = text.match(/[a-zA-Z]/g);
+            const cyrillicChars = text.match(/[а-яА-ЯіїєґІЇЄҐ]/g);
+            if (latinChars && (!cyrillicChars || latinChars.length > cyrillicChars.length)) {
+                return 'en'; // або інша латинська мова
+            }
+            return 'uk';
+        }
+
+        // Функція додавання повідомлення в стек із розумним двоярусним форматом
         function addMessageToStack(text, sender, isSent = false) {
             const card = document.createElement('div');
             card.className = `message-card ${isSent ? 'sent' : 'received'}`;
-            card.innerHTML = `<div class="message-sender-tag">${isSent ? `Ви ➔ ${selectedRecipientName || 'Контакт'}` : sender}</div><div>${escapeHtml(text)}</div><button class="message-tts-btn" title="Прослухати"><svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg></button>`;
+            
+            const detectedLang = detectMessageLanguage(text);
+            const mainInterfaceLang = interfaceLangSelect.value.toLowerCase();
+            
+            // Якщо це іншомовна фраза (наприклад, латиницею при українському інтерфейсі), формуємо двоярусну картку
+            let contentHtml = '';
+            if (!isSent && detectedLang !== 'uk' && !mainInterfaceLang.startsWith('en')) {
+                contentHtml = `
+                    <div class="dual-msg-wrapper">
+                        <div class="msg-original-row">
+                            <span class="lang-badge">${detectedLang}</span>
+                            <span>${escapeHtml(text)}</span>
+                        </div>
+                        <div class="msg-translation-row">${escapeHtml(text)}</div>
+                    </div>
+                `;
+            } else {
+                contentHtml = `<div>${escapeHtml(text)}</div>`;
+            }
+
+            card.innerHTML = `
+                <div class="message-sender-tag">${isSent ? `Ви ➔ ${selectedRecipientName || 'Контакт'}` : sender}</div>
+                ${contentHtml}
+                <button class="message-tts-btn" title="Прослухати">
+                    <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+                </button>
+            `;
+
             card.querySelector('.message-tts-btn').addEventListener('click', (e) => { e.stopPropagation(); speakText(text); });
             messagesStack.appendChild(card);
             displayedMessages.push(card);
@@ -890,7 +918,9 @@
             if (!selectedRecipientName) { alert('Оберіть співрозмовника у Контактах!'); return; }
             if (!isRecording) {
                 try {
-                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    const stream = await navigator.mediaDevices.getUserMedia({ 
+                        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } 
+                    });
                     mediaRecorder = new MediaRecorder(stream);
                     audioChunks = [];
                     mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
@@ -956,7 +986,6 @@
             navigator.clipboard.writeText(currentAppUrl).then(() => alert('Скопійовано!'));
         });
 
-        // Кликабельные QR-коды для разворачивания на весь экран
         document.querySelectorAll('.qr-img-box').forEach(box => {
             box.addEventListener('click', (e) => {
                 e.stopPropagation();
