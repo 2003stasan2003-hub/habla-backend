@@ -8,7 +8,7 @@ const FormData = require('form-data');
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server);
+const io = new Server(server, { maxHttpBufferSize: 10 * 1024 * 1024 }); // Збільшено ліміт для передачі картинок з галереї
 
 const PORT = process.env.PORT || 10000;
 const GROQ_API_KEY = process.env.GROQ_API_KEY || "";
@@ -32,8 +32,7 @@ async function transcribeAudio(audioBuffer) {
         const formData = new FormData();
         formData.append('file', fs.createReadStream(tempFilePath));
         formData.append('model', 'whisper-large-v3');
-        // Дозволяємо Whisper самостійно визначати мову на льоту (без жорсткої прив'язки до 'uk')
-        formData.append('temperature', '0'); // Зменшуємо ймовірність галюцинацій на шумах
+        formData.append('temperature', '0');
 
         const response = await axios.post('https://api.groq.com/openai/v1/audio/transcriptions', formData, {
             headers: {
