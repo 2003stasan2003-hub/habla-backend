@@ -27,59 +27,50 @@ let activeSockets = {};
 let userLanguages = {};
 let userCustomizations = {};
 
-// 1. Швидка локальна перевірка за ключовими маркерами та словами
+// 1. Швидка локальна перевірка за ключовими маркерами
 function localRussianCheck(text) {
     if (!text) return false;
     const lower = text.toLowerCase();
-    
-    // Специфічні російські літери або сполучення
     if (/[ыэъё]/.test(lower)) return true;
-    
-    // Поширені російські займенники, службові слова та фрази
     const ruWords = [
         'что', 'как', 'это', 'ты', 'я', 'он', 'она', 'мы', 'вы', 'они',
         'меня', 'тебя', 'его', 'ее', 'нас', 'вас', 'их', 'мне', 'тебе',
         'сказать', 'говорить', 'русски', 'по-русски', 'русский', 'язык',
-        'привет', 'пока', 'спасибо', 'пожалуйста', 'нет', 'да', 'хочу'
+        'привет', 'пока', 'спасибо', 'пожалуйста', 'нет', 'да', 'хочу', 'ответь'
     ];
-    
     return ruWords.some(word => new RegExp(`\\b${word}\\b`, 'i').test(lower));
 }
 
-// 2. Інтелектуальна перевірка через Groq API з принципом безпеки (Fail-Safe)
+// 2. Детекція через стабільну та швидку llama-3.1-8b-instant (мінімум токенів)
 async function isRussianText(text) {
     if (!text) return false;
-    
-    // Спочатку перевіряємо локально (миттєво)
     if (localRussianCheck(text)) return true;
-
     if (!GROQ_API_KEY) return false;
 
     try {
         const response = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
-            model: "llama-3.3-70b-versatile",
+            model: "llama-3.1-8b-instant",
             messages: [
                 { role: "system", content: "You are a language detector. Determine if the given text is in Russian. Answer ONLY with 'YES' if it is Russian, or 'NO' if it is any other language." },
                 { role: "user", content: text }
             ],
-            temperature: 0.1
+            temperature: 0.1,
+            max_tokens: 5 // Економія токенів (потрібна лише відповідь YES або NO)
         }, {
             headers: {
                 'Authorization': `Bearer ${GROQ_API_KEY}`,
                 'Content-Type': 'application/json'
             },
-            timeout: 5000 // Тайм-аут 5 секунд
+            timeout: 5000
         });
         const answer = response.data.choices[0]?.message?.content?.trim().toUpperCase() || "";
         return answer.includes('YES');
     } catch (error) {
         console.error("❌ Помилка детекції мови через API:", error.message);
-        // Fail-safe: якщо сталася помилка мережі, але локальний фільтр підозрює текст, краще заблокувати
-        return localRussianCheck(text);
+        return localRussianCheck(text); // Fail-safe захист
     }
 }
 
-// Локалізоване повідомлення про нерозуміння мовою отримувача
 function getNotUnderstoodMessage(lang) {
     switch (lang) {
         case 'Ukrainian': return 'Я не розумію вашої мови.';
@@ -91,6 +82,7 @@ function getNotUnderstoodMessage(lang) {
     }
 }
 
+// 3. Аудіо транскрипція через еталонний whisper-large-v3
 async function transcribeAudio(audioBuffer) {
     if (!GROQ_API_KEY) throw new Error("GROQ_API_KEY не заданий!");
     const tempFilePath = path.join(__dirname, `temp_${Date.now()}.webm`);
@@ -117,6 +109,7 @@ async function transcribeAudio(audioBuffer) {
     }
 }
 
+// 4. Швидкий та якісний переклад через llama-3.1-8b-instant
 async function translateText(text, targetLang) {
     if (!GROQ_API_KEY || !text) return text;
     
@@ -129,12 +122,13 @@ async function translateText(text, targetLang) {
 
     try {
         const response = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
-            model: "llama-3.3-70b-versatile",
+            model: "llama-3.1-8b-instant",
             messages: [
                 { role: "system", content: `You are a professional translator. Translate the given text accurately and naturally into ${langName}. Return ONLY the translated text without quotes, comments, or extra explanations.` },
                 { role: "user", content: text }
             ],
-            temperature: 0.2
+            temperature: 0.2,
+            max_tokens: 300 // Обмежуємо для економії токенів і миттєвої швидкості
         }, {
             headers: {
                 'Authorization': `Bearer ${GROQ_API_KEY}`,
@@ -164,12 +158,10 @@ io.on('connection', (socket) => {
 
     socket.on('update-language', (lang) => {
         const username = activeSockets[socket.id];
-        if (username) {
-            userLanguages[username] = lang;
-        }
+        if (username) userLanguages[username] = lang;
     });
 
-    socket.on('add-contact', (contactName) => {
+    socket.on('add-contact', () => {
         broadcastUsers();
     });
 
@@ -190,7 +182,7 @@ io.on('connection', (socket) => {
 
             if (!rawText || !recipient) return;
 
-            // Суворе блокування російської мови до будь-якої пересилки
+            // Залізне блокування російської мови для тексту
             if (await isRussianText(rawText)) {
                 const errorMsg = getNotUnderstoodMessage(recipientLang);
                 socket.emit('incoming-message', { sender: 'System', text: errorMsg, isSelf: false });
@@ -226,7 +218,7 @@ io.on('connection', (socket) => {
 
             const recipientLang = userLanguages[recipient] || 'Ukrainian';
 
-            // Блокування російської мови у голосі
+            // Залізне блокування російської мови для голосу (транскрипції)
             if (await isRussianText(transcribedText)) {
                 const errorMsg = getNotUnderstoodMessage(recipientLang);
                 socket.emit('incoming-message', { sender: 'System', text: errorMsg, isSelf: false });
