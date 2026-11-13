@@ -25,7 +25,7 @@ app.get('/', (req, res) => {
 
 let activeSockets = {};
 let userLanguages = {};
-let userCustomizations = {};
+let userCustomizations = {}; // Серверне сховище для аватарок і кольорів
 
 // Сувора детекція мови через Groq API
 async function isRussianText(text) {
@@ -130,6 +130,7 @@ io.on('connection', (socket) => {
         if (username) {
             activeSockets[socket.id] = username.trim();
             userLanguages[username.trim()] = lang;
+            // Відправляємо актуальні кастомні аватарки та кольори новому або оновленому клієнту
             socket.emit('sync-customizations', userCustomizations);
             broadcastUsers();
         }
@@ -163,14 +164,13 @@ io.on('connection', (socket) => {
 
             if (!rawText || !recipient) return;
 
-            // 1. Миттєва перевірка та повне блокування російської мови до будь-якої пересилки
+            // Блокування російської мови до відправки
             if (await isRussianText(rawText)) {
                 const errorMsg = getNotUnderstoodMessage(recipientLang);
                 socket.emit('incoming-message', { sender: 'System', text: errorMsg, isSelf: false });
                 return;
             }
 
-            // 2. Нормальний процес перекладу та відправки
             const translatedText = await translateText(rawText, recipientLang);
             const cleanRecipient = recipient.toLowerCase().trim();
             const recipientSocketId = Object.keys(activeSockets).find(
@@ -200,14 +200,13 @@ io.on('connection', (socket) => {
 
             const recipientLang = userLanguages[recipient] || 'Ukrainian';
 
-            // 1. Блокування російської мови для голосових повідомлень через ШІ
+            // Блокування російської мови у голосі
             if (await isRussianText(transcribedText)) {
                 const errorMsg = getNotUnderstoodMessage(recipientLang);
                 socket.emit('incoming-message', { sender: 'System', text: errorMsg, isSelf: false });
                 return;
             }
 
-            // 2. Переклад розпізнаного голосу
             const translatedText = await translateText(transcribedText, recipientLang);
 
             const cleanRecipient = recipient.toLowerCase().trim();
