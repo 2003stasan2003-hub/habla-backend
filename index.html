@@ -41,7 +41,7 @@
             background: #242f3d; color: #f5f5f5; border: 1px solid #2b5278;
             padding: 8px 12px; border-radius: 8px; outline: none; font-size: 0.9rem; cursor: pointer; width: 100%;
         }
-        .lang-select option:disabled { color: #666; background: #17212b; }
+        .lang-select option:disabled { color: #666; background: #17212b; cursor: not-allowed; }
 
         .menu-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -71,7 +71,6 @@
             color: #fff; padding: 8px 10px; border-radius: 6px; font-size: 0.85rem; outline: none;
         }
         
-        /* Кнопка вибору зображення з галереї */
         .gallery-file-btn {
             background: #242f3d; border: 1px dashed #89a1b2; color: #89a1b2;
             padding: 10px; border-radius: 8px; font-size: 0.85rem; cursor: pointer; text-align: center;
@@ -357,7 +356,6 @@
         </div>
     </div>
 
-    <!-- Модальне вікно налаштування контакту / профілю з вибором з галереї (JPEG, PNG) -->
     <div id="contact-modal">
         <div class="modal-header">
             <span id="modal-contact-title" class="modal-title">Контакт</span>
@@ -468,12 +466,14 @@
                     <span class="dropdown-arrow" id="lang-arrow">▼</span>
                 </div>
                 <div class="sub-options-box" id="lang-options-box">
+                    <!-- Російська мова додана до списку, але повністю заблокована (disabled) -->
                     <select id="interface-lang" class="lang-select">
-                        <option value="Spanish">Spanish</option>
-                        <option value="English">English</option>
                         <option value="Ukrainian">Ukrainian</option>
+                        <option value="English">English</option>
+                        <option value="Spanish">Spanish</option>
                         <option value="German">German</option>
                         <option value="French">French</option>
+                        <option value="Russian" disabled>Russian (Заборонено)</option>
                     </select>
                 </div>
             </div>
@@ -595,7 +595,7 @@
         };
 
         function applyLocalization(lang) {
-            const dict = translations[lang] || translations['Spanish'];
+            const dict = translations[lang] || translations['Ukrainian'];
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.getAttribute('data-i18n');
                 if (dict[key]) el.textContent = dict[key];
@@ -633,15 +633,16 @@
         });
 
         function getDeviceLanguage() {
-            const navLang = (navigator.language || 'es').toLowerCase();
-            if (navLang.startsWith('uk')) return 'Ukrainian';
+            const navLang = (navigator.language || 'uk').toLowerCase();
             if (navLang.startsWith('en')) return 'English';
             if (navLang.startsWith('de')) return 'German';
             if (navLang.startsWith('fr')) return 'French';
-            return 'Spanish';
+            if (navLang.startsWith('es')) return 'Spanish';
+            return 'Ukrainian';
         }
 
         let savedInterfaceLang = localStorage.getItem('habla_interface_lang') || getDeviceLanguage();
+        if (savedInterfaceLang === 'Russian') savedInterfaceLang = 'Ukrainian'; // Захист від вибору забороненої мови
         interfaceLangSelect.value = savedInterfaceLang;
         applyLocalization(savedInterfaceLang);
 
@@ -669,6 +670,7 @@
 
         interfaceLangSelect.addEventListener('change', () => {
             const newLang = interfaceLangSelect.value;
+            if (newLang === 'Russian') return; // Запобігання вибору
             localStorage.setItem('habla_interface_lang', newLang);
             applyLocalization(newLang);
             socket.emit('update-language', newLang);
@@ -826,20 +828,19 @@
             return 'uk';
         }
 
-        function addMessageToStack(text, sender, isSent = false) {
+        function addMessageToStack(text, sender, isSent = false, originalText = null) {
             const card = document.createElement('div');
             card.className = `message-card ${isSent ? 'sent' : 'received'}`;
             
-            const detectedLang = detectMessageLanguage(text);
-            const mainInterfaceLang = interfaceLangSelect.value.toLowerCase();
-            
             let contentHtml = '';
-            if (!isSent && detectedLang !== 'uk' && !mainInterfaceLang.startsWith('en')) {
+            // Якщо це двоярусне повідомлення (є оригінал і він відрізняється від перекладу)
+            if (originalText && originalText.trim() !== text.trim() && !isSent) {
+                const detectedLang = detectMessageLanguage(originalText);
                 contentHtml = `
                     <div class="dual-msg-wrapper">
                         <div class="msg-original-row">
                             <span class="lang-badge">${detectedLang}</span>
-                            <span>${escapeHtml(text)}</span>
+                            <span>${escapeHtml(originalText)}</span>
                         </div>
                         <div class="msg-translation-row">${escapeHtml(text)}</div>
                     </div>
@@ -963,8 +964,9 @@
         });
 
         socket.on('incoming-message', (data) => {
-            if (data.text && (data.sender === username || data.sender === selectedRecipientName)) {
-                addMessageToStack(data.text, data.sender || 'Контакт', data.sender === username);
+            if (data.text) {
+                const isSelf = data.sender === username;
+                addMessageToStack(data.text, data.sender || 'Контакт', isSelf, data.originalText);
                 if (document.getElementById('sound-toggle').checked) speakText(data.text);
             }
         });
@@ -974,7 +976,7 @@
             if (!('speechSynthesis' in window)) return;
             window.speechSynthesis.cancel();
             const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = ttsLangMap[interfaceLangSelect.value] || 'es-ES';
+            utterance.lang = ttsLangMap[interfaceLangSelect.value] || 'uk-UA';
             window.speechSynthesis.speak(utterance);
         }
 
@@ -1077,7 +1079,6 @@
             c.classList.add('selected'); selectedModalColor = c.getAttribute('data-color');
         }));
 
-        // Обробник вибору зображення з галереї (JPEG, PNG)
         document.getElementById('modal-avatar-file').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
