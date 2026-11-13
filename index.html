@@ -158,7 +158,6 @@
         .selected-recipient-inside.active { display: block; }
         .mic-icon-placeholder svg { stroke: #89a1b2; fill: none; width: 46px; height: 46px; }
 
-        /* Компактное поле ввода прямо под микрофоном при нажатии на текст */
         .test-text-box {
             width: 100%;
             max-width: 340px;
@@ -185,12 +184,38 @@
         }
         .test-text-send-btn svg { width: 16px; height: 16px; fill: currentColor; }
 
-        #contacts-screen, #qr-screen, #settings-screen {
+        #contacts-screen, #settings-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #0e1621; z-index: 60; display: none; flex-direction: column;
             align-items: center; justify-content: center; padding: 20px; padding-bottom: 85px; gap: 16px; overflow-y: auto;
         }
-        #contacts-screen.active, #qr-screen.active, #settings-screen.active { display: flex !important; }
+        #contacts-screen.active, #settings-screen.active { display: flex !important; }
+
+        /* Виправлений екран QR: адаптивний вертикальний скрол без зрізання рамок */
+        #qr-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #0e1621; z-index: 60; display: none; flex-direction: column;
+            align-items: center; justify-content: flex-start; 
+            padding: 20px 16px; padding-top: 40px; padding-bottom: 95px; 
+            gap: 16px; overflow-y: auto; box-sizing: border-box;
+        }
+        #qr-screen.active { display: flex !important; }
+
+        .qr-cards-wrapper { 
+            display: flex; flex-direction: column; gap: 14px; width: 100%; 
+            max-width: 380px; align-items: center; margin: auto; 
+        }
+        .qr-card {
+            width: 100%; background: rgba(23, 33, 43, 0.85); border: 1px solid #89a1b2; border-radius: 18px;
+            padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 12px;
+        }
+        .qr-card-title { color: #f5f5f5; font-size: 1rem; font-weight: 600; }
+        .qr-img-box { background: #ffffff; padding: 8px; border-radius: 12px; cursor: zoom-in; }
+        .qr-img-box img { width: 150px; height: 150px; display: block; }
+        .copy-link-action-btn {
+            background: transparent; border: 1px solid #89a1b2; color: #89a1b2; padding: 10px 12px;
+            border-radius: 10px; font-size: 0.85rem; cursor: pointer; width: 100%; text-align: center;
+        }
 
         .contacts-wrapper-box { width: 100%; max-width: 380px; display: flex; flex-direction: column; gap: 16px; margin: auto; transition: all 0.25s ease; }
         .contacts-wrapper-box.expanded-mode { max-width: 440px; height: 100%; margin: 0 auto; }
@@ -265,19 +290,6 @@
         .modal-action-btn { flex: 1; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer; border: none; }
         .modal-btn-confirm { background: #2b5278; color: #fff; }
         .modal-btn-cancel { background: rgba(201, 74, 74, 0.15); border: 1px solid #c94a4a; color: #c94a4a; }
-
-        .qr-cards-wrapper { display: flex; gap: 14px; width: 100%; max-width: 440px; justify-content: center; }
-        .qr-card {
-            flex: 1; background: rgba(23, 33, 43, 0.75); border: 1px solid #89a1b2; border-radius: 18px;
-            padding: 16px 10px; display: flex; flex-direction: column; align-items: center; gap: 12px;
-        }
-        .qr-card-title { color: #f5f5f5; font-size: 1rem; font-weight: 600; }
-        .qr-img-box { background: #ffffff; padding: 8px; border-radius: 12px; cursor: zoom-in; }
-        .qr-img-box img { width: 145px; height: 145px; display: block; }
-        .copy-link-action-btn {
-            background: transparent; border: 1px solid #89a1b2; color: #89a1b2; padding: 9px 12px;
-            border-radius: 10px; font-size: 0.82rem; cursor: pointer; width: 100%; text-align: center;
-        }
 
         .settings-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #242f3d; padding-bottom: 12px; color: #89a1b2; font-size: 1.1rem; }
         .settings-card {
@@ -380,7 +392,6 @@
                 </div>
             </button>
 
-            <!-- Компактное поле вводу під мікрофоном -->
             <div class="test-text-box" id="test-text-box">
                 <input type="text" id="test-text-input" class="test-text-input" placeholder="Введіть текст..." data-i18n-placeholder="test_text_placeholder" autocomplete="off">
                 <button id="test-text-send-btn" class="test-text-send-btn" title="Надіслати">
@@ -409,6 +420,7 @@
             </div>
         </div>
 
+        <!-- Виправлений блок QR-екрану -->
         <div id="qr-screen">
             <div class="qr-cards-wrapper">
                 <div class="qr-card">
@@ -465,7 +477,6 @@
         </div>
     </div>
 
-    <!-- Нижній бар із детальною іконкою клавіатури (багато цяток-клавіш) -->
     <nav class="bottom-nav-bar">
         <button class="nav-item active" id="nav-home" title="Home">
             <svg viewBox="0 0 24 24" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
@@ -476,7 +487,6 @@
             <small data-i18n="tab_contacts">Контакти</small>
         </button>
         <button class="nav-item" id="nav-keyboard" title="Keyboard">
-            <!-- Детальна піктограма клавіатури з рядами цяток (клавіш) -->
             <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect>
                 <line x1="6" y1="8" x2="6" y2="8"></line><line x1="10" y1="8" x2="10" y2="8"></line><line x1="14" y1="8" x2="14" y2="8"></line><line x1="18" y1="8" x2="18" y2="8"></line>
@@ -490,7 +500,7 @@
             <small data-i18n="tab_qr">QR</small>
         </button>
         <button class="nav-item" id="nav-settings" title="Settings">
-            <svg viewBox="0 0 24 24" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1 z"></path></svg>
+            <svg viewBox="0 0 24 24" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
             <small data-i18n="tab_settings">Налаштування</small>
         </button>
     </nav>
@@ -785,7 +795,6 @@
             }
         });
 
-        // Стек повідомлень
         const messagesStack = document.getElementById('messages-stack');
         let displayedMessages = [];
         function addMessageToStack(text, sender, isSent = false) {
@@ -813,7 +822,6 @@
             displayedMessages = displayedMessages.filter(c => c.parentNode !== null);
         }
 
-        // Логіка показу компактного поля вводу під мікрофоном і відкриття клавіатури
         const testTextBox = document.getElementById('test-text-box');
         const testTextInput = document.getElementById('test-text-input');
         const testTextSendBtn = document.getElementById('test-text-send-btn');
@@ -860,7 +868,6 @@
             }
         });
 
-        // Мікрофон
         let mediaRecorder, audioChunks = [], isRecording = false;
         const micButton = document.getElementById('mic-button');
 
@@ -963,7 +970,12 @@
         navQr.addEventListener('click', () => {
             const isOpen = qrScreen.classList.contains('active');
             closeAllScreens();
-            if (isOpen) setActiveNav(navHome); else { setActiveNav(navQr); qrScreen.classList.add('active'); }
+            if (isOpen) {
+                setActiveNav(navHome);
+            } else {
+                setActiveNav(navQr);
+                qrScreen.classList.add('active');
+            }
         });
         navSettings.addEventListener('click', () => {
             const isOpen = settingsScreen.classList.contains('active');
@@ -1002,7 +1014,7 @@
                 const newNick = document.getElementById('modal-nickname-input').value.trim();
                 if (newNick && newNick !== username) {
                     delete contactColors[username]; delete contactAvatars[username];
-                    username = newNick; localStorage.setItem('habla_username, username');
+                    username = newNick; localStorage.setItem('habla_username', username);
                     activeContactForModal = username; joinWithLanguage();
                 }
             }
@@ -1017,7 +1029,7 @@
             if (!activeContactForModal || activeContactForModal === username) return;
             if (confirm(`Видалити контакт ${activeContactForModal}?`)) {
                 localAddedContacts = localAddedContacts.filter(n => n !== activeContactForModal);
-                localStorage.setItem('habla_local_contacts', JSON.stringify(localAddedContacts));
+                localStorage.setItem('hab4_local_contacts', JSON.stringify(localAddedContacts));
                 delete contactColors[activeContactForModal]; delete contactAvatars[activeContactForModal];
                 if (selectedRecipientName === activeContactForModal) { localStorage.removeItem('habla_selected_recipient'); selectedRecipientName = null; }
                 contactModal.classList.remove('active'); document.getElementById('menu-overlay').classList.remove('active');
