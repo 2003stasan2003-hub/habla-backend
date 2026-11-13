@@ -24,16 +24,35 @@
             transition: transform 0.2s ease; border-bottom: 1px solid #242f3d;
         }
 
-        /* Мікро-плашка у верхній частині */
+        /* Клікабельна мікро-плашка у самому верху */
         .top-mini-watermark {
-            font-size: 0.55rem;
-            color: rgba(137, 161, 178, 0.45);
+            font-size: 0.58rem;
+            color: rgba(137, 161, 178, 0.65);
             text-align: center;
             letter-spacing: 0.3px;
+            margin-top: 4px;
             margin-bottom: 2px;
+            cursor: pointer;
             user-select: none;
             width: 100%;
+            transition: color 0.2s;
         }
+        .top-mini-watermark:hover {
+            color: #f5f5f5;
+            text-decoration: underline;
+        }
+
+        /* Модальне вікно автора */
+        #author-modal {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 330px; background: #17212b; border: 1px solid #2b5278; border-radius: 16px;
+            padding: 22px; z-index: 210; display: none; flex-direction: column; gap: 14px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.8);
+        }
+        #author-modal.active { display: flex; }
+        .author-modal-title { font-size: 1.1rem; font-weight: bold; color: #f5f5f5; border-bottom: 1px solid #242f3d; padding-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .author-info-text { font-size: 0.9rem; color: #89a1b2; line-height: 1.5; }
+        .author-info-text b { color: #f5f5f5; }
 
         .switch { position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0; }
         .switch input { opacity: 0; width: 0; height: 0; }
@@ -350,6 +369,20 @@
     <div id="pull-refresh-indicator">🔄 Потягніть, щоб оновити...</div>
     <div id="menu-overlay" class="menu-overlay"></div>
 
+    <!-- Модальне вікно інформації про автора (відкривається при кліку на плашку) -->
+    <div id="author-modal">
+        <div class="author-modal-title">
+            <span>Про автора та проєкт</span>
+            <button id="close-author-modal" class="modal-close-btn">✕</button>
+        </div>
+        <div class="author-info-text">
+            <p><b>Автор проєкту:</b> Stasan</p>
+            <p style="margin-top: 6px;"><b>Про додаток:</b> Habla Mobile — це сучасний захищений месенджер з голосовим та текстовим перекладом у реальному часі.</p>
+            <p style="margin-top: 6px;"><b>Стутус:</b> Всі права захищено © 2026.</p>
+        </div>
+        <button id="author-ok-btn" class="modal-btn-save">Зрозуміло</button>
+    </div>
+
     <div id="welcome-login-modal">
         <div class="welcome-card">
             <div class="welcome-logo-ring">
@@ -410,8 +443,8 @@
 
     <div id="app-container">
         <main class="main-screen">
-            <!-- Дрібна локалізована плашка у самій верхній частині екрана -->
-            <div id="top-watermark" class="top-mini-watermark">© 2026 Habla Mobile. Усі права захищено.</div>
+            <!-- Клікабельна мікро-плашка автора у самому верху над кнопкою -->
+            <div id="top-watermark" class="top-mini-watermark">© 2026 Stasan Habla Mobile. Усі права захищено.</div>
 
             <div id="messages-stack" class="messages-stack-container"></div>
 
@@ -537,7 +570,7 @@
     </nav>
 
     <script>
-        // Дата створення: 13.11.2026, 18:41
+        // Дата створення: 13.11.2026, 18:52
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => { navigator.serviceWorker.register('/sw.js').catch(() => {}); });
         }
@@ -570,7 +603,7 @@
                 delete_contact: "Видалити контакт", show_all: "Показати всі", collapse: "Згорнути",
                 copy_link: "Копіювати", install_app: "Встановити додаток", welcome_subtitle: "Введіть ваш нікнейм для миттєвого голосового перекладу",
                 welcome_enter: "Увійти", test_text_placeholder: "Введіть текст...",
-                watermark: "© 2026 Habla Mobile. Усі права захищено."
+                watermark: "© 2026 Stasan Habla Mobile. Усі права захищено."
             },
             English: {
                 settings_title: "Settings", update_app: "Update App", interface_lang: "Interface Language",
@@ -580,7 +613,7 @@
                 delete_contact: "Delete contact", show_all: "Show all", collapse: "Collapse",
                 copy_link: "Copy Link", install_app: "Install App", welcome_subtitle: "Enter your nickname for instant translation",
                 welcome_enter: "Enter", test_text_placeholder: "Type a message...",
-                watermark: "© 2026 Habla Mobile. All rights reserved."
+                watermark: "© 2026 Stasan Habla Mobile. All rights reserved."
             },
             Spanish: {
                 settings_title: "Ajustes", update_app: "Actualizar aplicación", interface_lang: "Idioma de interfaz",
@@ -590,7 +623,7 @@
                 delete_contact: "Eliminar contacto", show_all: "Mostrar todos", collapse: "Contraer",
                 copy_link: "Copiar enlace", install_app: "Instalar aplicación", welcome_subtitle: "Introduce tu apodo",
                 welcome_enter: "Entrar", test_text_placeholder: "Escribe un mensaje...",
-                watermark: "© 2026 Habla Mobile. Todos los derechos reservados."
+                watermark: "© 2026 Stasan Habla Mobile. Todos los derechos reservados."
             },
             German: {
                 settings_title: "Einstellungen", update_app: "App aktualisieren", interface_lang: "Sprache",
@@ -600,7 +633,7 @@
                 delete_contact: "Löschen", show_all: "Alle anzeigen", collapse: "Einklappen",
                 copy_link: "Link kopieren", install_app: "Installieren", welcome_subtitle: "Gib deinen Spitznamen ein",
                 welcome_enter: "Beitreten", test_text_placeholder: "Nachricht eingeben...",
-                watermark: "© 2026 Habla Mobile. Alle Rechte vorbehalten."
+                watermark: "© 2026 Stasan Habla Mobile. Alle Rechte vorbehalten."
             },
             French: {
                 settings_title: "Paramètres", update_app: "Mettre à jour", interface_lang: "Langue",
@@ -610,7 +643,7 @@
                 delete_contact: "Supprimer", show_all: "Tout afficher", collapse: "Réduire",
                 copy_link: "Copier", install_app: "Installer", welcome_subtitle: "Entrez votre pseudo",
                 welcome_enter: "Entrer", test_text_placeholder: "Écrivez un message...",
-                watermark: "© 2026 Habla Mobile. Tous droits réservés."
+                watermark: "© 2026 Stasan Habla Mobile. Tous droits réservés."
             }
         };
 
@@ -628,6 +661,21 @@
             if (watermarkEl && dict['watermark']) watermarkEl.textContent = dict['watermark'];
             safeRenderContactsGrid(lastUsersData);
         }
+
+        // Обробка кліку на візитку автора у верху
+        const authorModal = document.getElementById('author-modal');
+        document.getElementById('top-watermark').addEventListener('click', () => {
+            authorModal.classList.add('active');
+            document.getElementById('menu-overlay').classList.add('active');
+        });
+        document.getElementById('close-author-modal').addEventListener('click', () => {
+            authorModal.classList.remove('active');
+            document.getElementById('menu-overlay').classList.remove('active');
+        });
+        document.getElementById('author-ok-btn').addEventListener('click', () => {
+            authorModal.classList.remove('active');
+            document.getElementById('menu-overlay').classList.remove('active');
+        });
 
         const selectedRecipientDisplay = document.getElementById('selected-recipient-display');
         function setRecipient(name) {
@@ -1049,6 +1097,7 @@
             qrScreen.classList.remove('active'); contactsScreen.classList.remove('active'); settingsScreen.classList.remove('active');
             isContactsExpanded = false; contactsWrapperBox.classList.remove('expanded-mode');
             testTextBox.classList.remove('active');
+            authorModal.classList.remove('active');
             document.querySelectorAll('.qr-img-box').forEach(b => b.classList.remove('fullscreen'));
         }
 
