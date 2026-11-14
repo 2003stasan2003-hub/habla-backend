@@ -24,17 +24,20 @@
             transition: transform 0.2s ease; border-bottom: 1px solid #242f3d;
         }
 
+        /* Водяний знак піднято в самий верх і додано відступ під чілку/строку стану */
         .top-mini-watermark {
-            font-size: 0.58rem;
-            color: rgba(137, 161, 178, 0.65);
+            position: absolute;
+            top: 6px;
+            left: 0;
+            font-size: 0.6rem;
+            color: rgba(137, 161, 178, 0.7);
             text-align: center;
             letter-spacing: 0.3px;
-            margin-top: 4px;
-            margin-bottom: 2px;
             cursor: pointer;
             user-select: none;
             width: 100%;
             transition: color 0.2s;
+            z-index: 10;
         }
         .top-mini-watermark:hover { color: #f5f5f5; text-decoration: underline; }
 
@@ -387,7 +390,10 @@
     <div id="pull-refresh-indicator">🔄 Потягніть, щоб оновити...</div>
     <div id="menu-overlay" class="menu-overlay"></div>
 
-    <!-- Модальне вікно «Про автора та проєкт» з локалізованими текстовими ключами -->
+    <!-- Водяний знак в самому верху екрана -->
+    <div id="top-watermark" class="top-mini-watermark">Stasan Habla Mobile</div>
+
+    <!-- Модальне вікно «Про автора та проєкт» -->
     <div id="author-modal">
         <div class="author-modal-title">
             <span data-i18n="author_modal_title">Про автора та проєкт</span>
@@ -463,8 +469,6 @@
 
     <div id="app-container">
         <main class="main-screen">
-            <div id="top-watermark" class="top-mini-watermark">Stasan Habla Mobile</div>
-
             <div id="messages-stack" class="messages-stack-container"></div>
 
             <button id="mic-button" class="neon-mic-btn" title="Натисніть для запису голосу">
