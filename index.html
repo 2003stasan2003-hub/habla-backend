@@ -178,20 +178,47 @@
         }
         .message-tts-btn svg { width: 16px; height: 16px; fill: currentColor; }
 
+        /* Збільшена кнопка у 1.5 рази (була 155px -> ~230px), без червоного контуру під час запису */
         .neon-mic-btn {
             background: transparent; border: 1px solid #89a1b2; border-radius: 50%;
-            width: 155px; height: 155px; display: flex; flex-direction: column;
+            width: 230px; height: 230px; display: flex; flex-direction: column;
             align-items: center; justify-content: center; cursor: pointer;
-            position: relative; outline: none; gap: 4px; flex-shrink: 0;
-            transition: border-color 0.2s;
+            position: relative; outline: none; gap: 8px; flex-shrink: 0;
+            transition: border-color 0.2s, transform 0.1s;
         }
         .neon-mic-btn:active { border-color: #f5f5f5; }
-        .neon-mic-btn.recording { border-color: #c94a4a !important; }
-        .recording-timer { color: #c94a4a; font-weight: bold; font-size: 0.85rem; display: none; }
+        .neon-mic-btn.recording { border-color: #89a1b2 !important; }
+        
+        .recording-timer { color: #89a1b2; font-weight: bold; font-size: 0.95rem; display: none; }
         .recording-timer.active { display: block; }
-        .selected-recipient-inside { color: #f5f5f5; font-size: 1rem; font-weight: 600; display: none; }
+        .selected-recipient-inside { color: #f5f5f5; font-size: 1.15rem; font-weight: 600; display: none; text-align: center; padding: 0 10px; }
         .selected-recipient-inside.active { display: block; }
-        .mic-icon-placeholder svg { stroke: #89a1b2; fill: none; width: 40px; height: 40px; }
+        
+        /* Стиль для анімованої звукової доріжки (еквалайзера) всередині кнопки */
+        .audio-wave-container {
+            display: none; align-items: center; justify-content: center; gap: 4px; height: 45px; width: 100%;
+        }
+        .audio-wave-container.active { display: flex; }
+        .wave-bar {
+            width: 4px; background: #89a1b2; border-radius: 2px;
+            animation: wavePulse 0.8s infinite ease-in-out alternate;
+        }
+        .wave-bar:nth-child(1) { height: 15px; animation-delay: 0.1s; }
+        .wave-bar:nth-child(2) { height: 30px; animation-delay: 0.3s; }
+        .wave-bar:nth-child(3) { height: 42px; animation-delay: 0.2s; }
+        .wave-bar:nth-child(4) { height: 25px; animation-delay: 0.4s; }
+        .wave-bar:nth-child(5) { height: 35px; animation-delay: 0.15s; }
+        .wave-bar:nth-child(6) { height: 20px; animation-delay: 0.35s; }
+
+        @keyframes wavePulse {
+            0% { transform: scaleY(0.4); background: #89a1b2; }
+            100% { transform: scaleY(1.2); background: #f5f5f5; }
+        }
+
+        .habla-text-label {
+            font-size: 2rem; font-weight: 700; color: #f5f5f5; letter-spacing: 1px; display: block;
+        }
+        .habla-text-label.hidden { display: none; }
 
         .test-text-box {
             position: absolute; bottom: 85px; left: 50%; transform: translateX(-50%);
@@ -208,12 +235,12 @@
         }
         .test-text-send-btn svg { width: 16px; height: 16px; fill: currentColor; }
 
-        #contacts-screen, #settings-screen {
+        #contacts-screen, #settings-screen, #developer-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #0e1621; z-index: 60; display: none; flex-direction: column;
             align-items: center; justify-content: center; padding: 20px; padding-bottom: 85px; gap: 16px; overflow-y: auto;
         }
-        #contacts-screen.active, #settings-screen.active { display: flex !important; }
+        #contacts-screen.active, #settings-screen.active, #developer-screen.active { display: flex !important; }
 
         #qr-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -362,15 +389,18 @@
     <div id="pull-refresh-indicator">🔄 Потягніть, щоб оновити...</div>
     <div id="menu-overlay" class="menu-overlay"></div>
 
+    <!-- Завдання 2: Рядок авторських прав перенесено наверх під заголовок[cite: 1] -->
     <div id="author-modal">
         <div class="author-modal-title">
             <span>Про автора та проєкт</span>
             <button id="close-author-modal" class="modal-close-btn">✕</button>
         </div>
+        <div style="font-size: 0.72rem; color: #89a1b2; border-bottom: 1px solid #242f3d; padding-bottom: 6px; font-weight: 500;">
+            © 2026 Stasan Habla Mobile. Усі права захищено.
+        </div>
         <div class="author-info-text">
             <p><b>Автор проєкту:</b> Stasan</p>
             <p style="margin-top: 6px;"><b>Про додаток:</b> Habla Mobile — це сучасний захищений месенджер з голосовим та текстовим перекладом у реальному часі.</p>
-            <p style="margin-top: 6px;"><b>Статус:</b> Всі права захищено © 2026.</p>
         </div>
         <button id="author-ok-btn" class="modal-btn-save">Зрозуміло</button>
     </div>
@@ -439,11 +469,18 @@
 
             <div id="messages-stack" class="messages-stack-container"></div>
 
+            <!-- Завдання 4 та 5: Велика кнопка із за замовчуванням написом Habla та анімованою звуковою доріжкою під час запису -->
             <button id="mic-button" class="neon-mic-btn" title="Натисніть для запису голосу">
                 <div id="selected-recipient-display" class="selected-recipient-inside"></div>
-                <div id="recording-timer" class="recording-timer">● 00:00</div>
-                <div class="mic-icon-placeholder">
-                    <svg viewBox="0 0 24 24" stroke="#89a1b2" stroke-width="2" fill="none"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v1a7 7 0 0 1-14 0v-1"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+                <div id="recording-timer" class="recording-timer">00:00</div>
+                <div id="habla-label" class="habla-text-label">Habla</div>
+                <div id="audio-wave" class="audio-wave-container">
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
                 </div>
             </button>
 
@@ -495,6 +532,12 @@
                 <span data-i18n="settings_title">Налаштування</span>
                 <button id="close-settings-screen" style="background:none; border:none; color:#89a1b2; font-size:1.2rem; cursor:pointer;">✕</button>
             </div>
+            <!-- Завдання 3: Кнопка «Розробник» виключно для адміністратора STASAN -->
+            <div class="settings-card" id="developer-card-wrapper" style="display: none;">
+                <button id="open-developer-btn" class="sidebar-nav-btn" style="background: rgba(43, 82, 120, 0.4); border-color: #89a1b2; font-weight: bold;">
+                    <span>👨‍💻 Розробник (Токени та Статистика)</span>
+                </button>
+            </div>
             <div class="settings-card">
                 <button id="update-app-btn" class="sidebar-nav-btn"><span data-i18n="update_app">Оновлення програми</span></button>
             </div>
@@ -530,6 +573,35 @@
                 </div>
             </div>
         </div>
+
+        <!-- Екран розробника для STASAN -->
+        <div id="developer-screen">
+            <div class="settings-header" style="max-width:480px; width:100%; margin:0 auto;">
+                <span>Панель розробника (STASAN)</span>
+                <button id="close-developer-screen" style="background:none; border:none; color:#89a1b2; font-size:1.2rem; cursor:pointer;">✕</button>
+            </div>
+            <div class="settings-card" style="gap: 14px;">
+                <div style="font-size: 0.95rem; font-weight: bold; color: #f5f5f5; border-bottom: 1px solid #242f3d; padding-bottom: 6px;">
+                    📊 Загальна статистика токенів
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.88rem; color: #89a1b2;">
+                    <span>Всього витрачено токенів:</span>
+                    <span id="dev-total-tokens" style="color: #4ade80; font-weight: bold;">0</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.88rem; color: #89a1b2;">
+                    <span>Всього повідомлень:</span>
+                    <span id="dev-total-msgs" style="color: #f5f5f5; font-weight: bold;">0</span>
+                </div>
+            </div>
+            <div class="settings-card" style="gap: 12px; flex: 1; overflow-y: auto;">
+                <div style="font-size: 0.95rem; font-weight: bold; color: #f5f5f5; border-bottom: 1px solid #242f3d; padding-bottom: 6px;">
+                    👥 Витрати токенів по співрозмовниках
+                </div>
+                <div id="dev-contacts-stats-list" style="display: flex; flex-direction: column; gap: 8px;">
+                    <!-- Динамічно заповнюється -->
+                </div>
+            </div>
+        </div>
     </div>
 
     <nav class="bottom-nav-bar">
@@ -555,7 +627,7 @@
             <small data-i18n="tab_qr">QR</small>
         </button>
         <button class="nav-item" id="nav-settings" title="Settings">
-            <svg viewBox="0 0 24 24" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06-.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+            <svg viewBox="0 0 24 24" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06-.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
             <small data-i18n="tab_settings">Налаштування</small>
         </button>
     </nav>
@@ -583,6 +655,7 @@
         let contactAvatars = {};
         let isContactsExpanded = false;
         let lastUsersData = {};
+        let tokenStatsData = JSON.parse(localStorage.getItem('habla_token_stats') || '{}');
 
         const translations = {
             Ukrainian: {
@@ -666,18 +739,44 @@
             document.getElementById('menu-overlay').classList.remove('active');
         });
 
+        // Завдання 4: Логіка кнопки Habla при запуску або коли немає контакту
         const selectedRecipientDisplay = document.getElementById('selected-recipient-display');
+        const hablaLabel = document.getElementById('habla-label');
+        const audioWave = document.getElementById('audio-wave');
+        const recordingTimer = document.getElementById('recording-timer');
+
         function setRecipient(name) {
             if (!name) return;
             selectedRecipientName = name.trim();
             localStorage.setItem('habla_selected_recipient', selectedRecipientName);
+            
+            hablaLabel.classList.add('hidden');
             if (selectedRecipientDisplay) {
                 selectedRecipientDisplay.textContent = selectedRecipientName;
                 selectedRecipientDisplay.classList.add('active');
             }
             document.getElementById('messages-stack').innerHTML = '';
         }
-        if (selectedRecipientName) setRecipient(selectedRecipientName);
+
+        const micButton = document.getElementById('mic-button');
+
+        micButton.addEventListener('click', () => {
+            // Якщо співрозмовник не вибраний — відкриваємо контакти (кнопка Habla)
+            if (!selectedRecipientName) {
+                closeAllScreens();
+                setActiveNav(navContacts);
+                joinWithLanguage();
+                contactsScreen.classList.add('active');
+                safeRenderContactsGrid(lastUsersData);
+                return;
+            }
+        });
+
+        if (selectedRecipientName) {
+            setRecipient(selectedRecipientName);
+        } else {
+            hablaLabel.classList.remove('hidden');
+        }
 
         socket.on('sync-customizations', (customizations) => {
             contactColors = {}; contactAvatars = {};
@@ -707,6 +806,15 @@
         const welcomeNicknameInput = document.getElementById('welcome-nickname-input');
         const welcomeSubmitBtn = document.getElementById('welcome-submit-btn');
 
+        function checkAdminAccess() {
+            const devCardWrapper = document.getElementById('developer-card-wrapper');
+            if (username && username.toUpperCase() === 'STASAN') {
+                if (devCardWrapper) devCardWrapper.style.display = 'flex';
+            } else {
+                if (devCardWrapper) devCardWrapper.style.display = 'none';
+            }
+        }
+
         function completeFirstLogin() {
             const enteredName = welcomeNicknameInput ? welcomeNicknameInput.value.trim() : '';
             if (!enteredName) { if (welcomeNicknameInput) welcomeNicknameInput.focus(); return; }
@@ -714,6 +822,7 @@
             localStorage.setItem('habla_username', username);
             welcomeLoginModal.classList.remove('active');
             updateProfileDisplay();
+            checkAdminAccess();
             joinWithLanguage();
             safeRenderContactsGrid(lastUsersData);
         }
@@ -721,6 +830,8 @@
         if (!username) {
             welcomeLoginModal.classList.add('active');
             if (welcomeNicknameInput) setTimeout(() => welcomeNicknameInput.focus(), 100);
+        } else {
+            checkAdminAccess();
         }
         welcomeSubmitBtn.addEventListener('click', completeFirstLogin);
         welcomeNicknameInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') completeFirstLogin(); });
@@ -885,6 +996,16 @@
             return 'uk';
         }
 
+        function recordTokenUsage(contact, tokensUsed = 15) {
+            if (!contact) return;
+            if (!tokenStatsData[contact]) {
+                tokenStatsData[contact] = { messages: 0, tokens: 0 };
+            }
+            tokenStatsData[contact].messages += 1;
+            tokenStatsData[contact].tokens += tokensUsed;
+            localStorage.setItem('habla_token_stats', JSON.stringify(tokenStatsData));
+        }
+
         function addMessageToStack(text, sender, isSent = false, originalText = null) {
             const card = document.createElement('div');
             card.className = `message-card ${isSent ? 'sent' : 'received'}`;
@@ -943,6 +1064,7 @@
         const navKeyboard = document.getElementById('nav-keyboard');
 
         function toggleKeyboardInput() {
+            if (!selectedRecipientName) { alert('Спочатку оберіть співрозмовника у Контактах!'); return; }
             closeAllScreens();
             setActiveNav(navKeyboard);
             const isActive = testTextBox.classList.contains('active');
@@ -964,6 +1086,7 @@
                 alert('Будь ласка, оберіть співрозмовника у меню Контакти!');
                 return;
             }
+            recordTokenUsage(selectedRecipientName, Math.floor(text.length * 1.5) + 10);
             socket.emit('text-message', {
                 sender: username,
                 recipient: selectedRecipientName,
@@ -984,46 +1107,12 @@
         });
 
         let mediaRecorder, audioChunks = [], isRecording = false;
-        const micButton = document.getElementById('mic-button');
         let audioContext, analyser, microphone, javascriptNode;
 
-        function startAudioVisualization(stream) {
-            try {
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                analyser = audioContext.createAnalyser();
-                microphone = audioContext.createMediaStreamSource(stream);
-                javascriptNode = audioContext.createScriptProcessor(2048, 1, 1);
-
-                analyser.smoothingTimeConstant = 0.8;
-                analyser.fftSize = 1024;
-
-                microphone.connect(analyser);
-                analyser.connect(javascriptNode);
-                javascriptNode.connect(audioContext.destination);
-
-                javascriptNode.onaudioprocess = function() {
-                    const array = new Uint8Array(analyser.frequencyBinCount);
-                    analyser.getByteFrequencyData(array);
-                    let values = 0;
-                    for (let i = 0; i < array.length; i++) { values += array[i]; }
-                    const average = values / array.length;
-                    const scale = 1 + Math.min(average / 45, 0.35);
-                    micButton.style.transform = `scale(${scale})`;
-                };
-            } catch (e) {
-                console.error("Помилка аналізатора аудіо:", e);
-            }
-        }
-
-        function stopAudioVisualization() {
-            if (javascriptNode) javascriptNode.onaudioprocess = null;
-            if (microphone) microphone.disconnect();
-            if (audioContext && audioContext.state !== 'closed') audioContext.close();
-            micButton.style.transform = 'scale(1)';
-        }
-
+        // Завдання 5: Візуалізація звукової доріжки та відсутність червоного контуру
         micButton.addEventListener('click', async () => {
-            if (!selectedRecipientName) { alert('Оберіть співрозмовника у Контактах!'); return; }
+            if (!selectedRecipientName) return; // Якщо не обрано співрозмовника, спрацьовує перехід у контакти вище
+            
             if (!isRecording) {
                 try {
                     const stream = await navigator.mediaDevices.getUserMedia({ 
@@ -1035,30 +1124,36 @@
                     mediaRecorder.onstop = () => {
                         const reader = new FileReader();
                         reader.readAsDataURL(new Blob(audioChunks, { type: 'audio/webm' }));
-                        reader.onloadend = () => socket.emit('voice-message', { sender: username, recipient: selectedRecipientName, audio: reader.result });
+                        reader.onloadend = () => {
+                            recordTokenUsage(selectedRecipientName, 45); // Голосові токени
+                            socket.emit('voice-message', { sender: username, recipient: selectedRecipientName, audio: reader.result });
+                        };
                         stream.getTracks().forEach(t => t.stop());
-                        stopAudioVisualization();
                     };
                     mediaRecorder.start();
                     isRecording = true;
                     micButton.classList.add('recording');
-                    startAudioVisualization(stream);
 
-                    const timer = document.getElementById('recording-timer');
-                    timer.textContent = '● 00:00'; timer.classList.add('active');
+                    // Перемикаємо візуальні елементи на кнопці
+                    if (selectedRecipientDisplay) selectedRecipientDisplay.classList.remove('active');
+                    audioWave.classList.add('active');
+                    recordingTimer.classList.add('active');
+
                     let secs = 0;
+                    recordingTimer.textContent = '00:00';
                     window.recInterval = setInterval(() => {
                         secs++;
-                        timer.textContent = `● ${String(Math.floor(secs/60)).padStart(2,'0')}:${String(secs%60).padStart(2,'0')}`;
+                        recordingTimer.textContent = `${String(Math.floor(secs/60)).padStart(2,'0')}:${String(secs%60).padStart(2,'0')}`;
                     }, 1000);
                 } catch (err) { alert("Немає доступу до мікрофона."); }
             } else {
                 if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
                 isRecording = false;
                 micButton.classList.remove('recording');
-                document.getElementById('recording-timer').classList.remove('active');
+                audioWave.classList.remove('active');
+                recordingTimer.classList.remove('active');
+                if (selectedRecipientDisplay) selectedRecipientDisplay.classList.add('active');
                 clearInterval(window.recInterval);
-                stopAudioVisualization();
             }
         });
 
@@ -1066,6 +1161,7 @@
             if (data.text) {
                 const isSelf = data.sender === username;
                 addMessageToStack(data.text, data.sender || 'Контакт', isSelf, data.originalText);
+                if (!isSelf && data.sender) recordTokenUsage(data.sender, 20);
                 if (document.getElementById('sound-toggle').checked) speakText(data.text);
             }
         });
@@ -1123,10 +1219,11 @@
         const qrScreen = document.getElementById('qr-screen');
         const contactsScreen = document.getElementById('contacts-screen');
         const settingsScreen = document.getElementById('settings-screen');
+        const developerScreen = document.getElementById('developer-screen');
 
         function setActiveNav(item) { navItems.forEach(n => n.classList.remove('active')); if (item) item.classList.add('active'); }
         function closeAllScreens() {
-            qrScreen.classList.remove('active'); contactsScreen.classList.remove('active'); settingsScreen.classList.remove('active');
+            qrScreen.classList.remove('active'); contactsScreen.classList.remove('active'); settingsScreen.classList.remove('active'); developerScreen.classList.remove('active');
             isContactsExpanded = false; contactsWrapperBox.classList.remove('expanded-mode');
             testTextBox.classList.remove('active');
             authorModal.classList.remove('active');
@@ -1155,6 +1252,57 @@
             if (isOpen) setActiveNav(navHome); else { setActiveNav(navSettings); settingsScreen.classList.add('active'); }
         });
         document.getElementById('close-settings-screen').addEventListener('click', () => { closeAllScreens(); setActiveNav(navHome); });
+
+        // Логіка панелі розробника для STASAN
+        document.getElementById('open-developer-btn').addEventListener('click', () => {
+            settingsScreen.classList.remove('active');
+            renderDeveloperStats();
+            developerScreen.classList.add('active');
+        });
+        document.getElementById('close-developer-screen').addEventListener('click', () => {
+            developerScreen.classList.remove('active');
+            settingsScreen.classList.add('active');
+        });
+
+        function renderDeveloperStats() {
+            const totalTokensEl = document.getElementById('dev-total-tokens');
+            const totalMsgsEl = document.getElementById('dev-total-msgs');
+            const listContainer = document.getElementById('dev-contacts-stats-list');
+            listContainer.innerHTML = '';
+
+            let grandTotalTokens = 0;
+            let grandTotalMsgs = 0;
+
+            for (let [contactName, stats] of Object.entries(tokenStatsData)) {
+                grandTotalTokens += stats.tokens;
+                grandTotalMsgs += stats.messages;
+
+                const card = document.createElement('div');
+                card.style.cssText = "background: #242f3d; border: 1px solid #2b5278; border-radius: 10px; padding: 10px; display: flex; align-items: center; gap: 10px;";
+                
+                const customAvatarUrl = contactAvatars[contactName];
+                const avatarBg = contactColors[contactName] || '#2b5278';
+                
+                let avatarHtml = '';
+                if (customAvatarUrl) {
+                    avatarAvatar = `<img src="${customAvatarUrl}" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover;">`;
+                } else {
+                    avatarHtml = `<div style="width: 38px; height: 38px; border-radius: 50%; background: ${avatarBg}; color: #0e1621; font-weight: bold; display: flex; align-items: center; justify-content: center;">${contactName.charAt(0).toUpperCase()}</div>`;
+                }
+
+                card.innerHTML = `
+                    ${avatarHtml}
+                    <div style="flex: 1; min-width: 0;">
+                        <div style="font-weight: bold; font-size: 0.9rem; color: #f5f5f5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${contactName}</div>
+                        <div style="font-size: 0.75rem; color: #89a1b2;">Повідомлень: ${stats.messages} | Токенів: <span style="color: #4ade80; font-weight: bold;">${stats.tokens}</span></div>
+                    </div>
+                `;
+                listContainer.appendChild(card);
+            }
+
+            totalTokensEl.textContent = grandTotalTokens;
+            totalMsgsEl.textContent = grandTotalMsgs;
+        }
 
         const contactModal = document.getElementById('contact-modal');
         let activeContactForModal = null, selectedModalColor = '#89a1b2';
@@ -1198,7 +1346,7 @@
                 if (newNick && newNick !== username) {
                     delete contactColors[username]; delete contactAvatars[username];
                     username = newNick; localStorage.setItem('habla_username', username);
-                    activeContactForModal = username; joinWithLanguage();
+                    activeContactForModal = username; checkAdminAccess(); joinWithLanguage();
                 }
             }
             contactColors[activeContactForModal] = selectedModalColor;
@@ -1215,7 +1363,12 @@
                 localAddedContacts = localAddedContacts.filter(n => n !== activeContactForModal);
                 localStorage.setItem('habla_local_contacts', JSON.stringify(localAddedContacts));
                 delete contactColors[activeContactForModal]; delete contactAvatars[activeContactForModal];
-                if (selectedRecipientName === activeContactForModal) { localStorage.removeItem('habla_selected_recipient'); selectedRecipientName = null; }
+                if (selectedRecipientName === activeContactForModal) { 
+                    localStorage.removeItem('habla_selected_recipient'); 
+                    selectedRecipientName = null; 
+                    hablaLabel.classList.remove('hidden');
+                    if(selectedRecipientDisplay) selectedRecipientDisplay.classList.remove('active');
+                }
                 contactModal.classList.remove('active'); document.getElementById('menu-overlay').classList.remove('active');
                 safeRenderContactsGrid(lastUsersData);
             }
@@ -1225,6 +1378,7 @@
         function escapeHtml(text) { const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }; return text.replace(/[&<>"']/g, m => map[m]); }
 
         updateProfileDisplay();
+        checkAdminAccess();
         safeRenderContactsGrid();
     </script>
 </body>
