@@ -24,7 +24,6 @@
             transition: transform 0.2s ease; border-bottom: 1px solid #242f3d;
         }
 
-        /* Водяний знак піднято в самий верх і додано відступ під чілку/строку стану */
         .top-mini-watermark {
             position: absolute;
             top: 6px;
@@ -390,10 +389,8 @@
     <div id="pull-refresh-indicator">🔄 Потягніть, щоб оновити...</div>
     <div id="menu-overlay" class="menu-overlay"></div>
 
-    <!-- Водяний знак в самому верху екрана -->
     <div id="top-watermark" class="top-mini-watermark">Stasan Habla Mobile</div>
 
-    <!-- Модальне вікно «Про автора та проєкт» -->
     <div id="author-modal">
         <div class="author-modal-title">
             <span data-i18n="author_modal_title">Про автора та проєкт</span>
@@ -821,6 +818,7 @@
             setRecipient(null);
         }
 
+        // НАДІЙНА СИНХРОНІЗАЦІЯ ТА ЗБЕРЕЖЕННЯ АВАТАРОК ЧЕРЕЗ LOCALSTORAGE ТА SOCKET
         socket.on('sync-customizations', (customizations) => {
             for (let [name, data] of Object.entries(customizations)) {
                 if (data.color) contactColors[name] = data.color;
@@ -1362,15 +1360,34 @@
             c.classList.add('selected'); selectedModalColor = c.getAttribute('data-color');
         }));
 
+        // АВТОМАТИЧНЕ СТИСНЕННЯ ТА КОНВЕРТАЦІЯ АВАТАРКИ В OPTIMAL BASE64 ПРИ ВИБОРІ З ГАЛЕРЕЇ
         document.getElementById('modal-avatar-file').addEventListener('change', function(e) {
             const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(uploadEvent) {
-                    document.getElementById('modal-avatar-input').value = uploadEvent.target.result;
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(uploadEvent) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const MAX_SIZE = 200; // Оптимальний розмір для аватарок (компактний Base64)
+                    let width = img.width;
+                    let height = img.height;
+                    if (width > height) {
+                        if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; }
+                    } else {
+                        if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; }
+                    }
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    // Стискаємо у формат JPEG з якістю 0.8 для легкого та швидкого Base64 рядка
+                    const compressedBase64 = canvas.toDataURL('image/jpeg', 0.8);
+                    document.getElementById('modal-avatar-input').value = compressedBase64;
                 };
-                reader.readAsDataURL(file);
-            }
+                img.src = uploadEvent.target.result;
+            };
+            reader.readAsDataURL(file);
         });
 
         document.getElementById('modal-save-btn').addEventListener('click', () => {
@@ -1391,6 +1408,7 @@
                 delete contactAvatars[activeContactForModal];
             }
             
+            // Надійне локальне збереження в localStorage
             localStorage.setItem('habla_contact_colors', JSON.stringify(contactColors));
             localStorage.setItem('habla_contact_avatars', JSON.stringify(contactAvatars));
 
