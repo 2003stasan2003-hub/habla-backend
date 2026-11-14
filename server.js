@@ -25,9 +25,33 @@ app.get('/', (req, res) => {
 
 let activeSockets = {};
 let userLanguages = {};
+
+// Шлях до файлу для постійного збереження аватаркок та кольорів на диску
+const CUSTOMIZATIONS_FILE = path.join(__dirname, 'customizations.json');
 let userCustomizations = {};
 
-// Аудіо транскрипція через Whisper з підказкою української мови для уникнення плутанини
+// Завантаження збережених кастомізацій при старті сервера
+if (fs.existsSync(CUSTOMIZATIONS_FILE)) {
+    try {
+        const data = fs.readFileSync(CUSTOMIZATIONS_FILE, 'utf8');
+        userCustomizations = JSON.parse(data);
+        console.log("📂 Кастомізації (аватарки/кольори) успішно завантажено з диска.");
+    } catch (e) {
+        console.error("❌ Помилка читання customizations.json:", e);
+        userCustomizations = {};
+    }
+}
+
+// Функція збереження кастомізацій на диск
+function saveCustomizationsToDisk() {
+    try {
+        fs.writeFileSync(CUSTOMIZATIONS_FILE, JSON.stringify(userCustomizations, null, 2), 'utf8');
+    } catch (e) {
+        console.error("❌ Помилка збереження customizations.json:", e);
+    }
+}
+
+// Аудіо транскрипція через Whisper з примусовим фокусом на українську мову
 async function transcribeAudio(audioBuffer) {
     if (!GROQ_API_KEY) throw new Error("GROQ_API_KEY не заданий!");
     const tempFilePath = path.join(__dirname, `temp_${Date.now()}.webm`);
@@ -37,7 +61,7 @@ async function transcribeAudio(audioBuffer) {
         const formData = new FormData();
         formData.append('file', fs.createReadStream(tempFilePath));
         formData.append('model', 'whisper-large-v3');
-        formData.append('language', 'uk'); // Жорстко вказуємо Whisper розпізнавати українську
+        formData.append('language', 'uk');
         formData.append('temperature', '0');
 
         const response = await axios.post('https://api.groq.com/openai/v1/audio/transcriptions', formData, {
@@ -55,21 +79,21 @@ async function transcribeAudio(audioBuffer) {
     }
 }
 
-// Залізний літературний переклад без кальок і суворо без російської мови
+// Професійний переклад без кальок із гарантованим дотриманням цільової мови
 async function translateText(text, targetLang) {
     if (!GROQ_API_KEY || !text) return text;
     
-    let langName = targetLang;
-    if (targetLang === 'Ukrainian') {
-        langName = 'pure, modern, natural literary Ukrainian language (сучасна літературна українська мова, без жодних русизмів, кальки чи суржику)';
-    } else if (targetLang === 'English') {
+    let langName = targetLang || 'Ukrainian';
+    if (langName === 'Ukrainian') {
+        langName = 'pure, modern, natural literary Ukrainian language (сучасна літературна українська мова без русизмів і кальки)';
+    } else if (langName === 'English') {
         langName = 'natural English';
-    } else if (targetLang === 'Spanish') {
-        langName = 'natural Spanish';
-    } else if (targetLang === 'German') {
-        langName = 'natural German';
-    } else if (targetLang === 'French') {
-        langName = 'natural French';
+    } else if (langName === 'Spanish') {
+        langName = 'natural Spanish (Español)';
+    } else if (langName === 'German') {
+        langName = 'natural German (Deutsch)';
+    } else if (langName === 'French') {
+        langName = 'natural French (Français)';
     }
 
     try {
@@ -78,7 +102,7 @@ async function translateText(text, targetLang) {
             messages: [
                 { 
                     role: "system", 
-                    content: `You are a professional native translator. Translate the given text accurately, fluently, and naturally into ${langName}. NEVER translate into Russian. If the target language is Ukrainian, use exclusively rich, clean Ukrainian vocabulary without any Russian words or grammatical influences. Return ONLY the translated text without quotes or extra explanations.` 
+                    content: `You are a professional native translator. Translate the given text accurately and fluently into ${langName}. Never translate into Russian. Return ONLY the translated text without quotes or extra explanations.` 
                 },
                 { role: "user", content: text }
             ],
@@ -104,8 +128,11 @@ io.on('connection', (socket) => {
         const username = typeof data === 'string' ? data : data?.username;
         const lang = typeof data === 'object' ? data?.lang : 'Ukrainian';
         if (username) {
-            activeSockets[socket.id] = username.trim();
-            userLanguages[username.trim()] = lang;
+            const cleanName = username.trim();
+            activeSockets[socket.id] = cleanName;
+            if (lang && lang !== 'Russian') {
+                userLanguages[cleanName] = lang;
+            }
             socket.emit('sync-customizations', userCustomizations);
             broadcastUsers();
         }
@@ -113,7 +140,9 @@ io.on('connection', (socket) => {
 
     socket.on('update-language', (lang) => {
         const username = activeSockets[socket.id];
-        if (username) userLanguages[username] = lang;
+        if (username && lang && lang !== 'Russian') {
+            userLanguages[username] = lang;
+        }
     });
 
     socket.on('add-contact', () => {
@@ -124,6 +153,7 @@ io.on('connection', (socket) => {
         const { targetName, color, avatar } = data;
         if (targetName) {
             userCustomizations[targetName] = { color, avatar };
+            saveCustomizationsToDisk(); // Зберігаємо на диск одразу при зміні
             io.emit('sync-customizations', userCustomizations);
         }
     });
@@ -175,7 +205,7 @@ io.on('connection', (socket) => {
             socket.emit('incoming-message', { sender, text: transcribedText, isSelf: true, originalText: transcribedText });
 
             if (recipientSocketId) {
-                io.to(recipientSocketId).emit('incoming-message', { sender, text: translatedText, isSelf: false, originalText: rendTranslated(translatedText) });
+                io.to(recipientSocketId).emit('incoming-message', { sender, text: translatedText, isSelf: false, originalText: transcribedText });
             }
         } catch (e) {
             console.error("❌ Помилка обробки голосового повідомлення:", e);
@@ -188,8 +218,6 @@ io.on('connection', (socket) => {
         broadcastUsers();
     });
 });
-
-function rendTranslated(text) { return text; }
 
 function broadcastUsers() {
     const uniqueUsers = Array.from(new Set(Object.values(activeSockets))).map(name => ({
