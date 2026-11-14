@@ -193,7 +193,6 @@
         .selected-recipient-inside.active { display: block; }
         .mic-icon-placeholder svg { stroke: #89a1b2; fill: none; width: 40px; height: 40px; }
 
-        /* Надійне вище положення поля вводу для Android та ПК */
         .test-text-box {
             position: absolute; bottom: 85px; left: 50%; transform: translateX(-50%);
             width: 90%; max-width: 360px; display: none; align-items: center; gap: 8px;
@@ -425,11 +424,11 @@
 
     <div id="add-contact-fullscreen-modal">
         <div class="add-modal-card">
-            <div style="font-weight: bold; font-size: 1.1rem; color: #f5f5f5;">Додати новий контакт</div>
+            <div style="font-weight: bold; font-size: 1.1rem; color: #f5f5f5;" data-i18n="add_new_contact">Додати новий контакт</div>
             <input type="text" id="fullscreen-contact-input" class="add-modal-input" placeholder="Введіть нікнейм...">
             <div style="display: flex; gap: 10px; width: 100%;">
-                <button id="fullscreen-cancel-btn" class="modal-action-btn modal-btn-cancel">Скасувати</button>
-                <button id="fullscreen-confirm-btn" class="modal-action-btn modal-btn-confirm">Додати</button>
+                <button id="fullscreen-cancel-btn" class="modal-action-btn modal-btn-cancel" data-i18n="cancel">Скасувати</button>
+                <button id="fullscreen-confirm-btn" class="modal-action-btn modal-btn-confirm" data-i18n="add">Додати</button>
             </div>
         </div>
     </div>
@@ -448,7 +447,6 @@
                 </div>
             </button>
 
-            <!-- Підняте вище поле вводу тексту для Android та ПК -->
             <div class="test-text-box" id="test-text-box">
                 <input type="text" id="test-text-input" class="test-text-input" placeholder="Введіть текст..." data-i18n-placeholder="test_text_placeholder" autocomplete="off">
                 <button id="test-text-send-btn" class="test-text-send-btn" title="Надіслати">
@@ -463,7 +461,7 @@
                     <div id="user-avatar-large" class="user-avatar-large">G</div>
                     <div style="text-align: center;">
                         <div id="user-display" class="user-badge">notebook</div>
-                        <div class="profile-subtitle" data-i18n="profile_settings">Profile Settings</div>
+                        <div class="profile-subtitle" data-i18n="profile_settings">Налаштування профілю</div>
                     </div>
                 </div>
 
@@ -563,7 +561,6 @@
     </nav>
 
     <script>
-        // Дата створення: 13.11.2026, 19:15
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => { navigator.serviceWorker.register('/sw.js').catch(() => {}); });
         }
@@ -591,9 +588,9 @@
             Ukrainian: {
                 settings_title: "Налаштування", update_app: "Оновлення програми", interface_lang: "Мова інтерфейсу",
                 voice_over: "Озвучування перекладу", force_voice: "Примусово озвучувати", saved_contacts: "Збережені контакти",
-                profile_settings: "Profile Settings", add: "Додати", tab_home: "Головна", tab_contacts: "Контакти",
-                tab_keyboard: "Текст", tab_qr: "QR", tab_settings: "Налаштування", save: "Зберегти",
-                delete_contact: "Видалити контакт", show_all: "Показати всі", collapse: "Згорнути",
+                profile_settings: "Налаштування профілю", add: "Додати", add_new_contact: "Додати новий контакт", cancel: "Скасувати",
+                tab_home: "Головна", tab_contacts: "Контакти", tab_keyboard: "Текст", tab_qr: "QR", tab_settings: "Налаштування",
+                save: "Зберегти", delete_contact: "Видалити контакт", show_all: "Показати всі", collapse: "Згорнути",
                 copy_link: "Копіювати", install_app: "Встановити додаток", welcome_subtitle: "Введіть ваш нікнейм для миттєвого голосового перекладу",
                 welcome_enter: "Увійти", test_text_placeholder: "Введіть текст...",
                 watermark: "© 2026 Stasan Habla Mobile. Усі права захищено."
@@ -601,9 +598,9 @@
             English: {
                 settings_title: "Settings", update_app: "Update App", interface_lang: "Interface Language",
                 voice_over: "Voice-over Translation", force_voice: "Force voice-over", saved_contacts: "Saved Contacts",
-                profile_settings: "Profile Settings", add: "Add", tab_home: "Home", tab_contacts: "Contacts",
-                tab_keyboard: "Text", tab_qr: "QR", tab_settings: "Settings", save: "Save",
-                delete_contact: "Delete contact", show_all: "Show all", collapse: "Collapse",
+                profile_settings: "Profile Settings", add: "Add", add_new_contact: "Add New Contact", cancel: "Cancel",
+                tab_home: "Home", tab_contacts: "Contacts", tab_keyboard: "Text", tab_qr: "QR", tab_settings: "Settings",
+                save: "Save", delete_contact: "Delete contact", show_all: "Show all", collapse: "Collapse",
                 copy_link: "Copy Link", install_app: "Install App", welcome_subtitle: "Enter your nickname for instant translation",
                 welcome_enter: "Enter", test_text_placeholder: "Type a message...",
                 watermark: "© 2026 Stasan Habla Mobile. All rights reserved."
@@ -611,9 +608,9 @@
             Spanish: {
                 settings_title: "Ajustes", update_app: "Actualizar aplicación", interface_lang: "Idioma de interfaz",
                 voice_over: "Voz de traducción", force_voice: "Forzar voz", saved_contacts: "Contactos guardados",
-                profile_settings: "Ajustes de perfil", add: "Añadir", tab_home: "Inicio", tab_contacts: "Contactos",
-                tab_keyboard: "Texto", tab_qr: "QR", tab_settings: "Ajustes", save: "Guardar",
-                delete_contact: "Eliminar contacto", show_all: "Mostrar todos", collapse: "Contraer",
+                profile_settings: "Ajustes de perfil", add: "Añadir", add_new_contact: "Añadir nuevo contacto", cancel: "Cancelar",
+                tab_home: "Inicio", tab_contacts: "Contactos", tab_keyboard: "Texto", tab_qr: "QR", tab_settings: "Ajustes",
+                save: "Guardar", delete_contact: "Eliminar contacto", show_all: "Mostrar todos", collapse: "Contraer",
                 copy_link: "Copiar enlace", install_app: "Instalar aplicación", welcome_subtitle: "Introduce tu apodo",
                 welcome_enter: "Entrar", test_text_placeholder: "Escribe un mensaje...",
                 watermark: "© 2026 Stasan Habla Mobile. Todos los derechos reservados."
@@ -621,9 +618,9 @@
             German: {
                 settings_title: "Einstellungen", update_app: "App aktualisieren", interface_lang: "Sprache",
                 voice_over: "Übersetzungssprache", force_voice: "Sprachausgabe erzwingen", saved_contacts: "Kontakte",
-                profile_settings: "Profileinstellungen", add: "Hinzufügen", tab_home: "Start", tab_contacts: "Kontakte",
-                tab_keyboard: "Text", tab_qr: "QR", tab_settings: "Einstellungen", save: "Speichern",
-                delete_contact: "Löschen", show_all: "Alle anzeigen", collapse: "Einklappen",
+                profile_settings: "Profileinstellungen", add: "Hinzufügen", add_new_contact: "Neuen Kontakt hinzufügen", cancel: "Abbrechen",
+                tab_home: "Start", tab_contacts: "Kontakte", tab_keyboard: "Text", tab_qr: "QR", tab_settings: "Einstellungen",
+                save: "Speichern", delete_contact: "Löschen", show_all: "Alle anzeigen", collapse: "Einklappen",
                 copy_link: "Link kopieren", install_app: "Installieren", welcome_subtitle: "Gib deinen Spitznamen ein",
                 welcome_enter: "Beitreten", test_text_placeholder: "Nachricht eingeben...",
                 watermark: "© 2026 Stasan Habla Mobile. Alle Rechte vorbehalten."
@@ -631,9 +628,9 @@
             French: {
                 settings_title: "Paramètres", update_app: "Mettre à jour", interface_lang: "Langue",
                 voice_over: "Voix de traduction", force_voice: "Forcer la voix", saved_contacts: "Contacts",
-                profile_settings: "Profil", add: "Ajouter", tab_home: "Accueil", tab_contacts: "Contacts",
-                tab_keyboard: "Texte", tab_qr: "QR", tab_settings: "Paramètres", save: "Enregistrer",
-                delete_contact: "Supprimer", show_all: "Tout afficher", collapse: "Réduire",
+                profile_settings: "Profil", add: "Ajouter", add_new_contact: "Ajouter un nouveau contact", cancel: "Annuler",
+                tab_home: "Accueil", tab_contacts: "Contacts", tab_keyboard: "Texte", tab_qr: "QR", tab_settings: "Paramètres",
+                save: "Enregistrer", delete_contact: "Supprimer", show_all: "Tout afficher", collapse: "Réduire",
                 copy_link: "Copier", install_app: "Installer", welcome_subtitle: "Entrez votre pseudo",
                 welcome_enter: "Entrer", test_text_placeholder: "Écrivez un message...",
                 watermark: "© 2026 Stasan Habla Mobile. Tous droits réservés."
@@ -814,7 +811,7 @@
 
                 const addGridItem = document.createElement('div');
                 addGridItem.className = 'contact-grid-item';
-                addGridItem.innerHTML = `<div class="add-contact-grid-circle">+</div><div class="contact-grid-name">Add</div>`;
+                addGridItem.innerHTML = `<div class="add-contact-grid-circle">+</div><div class="contact-grid-name">${dict.add}</div>`;
                 addGridItem.addEventListener('click', () => openFullscreenAddContactModal());
                 contactsGridContainer.appendChild(addGridItem);
 
