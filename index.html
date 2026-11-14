@@ -178,7 +178,6 @@
         }
         .message-tts-btn svg { width: 16px; height: 16px; fill: currentColor; }
 
-        /* Збільшена кнопка у 1.5 рази (була 155px -> ~230px), без червоного контуру під час запису */
         .neon-mic-btn {
             background: transparent; border: 1px solid #89a1b2; border-radius: 50%;
             width: 230px; height: 230px; display: flex; flex-direction: column;
@@ -194,7 +193,6 @@
         .selected-recipient-inside { color: #f5f5f5; font-size: 1.15rem; font-weight: 600; display: none; text-align: center; padding: 0 10px; }
         .selected-recipient-inside.active { display: block; }
         
-        /* Стиль для анімованої звукової доріжки (еквалайзера) всередині кнопки */
         .audio-wave-container {
             display: none; align-items: center; justify-content: center; gap: 4px; height: 45px; width: 100%;
         }
@@ -216,9 +214,9 @@
         }
 
         .habla-text-label {
-            font-size: 2rem; font-weight: 700; color: #f5f5f5; letter-spacing: 1px; display: block;
+            font-size: 2rem; font-weight: 700; color: #f5f5f5; letter-spacing: 1px; display: none;
         }
-        .habla-text-label.hidden { display: none; }
+        .habla-text-label.active { display: block; }
 
         .test-text-box {
             position: absolute; bottom: 85px; left: 50%; transform: translateX(-50%);
@@ -389,20 +387,20 @@
     <div id="pull-refresh-indicator">🔄 Потягніть, щоб оновити...</div>
     <div id="menu-overlay" class="menu-overlay"></div>
 
-    <!-- Завдання 2: Рядок авторських прав перенесено наверх під заголовок[cite: 1] -->
+    <!-- Модальне вікно «Про автора та проєкт» з локалізованими текстовими ключами -->
     <div id="author-modal">
         <div class="author-modal-title">
-            <span>Про автора та проєкт</span>
+            <span data-i18n="author_modal_title">Про автора та проєкт</span>
             <button id="close-author-modal" class="modal-close-btn">✕</button>
         </div>
-        <div style="font-size: 0.72rem; color: #89a1b2; border-bottom: 1px solid #242f3d; padding-bottom: 6px; font-weight: 500;">
+        <div style="font-size: 0.72rem; color: #89a1b2; border-bottom: 1px solid #242f3d; padding-bottom: 6px; font-weight: 500;" data-i18n="watermark">
             © 2026 Stasan Habla Mobile. Усі права захищено.
         </div>
         <div class="author-info-text">
-            <p><b>Автор проєкту:</b> Stasan</p>
-            <p style="margin-top: 6px;"><b>Про додаток:</b> Habla Mobile — це сучасний захищений месенджер з голосовим та текстовим перекладом у реальному часі.</p>
+            <p><b data-i18n="author_label">Автор проєкту:</b> Stasan</p>
+            <p style="margin-top: 6px;"><b data-i18n="about_app_label">Про додаток:</b> <span data-i18n="about_app_desc">Habla Mobile — це сучасний захищений месенджер з голосовим та текстовим перекладом у реальному часі.</span></p>
         </div>
-        <button id="author-ok-btn" class="modal-btn-save">Зрозуміло</button>
+        <button id="author-ok-btn" class="modal-btn-save" data-i18n="modal_understood">Зрозуміло</button>
     </div>
 
     <div id="welcome-login-modal">
@@ -441,9 +439,9 @@
             <div class="color-circle" style="background: #0056b3;" data-color="#0056b3"></div>
         </div>
         
-        <div style="font-size: 0.8rem; color: #89a1b2;">Фото аватарки (з галереї JPEG / PNG):</div>
+        <div style="font-size: 0.8rem; color: #89a1b2;" data-i18n="avatar_gallery_label">Фото аватарки (з галереї JPEG / PNG):</div>
         <label class="gallery-file-btn">
-            📁 Вибрати фото з галереї
+            <span data-i18n="choose_gallery_photo">📁 Вибрати фото з галереї</span>
             <input type="file" id="modal-avatar-file" accept="image/jpeg, image/png, image/*" style="display: none;">
         </label>
         <input type="hidden" id="modal-avatar-input">
@@ -465,11 +463,10 @@
 
     <div id="app-container">
         <main class="main-screen">
-            <div id="top-watermark" class="top-mini-watermark">© 2026 Stasan Habla Mobile. Усі права захищено.</div>
+            <div id="top-watermark" class="top-mini-watermark">Stasan Habla Mobile</div>
 
             <div id="messages-stack" class="messages-stack-container"></div>
 
-            <!-- Завдання 4 та 5: Велика кнопка із за замовчуванням написом Habla та анімованою звуковою доріжкою під час запису -->
             <button id="mic-button" class="neon-mic-btn" title="Натисніть для запису голосу">
                 <div id="selected-recipient-display" class="selected-recipient-inside"></div>
                 <div id="recording-timer" class="recording-timer">00:00</div>
@@ -532,7 +529,6 @@
                 <span data-i18n="settings_title">Налаштування</span>
                 <button id="close-settings-screen" style="background:none; border:none; color:#89a1b2; font-size:1.2rem; cursor:pointer;">✕</button>
             </div>
-            <!-- Завдання 3: Кнопка «Розробник» виключно для адміністратора STASAN -->
             <div class="settings-card" id="developer-card-wrapper" style="display: none;">
                 <button id="open-developer-btn" class="sidebar-nav-btn" style="background: rgba(43, 82, 120, 0.4); border-color: #89a1b2; font-weight: bold;">
                     <span>👨‍💻 Розробник (Токени та Статистика)</span>
@@ -574,7 +570,6 @@
             </div>
         </div>
 
-        <!-- Екран розробника для STASAN -->
         <div id="developer-screen">
             <div class="settings-header" style="max-width:480px; width:100%; margin:0 auto;">
                 <span>Панель розробника (STASAN)</span>
@@ -597,9 +592,7 @@
                 <div style="font-size: 0.95rem; font-weight: bold; color: #f5f5f5; border-bottom: 1px solid #242f3d; padding-bottom: 6px;">
                     👥 Витрати токенів по співрозмовниках
                 </div>
-                <div id="dev-contacts-stats-list" style="display: flex; flex-direction: column; gap: 8px;">
-                    <!-- Динамічно заповнюється -->
-                </div>
+                <div id="dev-contacts-stats-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
             </div>
         </div>
     </div>
@@ -651,8 +644,8 @@
         let recentContactsOrder = JSON.parse(localStorage.getItem('habla_recent_contacts') || '[]');
         let localAddedContacts = JSON.parse(localStorage.getItem('habla_local_contacts') || '[]');
         
-        let contactColors = {};
-        let contactAvatars = {};
+        let contactColors = JSON.parse(localStorage.getItem('habla_contact_colors') || '{}');
+        let contactAvatars = JSON.parse(localStorage.getItem('habla_contact_avatars') || '{}');
         let isContactsExpanded = false;
         let lastUsersData = {};
         let tokenStatsData = JSON.parse(localStorage.getItem('habla_token_stats') || '{}');
@@ -666,7 +659,16 @@
                 save: "Зберегти", delete_contact: "Видалити контакт", show_all: "Показати всі", collapse: "Згорнути",
                 copy_link: "Копіювати", install_app: "Встановити додаток", welcome_subtitle: "Введіть ваш нікнейм для миттєвого голосового перекладу",
                 welcome_enter: "Увійти", test_text_placeholder: "Введіть текст...",
-                watermark: "© 2026 Stasan Habla Mobile. Усі права захищено."
+                watermark: "© 2026 Stasan Habla Mobile. Усі права захищено.",
+                author_modal_title: "Про автора та проєкт",
+                author_label: "Автор проєкту:",
+                about_app_label: "Про додаток:",
+                about_app_desc: "Habla Mobile — це сучасний захищений месенджер з голосовим та текстовим перекладом у реальному часі.",
+                modal_understood: "Зрозуміло",
+                change_nickname: "Змінити нікнейм:",
+                icon_bg_color: "Колір фону іконки:",
+                avatar_gallery_label: "Фото аватарки (з галереї JPEG / PNG):",
+                choose_gallery_photo: "📁 Вибрати фото з галереї"
             },
             English: {
                 settings_title: "Settings", update_app: "Update App", interface_lang: "Interface Language",
@@ -676,7 +678,16 @@
                 save: "Save", delete_contact: "Delete contact", show_all: "Show all", collapse: "Collapse",
                 copy_link: "Copy Link", install_app: "Install App", welcome_subtitle: "Enter your nickname for instant translation",
                 welcome_enter: "Enter", test_text_placeholder: "Type a message...",
-                watermark: "© 2026 Stasan Habla Mobile. All rights reserved."
+                watermark: "© 2026 Stasan Habla Mobile. All rights reserved.",
+                author_modal_title: "About Author & Project",
+                author_label: "Project Author:",
+                about_app_label: "About App:",
+                about_app_desc: "Habla Mobile is a modern secure messenger with real-time voice and text translation.",
+                modal_understood: "Understood",
+                change_nickname: "Change nickname:",
+                icon_bg_color: "Icon background color:",
+                avatar_gallery_label: "Avatar photo (from gallery JPEG / PNG):",
+                choose_gallery_photo: "📁 Choose photo from gallery"
             },
             Spanish: {
                 settings_title: "Ajustes", update_app: "Actualizar aplicación", interface_lang: "Idioma de interfaz",
@@ -686,7 +697,16 @@
                 save: "Guardar", delete_contact: "Eliminar contacto", show_all: "Mostrar todos", collapse: "Contraer",
                 copy_link: "Copiar enlace", install_app: "Instalar aplicación", welcome_subtitle: "Introduce tu apodo",
                 welcome_enter: "Entrar", test_text_placeholder: "Escribe un mensaje...",
-                watermark: "© 2026 Stasan Habla Mobile. Todos los derechos reservados."
+                watermark: "© 2026 Stasan Habla Mobile. Todos los derechos reservados.",
+                author_modal_title: "Sobre el autor y proyecto",
+                author_label: "Autor del proyecto:",
+                about_app_label: "Sobre la aplicación:",
+                about_app_desc: "Habla Mobile es un mensajero seguro moderno con traducción de voz y texto en tiempo real.",
+                modal_understood: "Entendido",
+                change_nickname: "Cambiar apodo:",
+                icon_bg_color: "Color de fondo del icono:",
+                avatar_gallery_label: "Foto de avatar (galería JPEG / PNG):",
+                choose_gallery_photo: "📁 Elegir foto de galería"
             },
             German: {
                 settings_title: "Einstellungen", update_app: "App aktualisieren", interface_lang: "Sprache",
@@ -696,7 +716,16 @@
                 save: "Speichern", delete_contact: "Löschen", show_all: "Alle anzeigen", collapse: "Einklappen",
                 copy_link: "Link kopieren", install_app: "Installieren", welcome_subtitle: "Gib deinen Spitznamen ein",
                 welcome_enter: "Beitreten", test_text_placeholder: "Nachricht eingeben...",
-                watermark: "© 2026 Stasan Habla Mobile. Alle Rechte vorbehalten."
+                watermark: "© 2026 Stasan Habla Mobile. Alle Rechte vorbehalten.",
+                author_modal_title: "Über Autor & Projekt",
+                author_label: "Projektautor:",
+                about_app_label: "Über die App:",
+                about_app_desc: "Habla Mobile ist ein moderner, sicherer Messenger mit Echtzeit-Sprach- und Textübersetzung.",
+                modal_understood: "Verstanden",
+                change_nickname: "Spitznamen ändern:",
+                icon_bg_color: "Symbol-Hintergrundfarbe:",
+                avatar_gallery_label: "Avatar-Foto (aus Galerie JPEG / PNG):",
+                choose_gallery_photo: "📁 Foto aus Galerie wählen"
             },
             French: {
                 settings_title: "Paramètres", update_app: "Mettre à jour", interface_lang: "Langue",
@@ -706,7 +735,16 @@
                 save: "Enregistrer", delete_contact: "Supprimer", show_all: "Tout afficher", collapse: "Réduire",
                 copy_link: "Copier", install_app: "Installer", welcome_subtitle: "Entrez votre pseudo",
                 welcome_enter: "Entrer", test_text_placeholder: "Écrivez un message...",
-                watermark: "© 2026 Stasan Habla Mobile. Tous droits réservés."
+                watermark: "© 2026 Stasan Habla Mobile. Tous droits réservés.",
+                author_modal_title: "À propos de l'auteur et du projet",
+                author_label: "Auteur du projet :",
+                about_app_label: "À propos de l'application :",
+                about_app_desc: "Habla Mobile est une messagerie sécurisée moderne avec traduction vocale et textuelle en temps réel.",
+                modal_understood: "Compris",
+                change_nickname: "Changer le pseudo :",
+                icon_bg_color: "Couleur de fond de l'icône :",
+                avatar_gallery_label: "Photo d'avatar (galerie JPEG / PNG) :",
+                choose_gallery_photo: "📁 Choisir une photo de la galerie"
             }
         };
 
@@ -720,8 +758,6 @@
                 const key = el.getAttribute('data-i18n-placeholder');
                 if (dict[key]) el.placeholder = dict[key];
             });
-            const watermarkEl = document.getElementById('top-watermark');
-            if (watermarkEl && dict['watermark']) watermarkEl.textContent = dict['watermark'];
             safeRenderContactsGrid(lastUsersData);
         }
 
@@ -739,18 +775,24 @@
             document.getElementById('menu-overlay').classList.remove('active');
         });
 
-        // Завдання 4: Логіка кнопки Habla при запуску або коли немає контакту
         const selectedRecipientDisplay = document.getElementById('selected-recipient-display');
         const hablaLabel = document.getElementById('habla-label');
         const audioWave = document.getElementById('audio-wave');
         const recordingTimer = document.getElementById('recording-timer');
+        const micButton = document.getElementById('mic-button');
 
         function setRecipient(name) {
-            if (!name) return;
+            if (!name) {
+                selectedRecipientName = null;
+                localStorage.removeItem('habla_selected_recipient');
+                hablaLabel.classList.add('active');
+                if (selectedRecipientDisplay) selectedRecipientDisplay.classList.remove('active');
+                return;
+            }
             selectedRecipientName = name.trim();
             localStorage.setItem('habla_selected_recipient', selectedRecipientName);
             
-            hablaLabel.classList.add('hidden');
+            hablaLabel.classList.remove('active');
             if (selectedRecipientDisplay) {
                 selectedRecipientDisplay.textContent = selectedRecipientName;
                 selectedRecipientDisplay.classList.add('active');
@@ -758,10 +800,7 @@
             document.getElementById('messages-stack').innerHTML = '';
         }
 
-        const micButton = document.getElementById('mic-button');
-
         micButton.addEventListener('click', () => {
-            // Якщо співрозмовник не вибраний — відкриваємо контакти (кнопка Habla)
             if (!selectedRecipientName) {
                 closeAllScreens();
                 setActiveNav(navContacts);
@@ -775,29 +814,25 @@
         if (selectedRecipientName) {
             setRecipient(selectedRecipientName);
         } else {
-            hablaLabel.classList.remove('hidden');
+            setRecipient(null);
         }
 
         socket.on('sync-customizations', (customizations) => {
-            contactColors = {}; contactAvatars = {};
             for (let [name, data] of Object.entries(customizations)) {
                 if (data.color) contactColors[name] = data.color;
                 if (data.avatar) contactAvatars[name] = data.avatar;
             }
+            localStorage.setItem('habla_contact_colors', JSON.stringify(contactColors));
+            localStorage.setItem('habla_contact_avatars', JSON.stringify(contactAvatars));
             updateProfileDisplay();
             safeRenderContactsGrid(lastUsersData);
         });
 
         function getDeviceLanguage() {
-            const navLang = (navigator.language || 'uk').toLowerCase();
-            if (navLang.startsWith('en')) return 'English';
-            if (navLang.startsWith('de')) return 'German';
-            if (navLang.startsWith('fr')) return 'French';
-            if (navLang.startsWith('es')) return 'Spanish';
             return 'Ukrainian';
         }
 
-        let savedInterfaceLang = localStorage.getItem('habla_interface_lang') || getDeviceLanguage();
+        let savedInterfaceLang = localStorage.getItem('habla_interface_lang') || 'Ukrainian';
         if (savedInterfaceLang === 'Russian') savedInterfaceLang = 'Ukrainian';
         interfaceLangSelect.value = savedInterfaceLang;
         applyLocalization(savedInterfaceLang);
@@ -1107,11 +1142,9 @@
         });
 
         let mediaRecorder, audioChunks = [], isRecording = false;
-        let audioContext, analyser, microphone, javascriptNode;
 
-        // Завдання 5: Візуалізація звукової доріжки та відсутність червоного контуру
         micButton.addEventListener('click', async () => {
-            if (!selectedRecipientName) return; // Якщо не обрано співрозмовника, спрацьовує перехід у контакти вище
+            if (!selectedRecipientName) return;
             
             if (!isRecording) {
                 try {
@@ -1125,7 +1158,7 @@
                         const reader = new FileReader();
                         reader.readAsDataURL(new Blob(audioChunks, { type: 'audio/webm' }));
                         reader.onloadend = () => {
-                            recordTokenUsage(selectedRecipientName, 45); // Голосові токени
+                            recordTokenUsage(selectedRecipientName, 45);
                             socket.emit('voice-message', { sender: username, recipient: selectedRecipientName, audio: reader.result });
                         };
                         stream.getTracks().forEach(t => t.stop());
@@ -1134,7 +1167,6 @@
                     isRecording = true;
                     micButton.classList.add('recording');
 
-                    // Перемикаємо візуальні елементи на кнопці
                     if (selectedRecipientDisplay) selectedRecipientDisplay.classList.remove('active');
                     audioWave.classList.add('active');
                     recordingTimer.classList.add('active');
@@ -1253,7 +1285,6 @@
         });
         document.getElementById('close-settings-screen').addEventListener('click', () => { closeAllScreens(); setActiveNav(navHome); });
 
-        // Логіка панелі розробника для STASAN
         document.getElementById('open-developer-btn').addEventListener('click', () => {
             settingsScreen.classList.remove('active');
             renderDeveloperStats();
@@ -1285,7 +1316,7 @@
                 
                 let avatarHtml = '';
                 if (customAvatarUrl) {
-                    avatarAvatar = `<img src="${customAvatarUrl}" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover;">`;
+                    avatarHtml = `<img src="${customAvatarUrl}" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover;">`;
                 } else {
                     avatarHtml = `<div style="width: 38px; height: 38px; border-radius: 50%; background: ${avatarBg}; color: #0e1621; font-weight: bold; display: flex; align-items: center; justify-content: center;">${contactName.charAt(0).toUpperCase()}</div>`;
                 }
@@ -1350,8 +1381,15 @@
                 }
             }
             contactColors[activeContactForModal] = selectedModalColor;
-            if (avatar) contactAvatars[activeContactForModal] = avatar; else delete contactAvatars[activeContactForModal];
+            if (avatar) {
+                contactAvatars[activeContactForModal] = avatar;
+            } else {
+                delete contactAvatars[activeContactForModal];
+            }
             
+            localStorage.setItem('habla_contact_colors', JSON.stringify(contactColors));
+            localStorage.setItem('habla_contact_avatars', JSON.stringify(contactAvatars));
+
             socket.emit('update-customization', { targetName: activeContactForModal, color: selectedModalColor, avatar });
             contactModal.classList.remove('active'); document.getElementById('menu-overlay').classList.remove('active');
             updateProfileDisplay(); safeRenderContactsGrid(lastUsersData);
@@ -1364,10 +1402,7 @@
                 localStorage.setItem('habla_local_contacts', JSON.stringify(localAddedContacts));
                 delete contactColors[activeContactForModal]; delete contactAvatars[activeContactForModal];
                 if (selectedRecipientName === activeContactForModal) { 
-                    localStorage.removeItem('habla_selected_recipient'); 
-                    selectedRecipientName = null; 
-                    hablaLabel.classList.remove('hidden');
-                    if(selectedRecipientDisplay) selectedRecipientDisplay.classList.remove('active');
+                    setRecipient(null);
                 }
                 contactModal.classList.remove('active'); document.getElementById('menu-overlay').classList.remove('active');
                 safeRenderContactsGrid(lastUsersData);
