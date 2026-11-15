@@ -148,15 +148,34 @@
             overflow: hidden; background: #0e1621; width: 100%;
         }
 
+        /* Стабілізований головний екран: фіксує кнопку внизу і не дає їй зміщуватися */
         .main-screen {
-            flex: 1; display: flex; flex-direction: column; align-items: center;
-            justify-content: center; position: relative; padding: 10px 20px 110px 20px; width: 100%;
-            max-width: 480px; margin: 0 auto; gap: 10px;
+            flex: 1; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center;
+            justify-content: flex-end; 
+            position: relative; 
+            padding: 10px 20px 95px 20px; 
+            width: 100%;
+            max-width: 480px; 
+            margin: 0 auto; 
+            gap: 15px;
+            height: 100%;
+            overflow: hidden;
         }
 
+        /* Обмежений блок повідомлень зі скролом, щоб довгі розмови не штовхали кнопку вниз */
         .messages-stack-container {
-            width: 100%; max-width: 340px; display: flex; flex-direction: column;
-            gap: 6px; justify-content: flex-end; min-height: 80px; margin-bottom: 2px;
+            width: 100%; 
+            max-width: 340px; 
+            display: flex; 
+            flex-direction: column;
+            gap: 6px; 
+            justify-content: flex-end; 
+            max-height: 55vh; 
+            overflow-y: auto; 
+            padding-bottom: 5px;
         }
         
         .message-card {
