@@ -162,18 +162,27 @@ io.on('connection', (socket) => {
             const sender = data.sender;
             const recipient = data.recipient;
             const rawText = (data.text || '').trim();
-            const recipientLang = data.targetLang || userLanguages[recipient] || 'Ukrainian';
 
             if (!rawText || !recipient) return;
 
-            const translatedText = await translateText(rawText, recipientLang);
+            // Надійний пошук мови отримувача (recipient) незалежно від регістру літер
             const cleanRecipient = recipient.toLowerCase().trim();
+            const recipientEntryKey = Object.keys(userLanguages).find(
+                k => k.toLowerCase().trim() === cleanRecipient
+            );
+            const recipientLang = recipientEntryKey ? userLanguages[recipientEntryKey] : 'Ukrainian';
+
+            // Перекладаємо текст саме на мову отримувача
+            const translatedText = await translateText(rawText, recipientLang);
+
             const recipientSocketId = Object.keys(activeSockets).find(
                 id => activeSockets[id] && activeSockets[id].toLowerCase().trim() === cleanRecipient
             );
 
+            // Відправнику надсилаємо оригінальний текст (isSelf: true)
             socket.emit('incoming-message', { sender, text: rawText, isSelf: true, originalText: rawText });
 
+            // Одержувачу надсилаємо перекладений текст і оригінал для двомовної плашки
             if (recipientSocketId) {
                 io.to(recipientSocketId).emit('incoming-message', { sender, text: translatedText, isSelf: false, originalText: rawText });
             }
@@ -193,10 +202,15 @@ io.on('connection', (socket) => {
             const transcribedText = await transcribeAudio(audioBuffer);
             if (!transcribedText.trim()) return;
 
-            const recipientLang = userLanguages[recipient] || 'Ukrainian';
+            // Надійний пошук мови отримувача для голосу
+            const cleanRecipient = recipient.toLowerCase().trim();
+            const recipientEntryKey = Object.keys(userLanguages).find(
+                k => k.toLowerCase().trim() === cleanRecipient
+            );
+            const recipientLang = recipientEntryKey ? userLanguages[recipientEntryKey] : 'Ukrainian';
+
             const translatedText = await translateText(transcribedText, recipientLang);
 
-            const cleanRecipient = recipient.toLowerCase().trim();
             const recipientSocketId = Object.keys(activeSockets).find(
                 id => activeSockets[id] && activeSockets[id].toLowerCase().trim() === cleanRecipient
             );
