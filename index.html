@@ -258,8 +258,11 @@
         #qr-screen.active { display: flex !important; }
 
         .qr-cards-wrapper { 
-            display: flex; flex-direction: row; gap: 10px; width: 100%; 
-            max-width: 440px; justify-content: center; align-items: stretch; margin: auto; 
+            display: flex; flex-direction: column; gap: 14px; width: 100%; 
+            max-width: 440px; justify-content: center; align-items: center; margin: auto; 
+        }
+        .qr-cards-row {
+            display: flex; flex-direction: row; gap: 10px; width: 100%; justify-content: center; align-items: stretch;
         }
         .qr-card {
             flex: 1; background: rgba(23, 33, 43, 0.85); border: 1px solid #89a1b2; border-radius: 16px;
@@ -284,6 +287,16 @@
             background: transparent; border: 1px solid #89a1b2; color: #89a1b2; padding: 8px 6px;
             border-radius: 10px; font-size: 0.75rem; cursor: pointer; width: 100%; text-align: center;
         }
+
+        /* Велика довга кнопка встановлення під QR-кодами */
+        .install-app-main-btn {
+            background: linear-gradient(135deg, #2b5278 0%, #1f3b57 100%);
+            border: 1px solid #89a1b2; color: #f5f5f5; font-weight: bold; font-size: 1rem;
+            padding: 14px; border-radius: 14px; width: 100%; cursor: pointer;
+            text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            transition: transform 0.2s, background 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .install-app-main-btn:active { transform: scale(0.98); }
 
         .contacts-wrapper-box { width: 100%; max-width: 380px; display: flex; flex-direction: column; gap: 16px; margin: auto; transition: all 0.25s ease; }
         .contacts-wrapper-box.expanded-mode { max-width: 440px; height: 100%; margin: 0 auto; }
@@ -517,18 +530,25 @@
             </div>
         </div>
 
+        <!-- ЕКРАН QR-КОДІВ З ВЕЛИКОЮ КНОПКОЮ ВСТАНОВЛЕННЯНИЖЧЕ -->
         <div id="qr-screen">
             <div class="qr-cards-wrapper">
-                <div class="qr-card">
-                    <div class="qr-card-title">Android / iOS</div>
-                    <div class="qr-img-box" id="qr-android-box"><img id="qr-android-img" src="" alt="Mobile QR"></div>
-                    <button class="copy-link-action-btn" id="copy-android-btn" data-i18n="copy_link">Copy Link</button>
+                <div class="qr-cards-row">
+                    <div class="qr-card">
+                        <div class="qr-card-title">Android / iOS</div>
+                        <div class="qr-img-box" id="qr-android-box"><img id="qr-android-img" src="" alt="Mobile QR"></div>
+                        <button class="copy-link-action-btn" id="copy-android-btn" data-i18n="copy_link">Copy Link</button>
+                    </div>
+                    <div class="qr-card">
+                        <div class="qr-card-title">PC / Web</div>
+                        <div class="qr-img-box" id="qr-pc-box"><img id="qr-pc-img" src="" alt="PC QR"></div>
+                        <button class="copy-link-action-btn" id="copy-pc-btn" data-i18n="copy_link">Copy Link</button>
+                    </div>
                 </div>
-                <div class="qr-card">
-                    <div class="qr-card-title">PC / Web</div>
-                    <div class="qr-img-box" id="qr-pc-box"><img id="qr-pc-img" src="" alt="PC QR"></div>
-                    <button class="copy-link-action-btn" id="copy-pc-btn" data-i18n="copy_link">Copy Link</button>
-                </div>
+                <!-- Велика довга кнопка Встановити додаток під QR-кодами -->
+                <button id="install-app-main-btn" class="install-app-main-btn">
+                    📱 <span data-i18n="install_app">Встановити додаток</span>
+                </button>
             </div>
         </div>
 
@@ -542,15 +562,9 @@
                     <span>👨‍💻 Розробник (Токени та Статистика)</span>
                 </button>
             </div>
-            
-            <!-- КНОПКА ВСТАНОВЛЕННЯ ДОДАТКА В НАЛАШТУВАННЯХ -->
             <div class="settings-card">
-                <button id="install-app-btn" class="sidebar-nav-btn" style="background: linear-gradient(135deg, #2b5278 0%, #1f3b57 100%); border-color: #89a1b2; color: #fff; font-weight: bold; display: none;">
-                    📱 <span data-i18n="install_app">Встановити додаток</span>
-                </button>
                 <button id="update-app-btn" class="sidebar-nav-btn"><span data-i18n="update_app">Оновлення програми</span></button>
             </div>
-
             <div class="settings-card">
                 <div class="settings-row" id="toggle-lang-dropdown">
                     <span data-i18n="interface_lang">Мова інтерфейсу</span>
@@ -644,33 +658,30 @@
             window.addEventListener('load', () => { navigator.serviceWorker.register('/sw.js').catch(() => {}); });
         }
 
-        // --- ЛОГІКА ВСТАНОВЛЕННЯ PWA (APP INSTALL PROMPT) ---
+        // --- ЛОГІКА ВСТАНОВЛЕННЯ PWA (ПІД QR-КОДАМИ) ---
         let deferredPrompt;
-        const installAppBtn = document.getElementById('install-app-btn');
+        const installAppMainBtn = document.getElementById('install-app-main-btn');
 
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
-            if (installAppBtn) installAppBtn.style.display = 'block';
         });
 
-        if (installAppBtn) {
-            installAppBtn.addEventListener('click', async () => {
-                if (!deferredPrompt) return;
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                if (outcome === 'accepted') {
-                    console.log('✅ Користувач встановив додаток Habla Mobile');
+        if (installAppMainBtn) {
+            installAppMainBtn.addEventListener('click', async () => {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    if (outcome === 'accepted') {
+                        console.log('✅ Користувач встановив додаток Habla Mobile');
+                    }
+                    deferredPrompt = null;
+                } else {
+                    // Якщо браузер ще не згенерував запит (або це iOS / десктоп), даємо підказку
+                    alert('Для встановлення додатка натисніть на меню вашого браузера (три крапки або «Поділитися») та виберіть «Додати на головний екран» або «Встановити додаток».');
                 }
-                deferredPrompt = null;
-                installAppBtn.style.display = 'none';
             });
         }
-
-        window.addEventListener('appinstalled', () => {
-            console.log('📱 Додаток успішно встановлено на пристрій!');
-            if (installAppBtn) installAppBtn.style.display = 'none';
-        });
 
         const socket = io();
 
