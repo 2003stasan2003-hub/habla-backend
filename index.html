@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Habla Mobile 3.1</title>
+    <title>Habla Mobile</title>
     
     <!-- PWA / Mobile Meta tags для правильного відкриття та встановлення за посиланням / QR-кодом -->
     <link rel="manifest" href="/manifest.json">
@@ -542,9 +542,15 @@
                     <span>👨‍💻 Розробник (Токени та Статистика)</span>
                 </button>
             </div>
+            
+            <!-- КНОПКА ВСТАНОВЛЕННЯ ДОДАТКА В НАЛАШТУВАННЯХ -->
             <div class="settings-card">
+                <button id="install-app-btn" class="sidebar-nav-btn" style="background: linear-gradient(135deg, #2b5278 0%, #1f3b57 100%); border-color: #89a1b2; color: #fff; font-weight: bold; display: none;">
+                    📱 <span data-i18n="install_app">Встановити додаток</span>
+                </button>
                 <button id="update-app-btn" class="sidebar-nav-btn"><span data-i18n="update_app">Оновлення програми</span></button>
             </div>
+
             <div class="settings-card">
                 <div class="settings-row" id="toggle-lang-dropdown">
                     <span data-i18n="interface_lang">Мова інтерфейсу</span>
@@ -638,11 +644,32 @@
             window.addEventListener('load', () => { navigator.serviceWorker.register('/sw.js').catch(() => {}); });
         }
 
-        // Перехоплення запиту встановлення PWA (щоб посилання/QR коректно пропонували встановити додаток)
+        // --- ЛОГІКА ВСТАНОВЛЕННЯ PWA (APP INSTALL PROMPT) ---
         let deferredPrompt;
+        const installAppBtn = document.getElementById('install-app-btn');
+
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
+            if (installAppBtn) installAppBtn.style.display = 'block';
+        });
+
+        if (installAppBtn) {
+            installAppBtn.addEventListener('click', async () => {
+                if (!deferredPrompt) return;
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    console.log('✅ Користувач встановив додаток Habla Mobile');
+                }
+                deferredPrompt = null;
+                installAppBtn.style.display = 'none';
+            });
+        }
+
+        window.addEventListener('appinstalled', () => {
+            console.log('📱 Додаток успішно встановлено на пристрій!');
+            if (installAppBtn) installAppBtn.style.display = 'none';
         });
 
         const socket = io();
