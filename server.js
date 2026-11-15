@@ -26,7 +26,7 @@ app.get('/', (req, res) => {
 let activeSockets = {};
 let userLanguages = {};
 
-// Шлях до файлу для постійного збереження аватаркок та кольорів на диску
+// Шлях до файлу для постійного збереження аватарок та кольорів на диску
 const CUSTOMIZATIONS_FILE = path.join(__dirname, 'customizations.json');
 let userCustomizations = {};
 
@@ -51,7 +51,7 @@ function saveCustomizationsToDisk() {
     }
 }
 
-// Аудіо транскрипція через Whisper з фокусом на мову
+// Аудіо транскрипція через Whisper
 async function transcribeAudio(audioBuffer) {
     if (!GROQ_API_KEY) throw new Error("GROQ_API_KEY не заданий!");
     const tempFilePath = path.join(__dirname, `temp_${Date.now()}.webm`);
@@ -78,7 +78,7 @@ async function transcribeAudio(audioBuffer) {
     }
 }
 
-// Професійний переклад без кальок із гарантованим дотриманням цільової мови
+// Професійний переклад через перевірену модель qwen/qwen3.8-27b
 async function translateText(text, targetLang) {
     if (!GROQ_API_KEY || !text) return text;
     
@@ -97,7 +97,7 @@ async function translateText(text, targetLang) {
 
     try {
         const response = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
-            model: "llama-3.3-70b-versatile",
+            model: "qwen/qwen3.8-27b",
             messages: [
                 { 
                     role: "system", 
@@ -172,10 +172,8 @@ io.on('connection', (socket) => {
                 id => activeSockets[id] && activeSockets[id].toLowerCase().trim() === cleanRecipient
             );
 
-            // Повертаємо відправнику його оригінальний текст (isSelf: true)
             socket.emit('incoming-message', { sender, text: rawText, isSelf: true, originalText: rawText });
 
-            // Пересилаємо одержувачу текст, перекладений на його мову на льоту
             if (recipientSocketId) {
                 io.to(recipientSocketId).emit('incoming-message', { sender, text: translatedText, isSelf: false, originalText: rawText });
             }
@@ -203,10 +201,8 @@ io.on('connection', (socket) => {
                 id => activeSockets[id] && activeSockets[id].toLowerCase().trim() === cleanRecipient
             );
 
-            // Повертаємо відправнику розшифрований оригінал
             socket.emit('incoming-message', { sender, text: transcribedText, isSelf: true, originalText: transcribedText });
 
-            // Надсилаємо одержувачу перекладене голосове повідомлення (у вигляді тексту)
             if (recipientSocketId) {
                 io.to(recipientSocketId).emit('incoming-message', { sender, text: translatedText, isSelf: false, originalText: transcribedText });
             }
