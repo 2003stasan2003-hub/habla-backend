@@ -51,7 +51,7 @@ function saveCustomizationsToDisk() {
     }
 }
 
-// Аудіо транскрипція через Whisper
+// Аудіо транскрипція через Whisper з фіксованим промптом української мови ('uk') для уникнення плутанини з русизмом
 async function transcribeAudio(audioBuffer) {
     if (!GROQ_API_KEY) throw new Error("GROQ_API_KEY не заданий!");
     const tempFilePath = path.join(__dirname, `temp_${Date.now()}.webm`);
@@ -61,6 +61,7 @@ async function transcribeAudio(audioBuffer) {
         const formData = new FormData();
         formData.append('file', fs.createReadStream(tempFilePath));
         formData.append('model', 'whisper-large-v3');
+        formData.append('language', 'uk'); // Примусово спрямовуємо Whisper розпізнавати українську мову
         formData.append('temperature', '0');
 
         const response = await axios.post('https://api.groq.com/openai/v1/audio/transcriptions', formData, {
@@ -165,24 +166,20 @@ io.on('connection', (socket) => {
 
             if (!rawText || !recipient) return;
 
-            // Надійний пошук мови отримувача (recipient) незалежно від регістру літер
             const cleanRecipient = recipient.toLowerCase().trim();
             const recipientEntryKey = Object.keys(userLanguages).find(
                 k => k.toLowerCase().trim() === cleanRecipient
             );
             const recipientLang = recipientEntryKey ? userLanguages[recipientEntryKey] : 'Ukrainian';
 
-            // Перекладаємо текст саме на мову отримувача
             const translatedText = await translateText(rawText, recipientLang);
 
             const recipientSocketId = Object.keys(activeSockets).find(
                 id => activeSockets[id] && activeSockets[id].toLowerCase().trim() === cleanRecipient
             );
 
-            // Відправнику надсилаємо оригінальний текст (isSelf: true)
             socket.emit('incoming-message', { sender, text: rawText, isSelf: true, originalText: rawText });
 
-            // Одержувачу надсилаємо перекладений текст і оригінал для двомовної плашки
             if (recipientSocketId) {
                 io.to(recipientSocketId).emit('incoming-message', { sender, text: translatedText, isSelf: false, originalText: rawText });
             }
@@ -202,7 +199,6 @@ io.on('connection', (socket) => {
             const transcribedText = await transcribeAudio(audioBuffer);
             if (!transcribedText.trim()) return;
 
-            // Надійний пошук мови отримувача для голосу
             const cleanRecipient = recipient.toLowerCase().trim();
             const recipientEntryKey = Object.keys(userLanguages).find(
                 k => k.toLowerCase().trim() === cleanRecipient
