@@ -148,7 +148,6 @@
             overflow: hidden; background: #0e1621; width: 100%;
         }
 
-        /* Виправлено відступ знизу, щоб кнопка мікрофона не притискалась до нижньої панелі */
         .main-screen {
             flex: 1; display: flex; flex-direction: column; align-items: center;
             justify-content: center; position: relative; padding: 10px 20px 110px 20px; width: 100%;
@@ -228,7 +227,6 @@
         }
         .habla-text-label.active { display: block; }
 
-        /* Виправлено позиціонування поля вводу тексту, щоб воно не ховалося та не сповзало */
         .test-text-box {
             position: fixed; 
             bottom: 95px; 
@@ -701,7 +699,10 @@
         let username = (localStorage.getItem('habla_username') || '').trim();
         if (username) localStorage.setItem('habla_username', username);
 
-        let selectedRecipientName = localStorage.getItem('habla_selected_recipient') || null;
+        // Примусово скидаємо обраний контакт при кожному новому відкритті / перезаході в додаток
+        localStorage.removeItem('habla_selected_recipient');
+        let selectedRecipientName = null;
+
         let recentContactsOrder = JSON.parse(localStorage.getItem('habla_recent_contacts') || '[]');
         let localAddedContacts = JSON.parse(localStorage.getItem('habla_local_contacts') || '[]');
         
@@ -858,7 +859,6 @@
                 selectedRecipientDisplay.textContent = selectedRecipientName;
                 selectedRecipientDisplay.classList.add('active');
             }
-            document.getElementById('messages-stack').innerHTML = '';
         }
 
         micButton.addEventListener('click', () => {
@@ -872,11 +872,7 @@
             }
         });
 
-        if (selectedRecipientName) {
-            setRecipient(selectedRecipientName);
-        } else {
-            setRecipient(null);
-        }
+        setRecipient(null);
 
         socket.on('sync-customizations', (customizations) => {
             for (let [name, data] of Object.entries(customizations)) {
