@@ -35,7 +35,7 @@ if (fs.existsSync(CUSTOMIZATIONS_FILE)) {
     try {
         const data = fs.readFileSync(CUSTOMIZATIONS_FILE, 'utf8');
         userCustomizations = JSON.parse(data);
-        console.log("📂 Кастомізації (аватарки/кольори) успішно завантажено з диска.");
+        console.log("📂 Кастомізації успішно завантажено з диска.");
     } catch (e) {
         console.error("❌ Помилка читання customizations.json:", e);
         userCustomizations = {};
@@ -51,7 +51,7 @@ function saveCustomizationsToDisk() {
     }
 }
 
-// Аудіо транскрипція через Whisper з примусовим фокусом на українську мову
+// Аудіо транскрипція через Whisper з фокусом на мову
 async function transcribeAudio(audioBuffer) {
     if (!GROQ_API_KEY) throw new Error("GROQ_API_KEY не заданий!");
     const tempFilePath = path.join(__dirname, `temp_${Date.now()}.webm`);
@@ -61,7 +61,6 @@ async function transcribeAudio(audioBuffer) {
         const formData = new FormData();
         formData.append('file', fs.createReadStream(tempFilePath));
         formData.append('model', 'whisper-large-v3');
-        formData.append('language', 'uk');
         formData.append('temperature', '0');
 
         const response = await axios.post('https://api.groq.com/openai/v1/audio/transcriptions', formData, {
@@ -153,7 +152,7 @@ io.on('connection', (socket) => {
         const { targetName, color, avatar } = data;
         if (targetName) {
             userCustomizations[targetName] = { color, avatar };
-            saveCustomizationsToDisk(); // Зберігаємо на диск одразу при зміні
+            saveCustomizationsToDisk();
             io.emit('sync-customizations', userCustomizations);
         }
     });
@@ -163,7 +162,7 @@ io.on('connection', (socket) => {
             const sender = data.sender;
             const recipient = data.recipient;
             const rawText = (data.text || '').trim();
-            const recipientLang = userLanguages[recipient] || 'Ukrainian';
+            const recipientLang = data.targetLang || userLanguages[recipient] || 'Ukrainian';
 
             if (!rawText || !recipient) return;
 
@@ -173,8 +172,10 @@ io.on('connection', (socket) => {
                 id => activeSockets[id] && activeSockets[id].toLowerCase().trim() === cleanRecipient
             );
 
+            // Повертаємо відправнику його оригінальний текст (isSelf: true)
             socket.emit('incoming-message', { sender, text: rawText, isSelf: true, originalText: rawText });
 
+            // Пересилаємо одержувачу текст, перекладений на його мову на льоту
             if (recipientSocketId) {
                 io.to(recipientSocketId).emit('incoming-message', { sender, text: translatedText, isSelf: false, originalText: rawText });
             }
@@ -202,8 +203,10 @@ io.on('connection', (socket) => {
                 id => activeSockets[id] && activeSockets[id].toLowerCase().trim() === cleanRecipient
             );
 
+            // Повертаємо відправнику розшифрований оригінал
             socket.emit('incoming-message', { sender, text: transcribedText, isSelf: true, originalText: transcribedText });
 
+            // Надсилаємо одержувачу перекладене голосове повідомлення (у вигляді тексту)
             if (recipientSocketId) {
                 io.to(recipientSocketId).emit('incoming-message', { sender, text: translatedText, isSelf: false, originalText: transcribedText });
             }
