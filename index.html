@@ -148,9 +148,10 @@
             overflow: hidden; background: #0e1621; width: 100%;
         }
 
+        /* Виправлено відступ знизу, щоб кнопка мікрофона не притискалась до нижньої панелі */
         .main-screen {
             flex: 1; display: flex; flex-direction: column; align-items: center;
-            justify-content: center; position: relative; padding: 10px 20px 95px 20px; width: 100%;
+            justify-content: center; position: relative; padding: 10px 20px 110px 20px; width: 100%;
             max-width: 480px; margin: 0 auto; gap: 10px;
         }
 
@@ -227,11 +228,23 @@
         }
         .habla-text-label.active { display: block; }
 
+        /* Виправлено позиціонування поля вводу тексту, щоб воно не ховалося та не сповзало */
         .test-text-box {
-            position: absolute; bottom: 85px; left: 50%; transform: translateX(-50%);
-            width: 90%; max-width: 360px; display: none; align-items: center; gap: 8px;
-            background: rgba(23, 33, 43, 0.98); border: 1px solid #89a1b2; border-radius: 14px;
-            padding: 8px 10px 8px 14px; z-index: 85; box-shadow: 0 8px 25px rgba(0,0,0,0.8);
+            position: fixed; 
+            bottom: 95px; 
+            left: 50%; 
+            transform: translateX(-50%);
+            width: 90%; 
+            max-width: 360px; 
+            display: none; 
+            align-items: center; 
+            gap: 8px;
+            background: rgba(23, 33, 43, 0.98); 
+            border: 1px solid #89a1b2; 
+            border-radius: 14px;
+            padding: 10px 12px; 
+            z-index: 95; 
+            box-shadow: 0 8px 25px rgba(0,0,0,0.8);
         }
         .test-text-box.active { display: flex; }
         .test-text-input { flex: 1; background: transparent; border: none; color: #f5f5f5; font-size: 0.95rem; outline: none; min-width: 0; }
@@ -288,7 +301,6 @@
             border-radius: 10px; font-size: 0.75rem; cursor: pointer; width: 100%; text-align: center;
         }
 
-        /* Велика довга кнопка встановлення під QR-кодами */
         .install-app-main-btn {
             background: linear-gradient(135deg, #2b5278 0%, #1f3b57 100%);
             border: 1px solid #89a1b2; color: #f5f5f5; font-weight: bold; font-size: 1rem;
@@ -530,7 +542,6 @@
             </div>
         </div>
 
-        <!-- ЕКРАН QR-КОДІВ З ВЕЛИКОЮ КНОПКОЮ ВСТАНОВЛЕННЯНИЖЧЕ -->
         <div id="qr-screen">
             <div class="qr-cards-wrapper">
                 <div class="qr-cards-row">
@@ -545,7 +556,6 @@
                         <button class="copy-link-action-btn" id="copy-pc-btn" data-i18n="copy_link">Copy Link</button>
                     </div>
                 </div>
-                <!-- Велика довга кнопка Встановити додаток під QR-кодами -->
                 <button id="install-app-main-btn" class="install-app-main-btn">
                     📱 <span data-i18n="install_app">Встановити додаток</span>
                 </button>
@@ -658,7 +668,6 @@
             window.addEventListener('load', () => { navigator.serviceWorker.register('/sw.js').catch(() => {}); });
         }
 
-        // --- ЛОГІКА ВСТАНОВЛЕННЯ PWA (ПІД QR-КОДАМИ) ---
         let deferredPrompt;
         const installAppMainBtn = document.getElementById('install-app-main-btn');
 
@@ -677,7 +686,6 @@
                     }
                     deferredPrompt = null;
                 } else {
-                    // Якщо браузер ще не згенерував запит (або це iOS / десктоп), даємо підказку
                     alert('Для встановлення додатка натисніть на меню вашого браузера (три крапки або «Поділитися») та виберіть «Додати на головний екран» або «Встановити додаток».');
                 }
             });
