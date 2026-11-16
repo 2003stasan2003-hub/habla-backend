@@ -880,14 +880,19 @@
                     const reg = await navigator.serviceWorker.register('/sw.js');
                     const perm = await Notification.requestPermission();
                     if (perm !== 'granted') return;
-                    const publicVapidKey = 'YOUR_PUBLIC_VAPID_KEY';
-                    if (publicVapidKey === 'YOUR_PUBLIC_VAPID_KEY') return;
+                    
+                    // Ваш публічний VAPID ключ із Render (VAPID_PUBLIC_KEY)
+                    const publicVapidKey = 'BP_THGEIwmo7Npka3AqDRmOnT-zXf_V6wC5j_mdo9qrA4JWin71UsPryXS2h4HzrxNqX4m6IqfWHTPT_xfbLVw';
+                    
                     const subscription = await reg.pushManager.subscribe({
                         userVisibleOnly: true,
                         applicationServerKey: urlBase64ToUint8Array(publicVapidKey)
                     });
                     socket.emit('subscribe-push', { username, subscription });
-                } catch (e) {}
+                    console.log('✅ Push-підписка успішно активована!');
+                } catch (e) {
+                    console.error('❌ Помилка підписки на Push:', e);
+                }
             }
         }
 
