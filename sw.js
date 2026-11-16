@@ -1,4 +1,3 @@
-// sw.js
 self.addEventListener('push', function(event) {
     let data = { title: 'Habla Mobile', body: 'У вас нове повідомлення!', icon: '/icon.png' };
     
