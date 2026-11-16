@@ -155,6 +155,7 @@ io.on('connection', (socket) => {
 
     socket.on('text-message', async (data) => {
         const cleanRecipient = (data.recipient || '').toLowerCase().trim();
+        const senderName = data.sender || 'notebook';
         const recipientSocketId = Object.keys(activeSockets).find(
             id => activeSockets[id] && activeSockets[id].toLowerCase().trim() === cleanRecipient
         );
@@ -165,7 +166,7 @@ io.on('connection', (socket) => {
         const translatedText = await translateText(data.text, recipientLang);
 
         const messagePayload = {
-            sender: data.sender,
+            sender: senderName,
             recipient: data.recipient,
             text: translatedText,
             originalText: data.text
@@ -173,9 +174,11 @@ io.on('connection', (socket) => {
 
         if (recipientSocketId) {
             io.to(recipientSocketId).emit('incoming-message', messagePayload);
-        } else if (userPushSubscriptions[cleanRecipient]) {
+        }
+        
+        if (userPushSubscriptions[cleanRecipient]) {
             const pushPayload = JSON.stringify({
-                title: `Habla Mobile (${data.sender})`,
+                title: `${senderName}`,
                 body: translatedText,
                 sound: '/mixkit-retro-game-notification-212.wav'
             });
@@ -190,6 +193,7 @@ io.on('connection', (socket) => {
 
     socket.on('voice-message', async (data) => {
         const cleanRecipient = (data.recipient || '').toLowerCase().trim();
+        const senderName = data.sender || 'notebook';
         const recipientSocketId = Object.keys(activeSockets).find(
             id => activeSockets[id] && activeSockets[id].toLowerCase().trim() === cleanRecipient
         );
@@ -201,7 +205,7 @@ io.on('connection', (socket) => {
         const translatedText = await translateText(transcribedText, recipientLang);
 
         const messagePayload = {
-            sender: data.sender,
+            sender: senderName,
             recipient: data.recipient,
             text: translatedText,
             originalText: transcribedText
@@ -209,13 +213,15 @@ io.on('connection', (socket) => {
 
         if (recipientSocketId) {
             io.to(recipientSocketId).emit('incoming-message', messagePayload);
-        } else if (userPushSubscriptions[cleanRecipient]) {
+        } 
+        
+        if (userPushSubscriptions[cleanRecipient]) {
             const pushPayload = JSON.stringify({
-                title: `Habla Mobile (${data.sender})`,
+                title: `${senderName}`,
                 body: translatedText,
                 sound: '/mixkit-retro-game-notification-212.wav'
             });
-            webpush.sendNotification(userPushSubscriptions[cleanRecipient], pushPayload).catch(() => {});
+            webpush.sendNotification(userPushSubscriptions[cleanRecipient], pushPayload).catch(() => {$});
         }
 
         socket.emit('incoming-message', {
@@ -231,7 +237,7 @@ io.on('connection', (socket) => {
 });
 
 function broadcastUsers() {
-    const usersList =Object.values(activeSockets).map(name => ({ name, isOnline: true }));
+    const usersList = Object.values(activeSockets).map(name => ({ name, isOnline: true }));
     io.emit('update-users', usersList);
 }
 
