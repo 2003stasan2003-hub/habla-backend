@@ -47,11 +47,10 @@ io.on('connection', (socket) => {
             id => activeSockets[id] && activeSockets[id].toLowerCase().trim() === cleanRecipient
         );
 
-        // Надсилаємо повідомлення отримувачу, якщо він в мережі
+        // Передаємо дані отримувачу (разом з originalText)
         if (recipientSocketId) {
             io.to(recipientSocketId).emit('incoming-message', data);
         } else if (userPushSubscriptions[cleanRecipient]) {
-            // Якщо отримувач офлайн, відправляємо Web Push сповіщення
             const payload = JSON.stringify({
                 title: `Habla Mobile (${data.sender})`,
                 body: data.text || 'Нове текстове повідомлення'
@@ -59,7 +58,7 @@ io.on('connection', (socket) => {
             webpush.sendNotification(userPushSubscriptions[cleanRecipient], payload).catch(() => {});
         }
 
-        // Дублюємо відправку назад відправнику, щоб повідомлення з'явилось у його власній стрічці
+        // Дублюємо відправнику для відображення у власній стрічці
         socket.emit('incoming-message', {
             sender: data.sender,
             recipient: data.recipient,
@@ -81,7 +80,7 @@ io.on('connection', (socket) => {
             io.to(recipientSocketId).emit('incoming-message', {
                 sender: data.sender,
                 text: translatedText,
-                originalText: "Voice message"
+                originalText: data.originalText || "Voice message"
             });
         } else if (userPushSubscriptions[cleanRecipient]) {
             const payload = JSON.stringify({
@@ -91,11 +90,10 @@ io.on('connection', (socket) => {
             webpush.sendNotification(userPushSubscriptions[cleanRecipient], payload).catch(() => {});
         }
 
-        // Дублюємо відправнику
         socket.emit('incoming-message', {
             sender: data.sender,
             text: translatedText,
-            originalText: "Voice message",
+            originalText: data.originalText || "Voice message",
             isSent: true
         });
     });
