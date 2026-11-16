@@ -23,13 +23,12 @@ if (publicVapidKey !== 'YOUR_PUBLIC_VAPID_KEY') {
     webpush.setVapidDetails('mailto:admin@habla.com', publicVapidKey, privateVapidKey);
 }
 
-// Groq API конфігурація та список моделей для автоматичного перебору
+// Groq API конфігурація та оновлений список актуальних моделей для перебору
 const GROQ_API_KEY = process.env.GROQ_API_KEY || '';
 const GROQ_MODELS = [
-    "llama-3.1-70b-versatile",
-    "llama-3.1-8b-instant",
-    "llama3-70b-8192",
-    "llama3-8b-8192"
+    "llama-3.3-70b-versatile",
+    "llama-3.3-70b-specdec",
+    "meta-llama/llama-3.3-70b-instruct"
 ];
 
 async function translateText(text, targetLang) {
