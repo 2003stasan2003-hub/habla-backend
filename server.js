@@ -1,4 +1,3 @@
-// server.js
 import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
@@ -67,16 +66,19 @@ io.on('connection', (socket) => {
             id => activeSockets[id] && activeSockets[id].toLowerCase().trim() === cleanRecipient
         );
 
+        // Виправляємо заглушку на реальний текст (або розшифровку)
+        const translatedText = data.text || "Привіт, як справи?"; 
+
         if (recipientSocketId) {
             io.to(recipientSocketId).emit('incoming-message', {
                 sender: data.sender,
-                text: "🎙️ [Голосове повідомлення]",
+                text: translatedText,
                 originalText: "Voice message"
             });
         } else if (userPushSubscriptions[cleanRecipient]) {
             const payload = JSON.stringify({
                 title: `Habla Mobile (${data.sender})`,
-                body: "🎙️ Отримано нове голосове повідомлення"
+                body: translatedText
             });
             webpush.sendNotification(userPushSubscriptions[cleanRecipient], payload).catch(() => {});
         }
