@@ -1,10 +1,9 @@
+// server.js
 import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
+import webpush from 'web-push';
 import path from 'path';
-import fs from 'fs';
-import axios from 'axios';
-import FormData from 'form-data';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -12,230 +11,87 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, { maxHttpBufferSize: 10 * 1024 * 1024 });
+const io = new Server(server);
 
-const PORT = process.env.PORT || 10000;
-const GROQ_API_KEY = process.env.GROQ_API_KEY || "";
-
+app.use(express.json());
 app.use(express.static(path.join(__dirname)));
 
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
-});
+const publicVapidKey = process.env.VAPID_PUBLIC_KEY || 'YOUR_PUBLIC_VAPID_KEY';
+const privateVapidKey = process.env.VAPID_PRIVATE_KEY || 'YOUR_PRIVATE_VAPID_KEY';
+
+if (publicVapidKey !== 'YOUR_PUBLIC_VAPID_KEY') {
+    webpush.setVapidDetails('mailto:admin@habla.com', publicVapidKey, privateVapidKey);
+}
 
 let activeSockets = {};
-let userLanguages = {};
-
-// Шлях до файлу для постійного збереження аватарок та кольорів на диску
-const CUSTOMIZATIONS_FILE = path.join(__dirname, 'customizations.json');
-let userCustomizations = {};
-
-// Завантаження збережених кастомізацій при старті сервера
-if (fs.existsSync(CUSTOMIZATIONS_FILE)) {
-    try {
-        const data = fs.readFileSync(CUSTOMIZATIONS_FILE, 'utf8');
-        userCustomizations = JSON.parse(data);
-        console.log("📂 Кастомізації успішно завантажено з диска.");
-    } catch (e) {
-        console.error("❌ Помилка читання customizations.json:", e);
-        userCustomizations = {};
-    }
-}
-
-// Функція збереження кастомізацій на диск
-function saveCustomizationsToDisk() {
-    try {
-        fs.writeFileSync(CUSTOMIZATIONS_FILE, JSON.stringify(userCustomizations, null, 2), 'utf8');
-    } catch (e) {
-        console.error("❌ Помилка збереження customizations.json:", e);
-    }
-}
-
-// Аудіо транскрипція через Whisper з фіксованим промптом української мови ('uk') для уникнення плутанини з русизмом
-async function transcribeAudio(audioBuffer) {
-    if (!GROQ_API_KEY) throw new Error("GROQ_API_KEY не заданий!");
-    const tempFilePath = path.join(__dirname, `temp_${Date.now()}.webm`);
-    fs.writeFileSync(tempFilePath, audioBuffer);
-
-    try {
-        const formData = new FormData();
-        formData.append('file', fs.createReadStream(tempFilePath));
-        formData.append('model', 'whisper-large-v3');
-        formData.append('language', 'uk'); // Примусово спрямовуємо Whisper розпізнавати українську мову
-        formData.append('temperature', '0');
-
-        const response = await axios.post('https://api.groq.com/openai/v1/audio/transcriptions', formData, {
-            headers: {
-                ...formData.getHeaders(),
-                'Authorization': `Bearer ${GROQ_API_KEY}`
-            }
-        });
-        fs.unlinkSync(tempFilePath);
-        return response.data.text || "";
-    } catch (error) {
-        if (fs.existsSync(tempFilePath)) fs.unlinkSync(tempFilePath);
-        console.error("❌ Помилка транскрипції Groq:", error.response?.data || error.message);
-        return "";
-    }
-}
-
-// Професійний переклад через перевірену модель qwen/qwen3.8-27b
-async function translateText(text, targetLang) {
-    if (!GROQ_API_KEY || !text) return text;
-    
-    let langName = targetLang || 'Ukrainian';
-    if (langName === 'Ukrainian') {
-        langName = 'pure, modern, natural literary Ukrainian language (сучасна літературна українська мова без русизмів і кальки)';
-    } else if (langName === 'English') {
-        langName = 'natural English';
-    } else if (langName === 'Spanish') {
-        langName = 'natural Spanish (Español)';
-    } else if (langName === 'German') {
-        langName = 'natural German (Deutsch)';
-    } else if (langName === 'French') {
-        langName = 'natural French (Français)';
-    }
-
-    try {
-        const response = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
-            model: "qwen/qwen3.8-27b",
-            messages: [
-                { 
-                    role: "system", 
-                    content: `You are a professional native translator. Translate the given text accurately and fluently into ${langName}. Never translate into Russian. Return ONLY the translated text without quotes or extra explanations.` 
-                },
-                { role: "user", content: text }
-            ],
-            temperature: 0.2,
-            max_tokens: 300
-        }, {
-            headers: {
-                'Authorization': `Bearer ${GROQ_API_KEY}`,
-                'Content-Type': 'application/json'
-            }
-        });
-        return response.data.choices[0]?.message?.content?.trim() || text;
-    } catch (error) {
-        console.error("❌ Помилка перекладу Groq:", error.response?.data || error.message);
-        return text;
-    }
-}
+let userPushSubscriptions = {};
 
 io.on('connection', (socket) => {
-    console.log(`👤 Користувач підключився: ${socket.id}`);
+    let currentUsername = null;
 
-    socket.on('join', (data) => {
-        const username = typeof data === 'string' ? data : data?.username;
-        const lang = typeof data === 'object' ? data?.lang : 'Ukrainian';
-        if (username) {
-            const cleanName = username.trim();
-            activeSockets[socket.id] = cleanName;
-            if (lang && lang !== 'Russian') {
-                userLanguages[cleanName] = lang;
-            }
-            socket.emit('sync-customizations', userCustomizations);
-            broadcastUsers();
-        }
-    });
-
-    socket.on('update-language', (lang) => {
-        const username = activeSockets[socket.id];
-        if (username && lang && lang !== 'Russian') {
-            userLanguages[username] = lang;
-        }
-    });
-
-    socket.on('add-contact', () => {
+    socket.on('join', ({ username, lang }) => {
+        if (!username) return;
+        currentUsername = username.trim();
+        activeSockets[socket.id] = currentUsername;
         broadcastUsers();
     });
 
-    socket.on('update-customization', (data) => {
-        const { targetName, color, avatar } = data;
-        if (targetName) {
-            userCustomizations[targetName] = { color, avatar };
-            saveCustomizationsToDisk();
-            io.emit('sync-customizations', userCustomizations);
+    socket.on('subscribe-push', ({ username, subscription }) => {
+        if (username) {
+            userPushSubscriptions[username.toLowerCase().trim()] = subscription;
         }
     });
 
-    socket.on('text-message', async (data) => {
-        try {
-            const sender = data.sender;
-            const recipient = data.recipient;
-            const rawText = (data.text || '').trim();
+    socket.on('text-message', (data) => {
+        const cleanRecipient = (data.recipient || '').toLowerCase().trim();
+        const recipientSocketId = Object.keys(activeSockets).find(
+            id => activeSockets[id] && activeSockets[id].toLowerCase().trim() === cleanRecipient
+        );
 
-            if (!rawText || !recipient) return;
-
-            const cleanRecipient = recipient.toLowerCase().trim();
-            const recipientEntryKey = Object.keys(userLanguages).find(
-                k => k.toLowerCase().trim() === cleanRecipient
-            );
-            const recipientLang = recipientEntryKey ? userLanguages[recipientEntryKey] : 'Ukrainian';
-
-            const translatedText = await translateText(rawText, recipientLang);
-
-            const recipientSocketId = Object.keys(activeSockets).find(
-                id => activeSockets[id] && activeSockets[id].toLowerCase().trim() === cleanRecipient
-            );
-
-            socket.emit('incoming-message', { sender, text: rawText, isSelf: true, originalText: rawText });
-
-            if (recipientSocketId) {
-                io.to(recipientSocketId).emit('incoming-message', { sender, text: translatedText, isSelf: false, originalText: rawText });
+        if (recipientSocketId) {
+            io.to(recipientSocketId).emit('incoming-message', data);
+        } else {
+            if (userPushSubscriptions[cleanRecipient]) {
+                const payload = JSON.stringify({
+                    title: `Habla Mobile (${data.sender})`,
+                    body: data.text || 'Нове текстове повідомлення'
+                });
+                webpush.sendNotification(userPushSubscriptions[cleanRecipient], payload).catch(() => {});
             }
-        } catch (e) {
-            console.error("❌ Помилка обробки текстового повідомлення:", e);
         }
     });
 
-    socket.on('voice-message', async (data) => {
-        try {
-            const { sender, recipient, audio } = data;
-            if (!audio || !recipient) return;
+    socket.on('voice-message', (data) => {
+        const cleanRecipient = (data.recipient || '').toLowerCase().trim();
+        const recipientSocketId = Object.keys(activeSockets).find(
+            id => activeSockets[id] && activeSockets[id].toLowerCase().trim() === cleanRecipient
+        );
 
-            const base64Data = audio.replace(/^data:audio\/webm;base64,/, "");
-            const audioBuffer = Buffer.from(base64Data, 'base64');
-
-            const transcribedText = await transcribeAudio(audioBuffer);
-            if (!transcribedText.trim()) return;
-
-            const cleanRecipient = recipient.toLowerCase().trim();
-            const recipientEntryKey = Object.keys(userLanguages).find(
-                k => k.toLowerCase().trim() === cleanRecipient
-            );
-            const recipientLang = recipientEntryKey ? userLanguages[recipientEntryKey] : 'Ukrainian';
-
-            const translatedText = await translateText(transcribedText, recipientLang);
-
-            const recipientSocketId = Object.keys(activeSockets).find(
-                id => activeSockets[id] && activeSockets[id].toLowerCase().trim() === cleanRecipient
-            );
-
-            socket.emit('incoming-message', { sender, text: transcribedText, isSelf: true, originalText: transcribedText });
-
-            if (recipientSocketId) {
-                io.to(recipientSocketId).emit('incoming-message', { sender, text: translatedText, isSelf: false, originalText: transcribedText });
-            }
-        } catch (e) {
-            console.error("❌ Помилка обробки голосового повідомлення:", e);
+        if (recipientSocketId) {
+            io.to(recipientSocketId).emit('incoming-message', {
+                sender: data.sender,
+                text: "🎙️ [Голосове повідомлення]",
+                originalText: "Voice message"
+            });
+        } else if (userPushSubscriptions[cleanRecipient]) {
+            const payload = JSON.stringify({
+                title: `Habla Mobile (${data.sender})`,
+                body: "🎙️ Отримано нове голосове повідомлення"
+            });
+            webpush.sendNotification(userPushSubscriptions[cleanRecipient], payload).catch(() => {});
         }
     });
 
     socket.on('disconnect', () => {
-        console.log(`❌ Користувач відключився: ${socket.id}`);
         delete activeSockets[socket.id];
         broadcastUsers();
     });
 });
 
 function broadcastUsers() {
-    const uniqueUsers = Array.from(new Set(Object.values(activeSockets))).map(name => ({
-        name,
-        isOnline: true
-    }));
-    io.emit('update-users', uniqueUsers);
+    const usersList = Object.values(activeSockets).map(name => ({ name, isOnline: true }));
+    io.emit('update-users', usersList);
 }
 
-server.listen(PORT, () => {
-    console.log(`🚀 Сервер запущено на порту ${PORT}`);
-});
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {});
