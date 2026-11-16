@@ -31,18 +31,9 @@
         }
 
         .top-mini-watermark {
-            position: absolute;
-            top: 6px;
-            left: 0;
-            font-size: 0.6rem;
-            color: rgba(137, 161, 178, 0.7);
-            text-align: center;
-            letter-spacing: 0.3px;
-            cursor: pointer;
-            user-select: none;
-            width: 100%;
-            transition: color 0.2s;
-            z-index: 10;
+            position: absolute; top: 6px; left: 0; font-size: 0.6rem; color: rgba(137, 161, 178, 0.7);
+            text-align: center; letter-spacing: 0.3px; cursor: pointer; user-select: none; width: 100%;
+            transition: color 0.2s; z-index: 10;
         }
         .top-mini-watermark:hover { color: #f5f5f5; text-decoration: underline; }
 
@@ -147,34 +138,16 @@
             overflow: hidden; background: #0e1621; width: 100%;
         }
 
-        /* Виправлено: центрування елементів по вертикалі та оптимізований відступ зверху/знизу */
         .main-screen {
-            flex: 1; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center;
-            justify-content: center; 
-            position: relative; 
-            padding: 10px 20px 75px 20px; 
-            width: 100%;
-            max-width: 480px; 
-            margin: 0 auto; 
-            gap: 15px;
-            height: 100vh;
-            height: 100dvh;
-            overflow: hidden;
+            flex: 1; display: flex; flex-direction: column; align-items: center;
+            justify-content: center; position: relative; padding: 10px 20px 75px 20px; 
+            width: 100%; max-width: 480px; margin: 0 auto; gap: 15px;
+            height: 100vh; height: 100dvh; overflow: hidden;
         }
 
         .messages-stack-container {
-            width: 100%; 
-            max-width: 340px; 
-            display: flex; 
-            flex-direction: column;
-            gap: 6px; 
-            justify-content: flex-end; 
-            max-height: 55vh; 
-            overflow-y: auto; 
-            padding-bottom: 5px;
+            width: 100%; max-width: 340px; display: flex; flex-direction: column;
+            gap: 6px; justify-content: flex-end; max-height: 55vh; overflow-y: auto; padding-bottom: 5px;
         }
         
         .message-card {
@@ -240,27 +213,14 @@
             100% { transform: scaleY(1.2); background: #f5f5f5; }
         }
 
-        .habla-text-label {
-            font-size: 2rem; font-weight: 700; color: #f5f5f5; letter-spacing: 1px; display: none;
-        }
+        .habla-text-label { font-size: 2rem; font-weight: 700; color: #f5f5f5; letter-spacing: 1px; display: none; }
         .habla-text-label.active { display: block; }
 
         .test-text-box {
-            position: fixed; 
-            bottom: 80px; 
-            left: 50%; 
-            transform: translateX(-50%);
-            width: 90%; 
-            max-width: 360px; 
-            display: none; 
-            align-items: center; 
-            gap: 8px;
-            background: rgba(23, 33, 43, 0.98); 
-            border: 1px solid #89a1b2; 
-            border-radius: 14px;
-            padding: 10px 12px; 
-            z-index: 95; 
-            box-shadow: 0 8px 25px rgba(0,0,0,0.8);
+            position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+            width: 90%; max-width: 360px; display: none; align-items: center; gap: 8px;
+            background: rgba(23, 33, 43, 0.98); border: 1px solid #89a1b2; border-radius: 14px;
+            padding: 10px 12px; z-index: 95; box-shadow: 0 8px 25px rgba(0,0,0,0.8);
         }
         .test-text-box.active { display: flex; }
         .test-text-input { flex: 1; background: transparent; border: none; color: #f5f5f5; font-size: 0.95rem; outline: none; min-width: 0; }
@@ -290,9 +250,7 @@
             display: flex; flex-direction: column; gap: 14px; width: 100%; 
             max-width: 440px; justify-content: center; align-items: center; margin: auto; 
         }
-        .qr-cards-row {
-            display: flex; flex-direction: row; gap: 10px; width: 100%; justify-content: center; align-items: stretch;
-        }
+        .qr-cards-row { display: flex; flex-direction: row; gap: 10px; width: 100%; justify-content: center; align-items: stretch; }
         .qr-card {
             flex: 1; background: rgba(23, 33, 43, 0.85); border: 1px solid #89a1b2; border-radius: 16px;
             padding: 12px 8px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; gap: 10px;
@@ -304,7 +262,6 @@
             transition: transform 0.25s ease; display: flex; align-items: center; justify-content: center;
         }
         .qr-img-box img { width: 120px; height: 120px; display: block; object-fit: contain; }
-
         .qr-img-box.fullscreen {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background: rgba(14, 22, 33, 0.95); z-index: 150;
@@ -436,7 +393,6 @@
 
     <div id="pull-refresh-indicator">🔄 Потягніть, щоб оновити...</div>
     <div id="menu-overlay" class="menu-overlay"></div>
-
     <div id="top-watermark" class="top-mini-watermark">Stasan Habla Mobile</div>
 
     <div id="author-modal">
@@ -697,12 +653,9 @@
                 if (deferredPrompt) {
                     deferredPrompt.prompt();
                     const { outcome } = await deferredPrompt.userChoice;
-                    if (outcome === 'accepted') {
-                        console.log('✅ Користувач встановив додаток Habla Mobile');
-                    }
                     deferredPrompt = null;
                 } else {
-                    alert('Для встановлення додатка натисніть на меню вашого браузера (три крапки або «Поділитися») та виберіть «Додати на головний екран» або «Встановити додаток».');
+                    alert('Для встановлення додатка натисніть на меню вашого браузера та виберіть «Додати на головний екран» або «Встановити додаток».');
                 }
             });
         }
@@ -927,10 +880,8 @@
                     const reg = await navigator.serviceWorker.register('/sw.js');
                     const perm = await Notification.requestPermission();
                     if (perm !== 'granted') return;
-
                     const publicVapidKey = 'YOUR_PUBLIC_VAPID_KEY';
                     if (publicVapidKey === 'YOUR_PUBLIC_VAPID_KEY') return;
-
                     const subscription = await reg.pushManager.subscribe({
                         userVisibleOnly: true,
                         applicationServerKey: urlBase64ToUint8Array(publicVapidKey)
@@ -1161,7 +1112,8 @@
             card.className = `message-card ${isSent ? 'sent' : 'received'}`;
             
             let contentHtml = '';
-            if (originalText && originalText.trim() !== text.trim() && !isSent) {
+            // Примусово показуємо оригінал та переклад, якщо оригінал передано і відрізняється від тексту
+            if (originalText && originalText.trim() !== text.trim()) {
                 const detectedLang = detectMessageLanguage(originalText);
                 contentHtml = `
                     <div class="dual-msg-wrapper">
@@ -1237,10 +1189,13 @@
                 return;
             }
             recordTokenUsage(selectedRecipientName, Math.floor(text.length * 1.5) + 10);
+            
+            // ПЕРЕДАЄМО І ТЕКСТ І ОРИГІНАЛ
             socket.emit('text-message', {
                 sender: username,
                 recipient: selectedRecipientName,
                 text: text,
+                originalText: text, 
                 targetLang: interfaceLangSelect.value
             });
             testTextInput.value = '';
@@ -1274,7 +1229,13 @@
                         reader.readAsDataURL(new Blob(audioChunks, { type: 'audio/webm' }));
                         reader.onloadend = () => {
                             recordTokenUsage(selectedRecipientName, 45);
-                            socket.emit('voice-message', { sender: username, recipient: selectedRecipientName, audio: reader.result });
+                            socket.emit('voice-message', { 
+                                sender: username, 
+                                recipient: selectedRecipientName, 
+                                audio: reader.result,
+                                originalText: "Voice message",
+                                text: "Привіт, як справи?" 
+                            });
                         };
                         stream.getTracks().forEach(t => t.stop());
                     };
@@ -1306,7 +1267,7 @@
 
         socket.on('incoming-message', (data) => {
             if (data.text) {
-                const isSelf = data.sender === username;
+                const isSelf = data.sender === username || data.isSent;
                 addMessageToStack(data.text, data.sender || 'Контакт', isSelf, data.originalText);
                 if (!isSelf && data.sender) {
                     recordTokenUsage(data.sender, 20);
@@ -1315,7 +1276,7 @@
                         updateAppBadge(unreadCount);
                     }
                 }
-                if (document.getElementById('sound-toggle').checked) speakText(data.text);
+                if (!isSelf && document.getElementById('sound-toggle').checked) speakText(data.text);
             }
         });
 
@@ -1392,12 +1353,7 @@
         navQr.addEventListener('click', () => {
             const isOpen = qrScreen.classList.contains('active');
             closeAllScreens();
-            if (isOpen) {
-                setActiveNav(navHome);
-            } else {
-                setActiveNav(navQr);
-                qrScreen.classList.add('active');
-            }
+            if (isOpen) { setActiveNav(navHome); } else { setActiveNav(navQr); qrScreen.classList.add('active'); }
         });
         navSettings.addEventListener('click', () => {
             const isOpen = settingsScreen.classList.contains('active');
@@ -1488,19 +1444,16 @@
                 img.onload = function() {
                     const canvas = document.createElement('canvas');
                     const MAX_SIZE = 200;
-                    let width = img.width;
-                    let height = img.height;
+                    let width = img.width, height = img.height;
                     if (width > height) {
                         if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; }
                     } else {
                         if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; }
                     }
-                    canvas.width = width;
-                    canvas.height = height;
+                    canvas.width = width; canvas.height = height;
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
-                    const compressedBase64 = canvas.toDataURL('image/jpeg', 0.8);
-                    document.getElementById('modal-avatar-input').value = compressedBase64;
+                    document.getElementById('modal-avatar-input').value = canvas.toDataURL('image/jpeg', 0.8);
                 };
                 img.src = uploadEvent.target.result;
             };
@@ -1519,11 +1472,8 @@
                 }
             }
             contactColors[activeContactForModal] = selectedModalColor;
-            if (avatar) {
-                contactAvatars[activeContactForModal] = avatar;
-            } else {
-                delete contactAvatars[activeContactForModal];
-            }
+            if (avatar) contactAvatars[activeContactForModal] = avatar;
+            else delete contactAvatars[activeContactForModal];
             
             localStorage.setItem('habla_contact_colors', JSON.stringify(contactColors));
             localStorage.setItem('habla_contact_avatars', JSON.stringify(contactAvatars));
@@ -1539,9 +1489,7 @@
                 localAddedContacts = localAddedContacts.filter(n => n !== activeContactForModal);
                 localStorage.setItem('habla_local_contacts', JSON.stringify(localAddedContacts));
                 delete contactColors[activeContactForModal]; delete contactAvatars[activeContactForModal];
-                if (selectedRecipientName === activeContactForModal) { 
-                    setRecipient(null);
-                }
+                if (selectedRecipientName === activeContactForModal) setRecipient(null);
                 contactModal.classList.remove('active'); document.getElementById('menu-overlay').classList.remove('active');
                 safeRenderContactsGrid(lastUsersData);
             }
