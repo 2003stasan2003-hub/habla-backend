@@ -27,8 +27,13 @@ if (publicVapidKey !== 'YOUR_PUBLIC_VAPID_KEY') {
 const GROQ_API_KEY = process.env.GROQ_API_KEY || '';
 
 async function translateText(text, targetLang) {
-    if (!GROQ_API_KEY || !text) return text;
+    if (!GROQ_API_KEY) {
+        console.log("❌ GROQ_API_KEY відсутній на сервері!");
+        return text;
+    }
+    if (!text) return text;
     try {
+        console.log(`🌐 Запит перекладу на мову: ${targetLang} для тексту: "${text}"`);
         const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
             method: 'POST',
             headers: {
@@ -48,9 +53,10 @@ async function translateText(text, targetLang) {
             })
         });
         const data = await response.json();
+        console.log("📦 Відповідь від Groq API:", JSON.stringify(data));
         return data.choices?.[0]?.message?.content?.trim() || text;
     } catch (e) {
-        console.error("Translation error:", e);
+        console.error("❌ Помилка перекладу:", e);
         return text;
     }
 }
@@ -125,7 +131,6 @@ io.on('connection', (socket) => {
             id => activeSockets[id] && activeSockets[id].toLowerCase().trim() === cleanRecipient
         );
 
-        // Виправляємо пошук мови отримувача без урахування регістру літер
         const foundKey = Object.keys(userLanguages).find(k => k.toLowerCase() === cleanRecipient);
         const recipientLang = foundKey ? userLanguages[foundKey] : (data.targetLang || 'Ukrainian');
         
