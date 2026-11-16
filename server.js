@@ -38,10 +38,7 @@ const FALLBACK_MODELS = [
 ];
 
 async function translateText(text, targetLang) {
-    if (!GROQ_API_KEY) {
-        console.log("❌ GROQ_API_KEY відсутній на сервері!");
-        return text;
-    }
+    if (!GROQ_API_KEY) return text;
     if (!text) return text;
 
     let modelsToTry = [...FALLBACK_MODELS];
@@ -55,14 +52,11 @@ async function translateText(text, targetLang) {
             const activeGroqModels = modelsData.data
                 .map(m => m.id)
                 .filter(id => !id.includes('whisper') && !id.includes('embed') && !id.includes('guard'));
-            
             if (activeGroqModels.length > 0) {
                 modelsToTry = [...new Set([...activeGroqModels, ...FALLBACK_MODELS])];
             }
         }
-    } catch (e) {
-        console.log("⚠️ Не вдалося завантажити список моделей динамічно, використовуємо резервний список.");
-    }
+    } catch (e) {}
 
     for (const model of modelsToTry) {
         try {
@@ -77,16 +71,15 @@ async function translateText(text, targetLang) {
                     messages: [
                         {
                             role: "system",
-                            content: `You are a professional translator. Translate the following text accurately into ${targetLang || 'Ukrainian'}. Return ONLY the translated text without quotes or explanations.`
+                            content: `You are a strict translation machine. Your ONLY task is to translate the user's text directly into ${targetLang || 'Ukrainian'}. Do not converse, do not answer questions, do not add greetings, do not explain anything, and do not act as an AI assistant. Return ONLY the direct translation of the text.`
                         },
                         { role: "user", content: text }
                     ],
-                    temperature: 0.3
+                    temperature: 0.1
                 })
             });
             
             const data = await response.json();
-            
             if (data.error) continue;
 
             const translated = data.choices?.[0]?.message?.content?.trim();
@@ -107,7 +100,7 @@ async function transcribeAudio(base64Audio) {
         const formData = new FormData();
         formData.append('file', blob, 'audio.webm');
         formData.append('model', 'whisper-large-v3');
-        formData.append('language', 'uk'); // Примусовий параметр для ідеального розпізнавання української
+        formData.append('language', 'uk');
 
         const response = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
             method: 'POST',
@@ -134,7 +127,6 @@ io.on('connection', (socket) => {
         currentUsername = username.trim();
         activeSockets[socket.id] = currentUsername;
         if (lang) userLanguages[currentUsername.toLowerCase()] = lang;
-        
         socket.emit('sync-customizations', userCustomizations);
         broadcastUsers();
     });
@@ -182,7 +174,6 @@ io.on('connection', (socket) => {
         if (recipientSocketId) {
             io.to(recipientSocketId).emit('incoming-message', messagePayload);
         } else if (userPushSubscriptions[cleanRecipient]) {
-            // Передаємо параметр sound для відтворення нашого аудіофайлу у фоновому режимі
             const pushPayload = JSON.stringify({
                 title: `Habla Mobile (${data.sender})`,
                 body: translatedText,
@@ -204,7 +195,6 @@ io.on('connection', (socket) => {
         );
 
         const transcribedText = await transcribeAudio(data.audio);
-        
         const foundKey = Object.keys(userLanguages).find(k => k.toLowerCase() === cleanRecipient);
         const recipientLang = foundKey ? userLanguages[foundKey] : (data.targetLang || 'Ukrainian');
         
@@ -220,7 +210,6 @@ io.on('connection', (socket) => {
         if (recipientSocketId) {
             io.to(recipientSocketId).emit('incoming-message', messagePayload);
         } else if (userPushSubscriptions[cleanRecipient]) {
-            // Передаємо параметр sound для голосових повідомлень на заблокований екран
             const pushPayload = JSON.stringify({
                 title: `Habla Mobile (${data.sender})`,
                 body: translatedText,
@@ -242,7 +231,7 @@ io.on('connection', (socket) => {
 });
 
 function broadcastUsers() {
-    const usersList = Object.values(activeSockets).map(name => ({ name, isOnline: true }));
+    const usersList =Object.values(activeSockets).map(name => ({ name, isOnline: true }));
     io.emit('update-users', usersList);
 }
 
