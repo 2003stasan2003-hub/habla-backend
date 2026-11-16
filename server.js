@@ -10,7 +10,7 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, { maxHttpBufferSize: 1e8 }); // Збільшено ліміт для передачі аудіо
+const io = new Server(server, { maxHttpBufferSize: 1e8 });
 
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
@@ -80,7 +80,7 @@ async function transcribeAudio(base64Audio) {
 }
 
 let activeSockets = {};
-let userLanguages = {}; // Зберігаємо мову інтерфейсу користувачів
+let userLanguages = {}; 
 let userPushSubscriptions = {};
 let userCustomizations = {};
 
@@ -125,8 +125,10 @@ io.on('connection', (socket) => {
             id => activeSockets[id] && activeSockets[id].toLowerCase().trim() === cleanRecipient
         );
 
-        // Визначаємо мову отримувача
-        const recipientLang = userLanguages[cleanRecipient] || data.targetLang || 'Ukrainian';
+        // Виправляємо пошук мови отримувача без урахування регістру літер
+        const foundKey = Object.keys(userLanguages).find(k => k.toLowerCase() === cleanRecipient);
+        const recipientLang = foundKey ? userLanguages[foundKey] : (data.targetLang || 'Ukrainian');
+        
         const translatedText = await translateText(data.text, recipientLang);
 
         const messagePayload = {
@@ -146,7 +148,6 @@ io.on('connection', (socket) => {
             webpush.sendNotification(userPushSubscriptions[cleanRecipient], pushPayload).catch(() => {});
         }
 
-        // Відправнику повертаємо також з перекладом (або оригіналом)
         socket.emit('incoming-message', {
             ...messagePayload,
             isSent: true
@@ -159,11 +160,11 @@ io.on('connection', (socket) => {
             id => activeSockets[id] && activeSockets[id].toLowerCase().trim() === cleanRecipient
         );
 
-        // 1. Транскрибуємо аудіо в текст через Whisper
         const transcribedText = await transcribeAudio(data.audio);
         
-        // 2. Перекладаємо на мову отримувача
-        const recipientLang = userLanguages[cleanRecipient] || 'Ukrainian';
+        const foundKey = Object.keys(userLanguages).find(k => k.toLowerCase() === cleanRecipient);
+        const recipientLang = foundKey ? userLanguages[foundKey] : (data.targetLang || 'Ukrainian');
+        
         const translatedText = await translateText(transcribedText, recipientLang);
 
         const messagePayload = {
