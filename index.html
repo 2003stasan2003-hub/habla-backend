@@ -1112,7 +1112,6 @@
             card.className = `message-card ${isSent ? 'sent' : 'received'}`;
             
             let contentHtml = '';
-            // Примусово показуємо оригінал та переклад, якщо оригінал передано і відрізняється від тексту
             if (originalText && originalText.trim() !== text.trim()) {
                 const detectedLang = detectMessageLanguage(originalText);
                 contentHtml = `
@@ -1190,12 +1189,10 @@
             }
             recordTokenUsage(selectedRecipientName, Math.floor(text.length * 1.5) + 10);
             
-            // ПЕРЕДАЄМО І ТЕКСТ І ОРИГІНАЛ
             socket.emit('text-message', {
                 sender: username,
                 recipient: selectedRecipientName,
                 text: text,
-                originalText: text, 
                 targetLang: interfaceLangSelect.value
             });
             testTextInput.value = '';
@@ -1233,8 +1230,7 @@
                                 sender: username, 
                                 recipient: selectedRecipientName, 
                                 audio: reader.result,
-                                originalText: "Voice message",
-                                text: "Привіт, як справи?" 
+                                targetLang: interfaceLangSelect.value 
                             });
                         };
                         stream.getTracks().forEach(t => t.stop());
