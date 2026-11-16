@@ -25,7 +25,6 @@ if (publicVapidKey !== 'YOUR_PUBLIC_VAPID_KEY') {
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY || '';
 
-// Розширений масив резервних моделей на випадок, якщо динамічний запит списку заблокований
 const FALLBACK_MODELS = [
     "llama-3.3-70b-versatile",
     "llama-3.3-70b-specdec",
@@ -48,7 +47,6 @@ async function translateText(text, targetLang) {
     let modelsToTry = [...FALLBACK_MODELS];
 
     try {
-        // Динамічний запит до офіційного ендпоїнта Groq для отримання всіх доступних моделей
         const modelsRes = await fetch('https://api.groq.com/openai/v1/models', {
             headers: { 'Authorization': `Bearer ${GROQ_API_KEY}` }
         });
@@ -59,19 +57,15 @@ async function translateText(text, targetLang) {
                 .filter(id => !id.includes('whisper') && !id.includes('embed') && !id.includes('guard'));
             
             if (activeGroqModels.length > 0) {
-                // Ставимо динамічно знайдені моделі на початок списку
                 modelsToTry = [...new Set([...activeGroqModels, ...FALLBACK_MODELS])];
-                console.log(`📋 Динамічно завантажено моделей з API Groq: ${activeGroqModels.length}`);
             }
         }
     } catch (e) {
         console.log("⚠️ Не вдалося завантажити список моделей динамічно, використовуємо резервний список.");
     }
 
-    // Послідовний перебір кожної моделі з циклу
     for (const model of modelsToTry) {
         try {
-            console.log(`🌐 Пробуємо модель [${model}] для перекладу на мову: ${targetLang}`);
             const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
                 method: 'POST',
                 headers: {
@@ -93,22 +87,13 @@ async function translateText(text, targetLang) {
             
             const data = await response.json();
             
-            if (data.error) {
-                console.log(`⚠️ Модель [${model}] повернула помилку:`, data.error.message);
-                continue;
-            }
+            if (data.error) continue;
 
             const translated = data.choices?.[0]?.message?.content?.trim();
-            if (translated) {
-                console.log(`✅ Успішно перекладено за допомогою моделі: [${model}]`);
-                return translated;
-            }
-        } catch (e) {
-            console.error(`❌ Помилка запиту з моделлю [${model}]:`, e.message);
-        }
+            if (translated) return translated;
+        } catch (e) {}
     }
 
-    console.log("❌ Жодна з моделей не змогла виконати переклад.");
     return text;
 }
 
@@ -122,6 +107,7 @@ async function transcribeAudio(base64Audio) {
         const formData = new FormData();
         formData.append('file', blob, 'audio.webm');
         formData.append('model', 'whisper-large-v3');
+        formData.append('language', 'uk'); // Примусовий параметр для ідеального розпізнавання української
 
         const response = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
             method: 'POST',
@@ -131,7 +117,6 @@ async function transcribeAudio(base64Audio) {
         const data = await response.json();
         return data.text || "Voice message";
     } catch (e) {
-        console.error("Transcription error:", e);
         return "Voice message";
     }
 }
@@ -197,9 +182,11 @@ io.on('connection', (socket) => {
         if (recipientSocketId) {
             io.to(recipientSocketId).emit('incoming-message', messagePayload);
         } else if (userPushSubscriptions[cleanRecipient]) {
+            // Передаємо параметр sound для відтворення нашого аудіофайлу у фоновому режимі
             const pushPayload = JSON.stringify({
                 title: `Habla Mobile (${data.sender})`,
-                body: translatedText
+                body: translatedText,
+                sound: '/mixkit-retro-game-notification-212.wav'
             });
             webpush.sendNotification(userPushSubscriptions[cleanRecipient], pushPayload).catch(() => {});
         }
@@ -233,9 +220,11 @@ io.on('connection', (socket) => {
         if (recipientSocketId) {
             io.to(recipientSocketId).emit('incoming-message', messagePayload);
         } else if (userPushSubscriptions[cleanRecipient]) {
+            // Передаємо параметр sound для голосових повідомлень на заблокований екран
             const pushPayload = JSON.stringify({
                 title: `Habla Mobile (${data.sender})`,
-                body: translatedText
+                body: translatedText,
+                sound: '/mixkit-retro-game-notification-212.wav'
             });
             webpush.sendNotification(userPushSubscriptions[cleanRecipient], pushPayload).catch(() => {});
         }
