@@ -47,17 +47,26 @@ io.on('connection', (socket) => {
             id => activeSockets[id] && activeSockets[id].toLowerCase().trim() === cleanRecipient
         );
 
+        // Надсилаємо повідомлення отримувачу, якщо він в мережі
         if (recipientSocketId) {
             io.to(recipientSocketId).emit('incoming-message', data);
-        } else {
-            if (userPushSubscriptions[cleanRecipient]) {
-                const payload = JSON.stringify({
-                    title: `Habla Mobile (${data.sender})`,
-                    body: data.text || 'Нове текстове повідомлення'
-                });
-                webpush.sendNotification(userPushSubscriptions[cleanRecipient], payload).catch(() => {});
-            }
+        } else if (userPushSubscriptions[cleanRecipient]) {
+            // Якщо отримувач офлайн, відправляємо Web Push сповіщення
+            const payload = JSON.stringify({
+                title: `Habla Mobile (${data.sender})`,
+                body: data.text || 'Нове текстове повідомлення'
+            });
+            webpush.sendNotification(userPushSubscriptions[cleanRecipient], payload).catch(() => {});
         }
+
+        // Дублюємо відправку назад відправнику, щоб повідомлення з'явилось у його власній стрічці
+        socket.emit('incoming-message', {
+            sender: data.sender,
+            recipient: data.recipient,
+            text: data.text,
+            originalText: data.originalText,
+            isSent: true
+        });
     });
 
     socket.on('voice-message', (data) => {
@@ -66,7 +75,6 @@ io.on('connection', (socket) => {
             id => activeSockets[id] && activeSockets[id].toLowerCase().trim() === cleanRecipient
         );
 
-        // Виправляємо заглушку на реальний текст (або розшифровку)
         const translatedText = data.text || "Привіт, як справи?"; 
 
         if (recipientSocketId) {
@@ -82,6 +90,14 @@ io.on('connection', (socket) => {
             });
             webpush.sendNotification(userPushSubscriptions[cleanRecipient], payload).catch(() => {});
         }
+
+        // Дублюємо відправнику
+        socket.emit('incoming-message', {
+            sender: data.sender,
+            text: translatedText,
+            originalText: "Voice message",
+            isSent: true
+        });
     });
 
     socket.on('disconnect', () => {
