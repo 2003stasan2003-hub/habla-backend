@@ -24,11 +24,18 @@ if (publicVapidKey !== 'YOUR_PUBLIC_VAPID_KEY') {
 }
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY || '';
-const GROQ_MODELS = [
+
+// Розширений масив резервних моделей на випадок, якщо динамічний запит списку заблокований
+const FALLBACK_MODELS = [
+    "llama-3.3-70b-versatile",
+    "llama-3.3-70b-specdec",
+    "llama-3.1-70b-versatile",
+    "llama-3.1-8b-instant",
     "llama3-70b-8192",
     "llama3-8b-8192",
     "gemma2-9b-it",
-    "mixtral-8x7b-32768"
+    "mixtral-8x7b-32768",
+    "llama-guard-3-8b"
 ];
 
 async function translateText(text, targetLang) {
@@ -38,7 +45,31 @@ async function translateText(text, targetLang) {
     }
     if (!text) return text;
 
-    for (const model of GROQ_MODELS) {
+    let modelsToTry = [...FALLBACK_MODELS];
+
+    try {
+        // Динамічний запит до офіційного ендпоїнта Groq для отримання всіх доступних моделей
+        const modelsRes = await fetch('https://api.groq.com/openai/v1/models', {
+            headers: { 'Authorization': `Bearer ${GROQ_API_KEY}` }
+        });
+        const modelsData = await modelsRes.json();
+        if (modelsData && modelsData.data) {
+            const activeGroqModels = modelsData.data
+                .map(m => m.id)
+                .filter(id => !id.includes('whisper') && !id.includes('embed') && !id.includes('guard'));
+            
+            if (activeGroqModels.length > 0) {
+                // Ставимо динамічно знайдені моделі на початок списку
+                modelsToTry = [...new Set([...activeGroqModels, ...FALLBACK_MODELS])];
+                console.log(`📋 Динамічно завантажено моделей з API Groq: ${activeGroqModels.length}`);
+            }
+        }
+    } catch (e) {
+        console.log("⚠️ Не вдалося завантажити список моделей динамічно, використовуємо резервний список.");
+    }
+
+    // Послідовний перебір кожної моделі з циклу
+    for (const model of modelsToTry) {
         try {
             console.log(`🌐 Пробуємо модель [${model}] для перекладу на мову: ${targetLang}`);
             const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
