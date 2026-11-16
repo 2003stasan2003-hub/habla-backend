@@ -147,19 +147,21 @@
             overflow: hidden; background: #0e1621; width: 100%;
         }
 
+        /* Виправлено: центрування елементів по вертикалі та оптимізований відступ зверху/знизу */
         .main-screen {
             flex: 1; 
             display: flex; 
             flex-direction: column; 
             align-items: center;
-            justify-content: flex-end; 
+            justify-content: center; 
             position: relative; 
-            padding: 10px 20px 95px 20px; 
+            padding: 10px 20px 75px 20px; 
             width: 100%;
             max-width: 480px; 
             margin: 0 auto; 
             gap: 15px;
-            height: 100%;
+            height: 100vh;
+            height: 100dvh;
             overflow: hidden;
         }
 
@@ -205,7 +207,7 @@
 
         .neon-mic-btn {
             background: transparent; border: 1px solid #89a1b2; border-radius: 50%;
-            width: 230px; height: 230px; display: flex; flex-direction: column;
+            width: 210px; height: 210px; display: flex; flex-direction: column;
             align-items: center; justify-content: center; cursor: pointer;
             position: relative; outline: none; gap: 8px; flex-shrink: 0;
             transition: border-color 0.2s, transform 0.1s;
@@ -245,7 +247,7 @@
 
         .test-text-box {
             position: fixed; 
-            bottom: 95px; 
+            bottom: 80px; 
             left: 50%; 
             transform: translateX(-50%);
             width: 90%; 
