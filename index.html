@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Habla Mobile</title>
     
-    <!-- PWA / Mobile Meta tags для правильного відкриття та встановлення за посиланням / QR-кодом -->
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#0e1621">
     <meta name="mobile-web-app-capable" content="yes">
@@ -148,7 +147,6 @@
             overflow: hidden; background: #0e1621; width: 100%;
         }
 
-        /* Стабілізований головний екран: фіксує кнопку внизу і не дає їй зміщуватися */
         .main-screen {
             flex: 1; 
             display: flex; 
@@ -165,7 +163,6 @@
             overflow: hidden;
         }
 
-        /* Обмежений блок повідомлень зі скролом, щоб довгі розмови не штовхали кнопку вниз */
         .messages-stack-container {
             width: 100%; 
             max-width: 340px; 
@@ -718,7 +715,6 @@
         let username = (localStorage.getItem('habla_username') || '').trim();
         if (username) localStorage.setItem('habla_username', username);
 
-        // Примусово скидаємо обраний контакт при кожному новому відкритті / перезаході в додаток
         localStorage.removeItem('habla_selected_recipient');
         let selectedRecipientName = null;
 
@@ -730,6 +726,7 @@
         let isContactsExpanded = false;
         let lastUsersData = {};
         let tokenStatsData = JSON.parse(localStorage.getItem('habla_token_stats') || '{}');
+        let unreadCount = 0;
 
         const translations = {
             Ukrainian: {
@@ -922,6 +919,43 @@
             }
         }
 
+        async function registerPushAndBadge() {
+            if ('serviceWorker' in navigator && 'PushManager' in window) {
+                try {
+                    const reg = await navigator.serviceWorker.register('/sw.js');
+                    const perm = await Notification.requestPermission();
+                    if (perm !== 'granted') return;
+
+                    const publicVapidKey = 'YOUR_PUBLIC_VAPID_KEY';
+                    if (publicVapidKey === 'YOUR_PUBLIC_VAPID_KEY') return;
+
+                    const subscription = await reg.pushManager.subscribe({
+                        userVisibleOnly: true,
+                        applicationServerKey: urlBase64ToUint8Array(publicVapidKey)
+                    });
+                    socket.emit('subscribe-push', { username, subscription });
+                } catch (e) {}
+            }
+        }
+
+        function urlBase64ToUint8Array(base64String) {
+            const padding = '='.repeat((4 - base64String.length % 4) % 4);
+            const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+            const rawData = window.atob(base64);
+            const outputArray = new Uint8Array(rawData.length);
+            for (let i = 0; i < rawData.length; ++i) outputArray[i] = rawData.charCodeAt(i);
+            return outputArray;
+        }
+
+        async function updateAppBadge(count) {
+            if ('setAppBadge' in navigator) {
+                try {
+                    if (count > 0) await navigator.setAppBadge(count);
+                    else await navigator.clearAppBadge();
+                } catch (err) {}
+            }
+        }
+
         function completeFirstLogin() {
             const enteredName = welcomeNicknameInput ? welcomeNicknameInput.value.trim() : '';
             if (!enteredName) { if (welcomeNicknameInput) welcomeNicknameInput.focus(); return; }
@@ -931,6 +965,7 @@
             updateProfileDisplay();
             checkAdminAccess();
             joinWithLanguage();
+            registerPushAndBadge();
             safeRenderContactsGrid(lastUsersData);
         }
 
@@ -939,9 +974,15 @@
             if (welcomeNicknameInput) setTimeout(() => welcomeNicknameInput.focus(), 100);
         } else {
             checkAdminAccess();
+            registerPushAndBadge();
         }
         welcomeSubmitBtn.addEventListener('click', completeFirstLogin);
         welcomeNicknameInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') completeFirstLogin(); });
+
+        window.addEventListener('focus', () => {
+            unreadCount = 0;
+            updateAppBadge(0);
+        });
 
         interfaceLangSelect.addEventListener('change', () => {
             const newLang = interfaceLangSelect.value;
@@ -1265,7 +1306,13 @@
             if (data.text) {
                 const isSelf = data.sender === username;
                 addMessageToStack(data.text, data.sender || 'Контакт', isSelf, data.originalText);
-                if (!isSelf && data.sender) recordTokenUsage(data.sender, 20);
+                if (!isSelf && data.sender) {
+                    recordTokenUsage(data.sender, 20);
+                    if (document.hidden) {
+                        unreadCount++;
+                        updateAppBadge(unreadCount);
+                    }
+                }
                 if (document.getElementById('sound-toggle').checked) speakText(data.text);
             }
         });
