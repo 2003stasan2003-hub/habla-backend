@@ -1,32 +1,39 @@
-const CACHE_NAME = 'habla-mobile-v3';
+// sw.js
+self.addEventListener('push', function(event) {
+    let data = { title: 'Habla Mobile', body: 'У вас нове повідомлення!', icon: '/icon.png' };
+    
+    if (event.data) {
+        try {
+            data = event.data.json();
+        } catch (e) {
+            data.body = event.data.text();
+        }
+    }
 
-self.addEventListener('install', (event) => {
-    self.skipWaiting();
-});
+    const options = {
+        body: data.body,
+        icon: data.icon || '/icon.png',
+        badge: '/badge.png',
+        vibrate: [200, 100, 200, 100, 200],
+        requireInteraction: true
+    };
 
-self.addEventListener('activate', (event) => {
     event.waitUntil(
-        caches.keys().then((keys) =>
-            Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
-        ).then(() => self.clients.claim())
+        self.registration.showNotification(data.title, options)
     );
 });
 
-self.addEventListener('fetch', (event) => {
-    if (event.request.method !== 'GET') return;
-
-    const url = new URL(event.request.url);
-    if (url.pathname.startsWith('/socket.io/')) return;
-
-    event.respondWith(
-        fetch(event.request)
-            .then((networkResponse) => {
-                if (networkResponse && networkResponse.status === 200 && url.origin === self.location.origin) {
-                    const responseClone = networkResponse.clone();
-                    caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
-                }
-                return networkResponse;
-            })
-            .catch(() => caches.match(event.request))
+self.addEventListener('notificationclick', function(event) {
+    event.notification.close();
+    event.waitUntil(
+        clients.matchAll({ type: 'window', includeUncontrolled: true }).then(windowClients => {
+            for (let i = 0; i < windowClients.length; i++) {
+                let client = windowClients[i];
+                if ('focus' in client) return client.focus();
+            }
+            if (clients.openWindow) {
+                return clients.openWindow('/');
+            }
+        })
     );
 });
