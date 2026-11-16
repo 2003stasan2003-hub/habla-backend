@@ -23,8 +23,14 @@ if (publicVapidKey !== 'YOUR_PUBLIC_VAPID_KEY') {
     webpush.setVapidDetails('mailto:admin@habla.com', publicVapidKey, privateVapidKey);
 }
 
-// Groq API конфігурація
+// Groq API конфігурація та список моделей для автоматичного перебору
 const GROQ_API_KEY = process.env.GROQ_API_KEY || '';
+const GROQ_MODELS = [
+    "llama-3.1-70b-versatile",
+    "llama-3.1-8b-instant",
+    "llama3-70b-8192",
+    "llama3-8b-8192"
+];
 
 async function translateText(text, targetLang) {
     if (!GROQ_API_KEY) {
@@ -32,33 +38,48 @@ async function translateText(text, targetLang) {
         return text;
     }
     if (!text) return text;
-    try {
-        console.log(`🌐 Запит перекладу на мову: ${targetLang} для тексту: "${text}"`);
-        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${GROQ_API_KEY}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                model: "llama-3.3-70b-versatile",
-                messages: [
-                    {
-                        role: "system",
-                        content: `You are a professional translator. Translate the following text accurately into ${targetLang || 'Ukrainian'}. Return ONLY the translated text without quotes or explanations.`
-                    },
-                    { role: "user", content: text }
-                ],
-                temperature: 0.3
-            })
-        });
-        const data = await response.json();
-        console.log("📦 Відповідь від Groq API:", JSON.stringify(data));
-        return data.choices?.[0]?.message?.content?.trim() || text;
-    } catch (e) {
-        console.error("❌ Помилка перекладу:", e);
-        return text;
+
+    for (const model of GROQ_MODELS) {
+        try {
+            console.log(`🌐 Пробуємо модель [${model}] для перекладу на мову: ${targetLang}`);
+            const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${GROQ_API_KEY}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    model: model,
+                    messages: [
+                        {
+                            role: "system",
+                            content: `You are a professional translator. Translate the following text accurately into ${targetLang || 'Ukrainian'}. Return ONLY the translated text without quotes or explanations.`
+                        },
+                        { role: "user", content: text }
+                    ],
+                    temperature: 0.3
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.error) {
+                console.log(`⚠️ Модель [${model}] повернула помилку:`, data.error.message);
+                continue;
+            }
+
+            const translated = data.choices?.[0]?.message?.content?.trim();
+            if (translated) {
+                console.log(`✅ Успішно перекладено за допомогою моделі: [${model}]`);
+                return translated;
+            }
+        } catch (e) {
+            console.error(`❌ Помилка запиту з моделлю [${model}]:`, e.message);
+        }
     }
+
+    console.log("❌ Жодна з моделей не змогла виконати переклад.");
+    return text;
 }
 
 async function transcribeAudio(base64Audio) {
