@@ -469,13 +469,8 @@
     </div>
 
     <div id="app-container">
+        <!-- Головний екран залишається повністю чистим і призначеним лише для спілкування -->
         <main class="main-screen">
-            <!-- Денний індикатор ліміту токенів зверху -->
-            <div id="daily-tokens-banner" style="background: rgba(23, 33, 43, 0.85); border: 1px solid #2b5278; border-radius: 10px; padding: 6px 12px; font-size: 0.78rem; color: #89a1b2; width: 100%; max-width: 340px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
-                <span>Залишок за добу: <b id="daily-remaining-tokens" style="color: #4ade80;">10000</b> / <span id="daily-limit-display">10000</span></span>
-                <button id="set-limit-btn" style="background: none; border: none; color: #89a1b2; cursor: pointer; font-size: 0.75rem; text-decoration: underline;">Змінити ліміт</button>
-            </div>
-
             <div id="messages-stack" class="messages-stack-container"></div>
 
             <button id="mic-button" class="neon-mic-btn" title="Натисніть для запису голосу">
@@ -545,9 +540,10 @@
                 <span data-i18n="settings_title">Налаштування</span>
                 <button id="close-settings-screen" style="background:none; border:none; color:#89a1b2; font-size:1.2rem; cursor:pointer;">✕</button>
             </div>
+            <!-- Панель розробника доступна ТІЛЬКИ адміністратору Stasan -->
             <div class="settings-card" id="developer-card-wrapper" style="display: none;">
                 <button id="open-developer-btn" class="sidebar-nav-btn" style="background: rgba(43, 82, 120, 0.4); border-color: #89a1b2; font-weight: bold;">
-                    <span>👨‍💻 Розробник (Токени та Статистика)</span>
+                    <span>👨‍💻 Панель розробника (Токени та Статистика)</span>
                 </button>
             </div>
             <div class="settings-card">
@@ -586,14 +582,24 @@
             </div>
         </div>
 
+        <!-- Повністю схована Панель розробника: залишок за добу, ліміти та детальна статистика по кожному абоненту -->
         <div id="developer-screen">
             <div class="settings-header" style="max-width:480px; width:100%; margin:0 auto;">
-                <span>Панель розробника (STASAN)</span>
+                <span>Панель розробника (Stasan)</span>
                 <button id="close-developer-screen" style="background:none; border:none; color:#89a1b2; font-size:1.2rem; cursor:pointer;">✕</button>
+            </div>
+            <div class="settings-card" style="gap: 12px;">
+                <div style="font-size: 0.95rem; font-weight: bold; color: #f5f5f5; border-bottom: 1px solid #242f3d; padding-bottom: 6px;">
+                    📊 Добовий ліміт та залишок
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.88rem; color: #89a1b2;">
+                    <span>Залишок за добу: <b id="daily-remaining-tokens" style="color: #4ade80;">10000</b> / <span id="daily-limit-display">10000</span></span>
+                    <button id="set-limit-btn" style="background: #2b5278; border: none; color: #fff; padding: 4px 8px; border-radius: 6px; cursor: pointer; font-size: 0.75rem;">Змінити ліміт</button>
+                </div>
             </div>
             <div class="settings-card" style="gap: 14px;">
                 <div style="font-size: 0.95rem; font-weight: bold; color: #f5f5f5; border-bottom: 1px solid #242f3d; padding-bottom: 6px;">
-                    📊 Загальна статистика токенів
+                    📈 Загальна статистика
                 </div>
                 <div style="display: flex; justify-content: space-between; font-size: 0.88rem; color: #89a1b2;">
                     <span>Всього витрачено токенів:</span>
@@ -606,7 +612,7 @@
             </div>
             <div class="settings-card" style="gap: 12px; flex: 1; overflow-y: auto;">
                 <div style="font-size: 0.95rem; font-weight: bold; color: #f5f5f5; border-bottom: 1px solid #242f3d; padding-bottom: 6px;">
-                    👥 Витрати токенів по співрозмовниках
+                    👥 Витрати токенів по абонентах
                 </div>
                 <div id="dev-contacts-stats-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
             </div>
@@ -687,7 +693,6 @@
         let isContactsExpanded = false;
         let lastUsersData = {};
         
-        // Оновлені структури статистики та лімітів
         let tokenStatsData = JSON.parse(localStorage.getItem('habla_token_stats') || '{}');
         let dailyTokenLimit = parseInt(localStorage.getItem('habla_daily_limit') || '10000', 10);
 
@@ -873,6 +878,7 @@
         const welcomeNicknameInput = document.getElementById('welcome-nickname-input');
         const welcomeSubmitBtn = document.getElementById('welcome-submit-btn');
 
+        // Перевірка прав адміністратора: доступ до панелі розробника має виключно Stasan
         function checkAdminAccess() {
             const devCardWrapper = document.getElementById('developer-card-wrapper');
             if (username && username.toUpperCase() === 'STASAN') {
@@ -1106,7 +1112,6 @@
             return 'uk';
         }
 
-        // Оновлена функція обліку токенів (з розділенням на загальні, денні та по абонентах)
         function recordTokenUsage(contact, tokensUsed = 15) {
             if (!contact) return;
             const todayStr = new Date().toISOString().slice(0, 10);
@@ -1115,7 +1120,6 @@
                 tokenStatsData[contact] = { messages: 0, tokens: 0, dailyTokens: {}, lastDate: todayStr };
             }
             
-            // Якщо наступив новий день — скидаємо лічильник за сьогодні для контакту
             if (tokenStatsData[contact].lastDate !== todayStr) {
                 tokenStatsData[contact].dailyTokens = {};
                 tokenStatsData[contact].lastDate = todayStr;
@@ -1130,26 +1134,6 @@
             tokenStatsData[contact].dailyTokens[todayStr] += tokensUsed;
 
             localStorage.setItem('habla_token_stats', JSON.stringify(tokenStatsData));
-            updateDailyBannerDisplay();
-        }
-
-        // Функція оновлення банера залишку токенів за добу зверху
-        function updateDailyBannerDisplay() {
-            const todayStr = new Date().toISOString().slice(0, 10);
-            let totalTodayUsed = 0;
-
-            for (let contact in tokenStatsData) {
-                const stats = tokenStatsData[contact];
-                if (stats.dailyTokens && stats.dailyTokens[todayStr]) {
-                    totalTodayUsed += stats.dailyTokens[todayStr];
-                }
-            }
-
-            const remaining = Math.max(0, dailyTokenLimit - totalTodayUsed);
-            const remainingEl = document.getElementById('daily-remaining-tokens');
-            const limitEl = document.getElementById('daily-limit-display');
-            if (remainingEl) remainingEl.textContent = remaining;
-            if (limitEl) limitEl.textContent = dailyTokenLimit;
         }
 
         document.getElementById('set-limit-btn').addEventListener('click', () => {
@@ -1157,7 +1141,7 @@
             if (newLimit !== null && !isNaN(newLimit)) {
                 dailyTokenLimit = parseInt(newLimit, 10);
                 localStorage.setItem('habla_daily_limit', dailyTokenLimit);
-                updateDailyBannerDisplay();
+                renderDeveloperStats();
             }
         });
 
@@ -1434,15 +1418,18 @@
             settingsScreen.classList.add('active');
         });
 
-        // Оновлений рендер статистики в панелі розробника з розбивкою по абонентах (загалом та за сьогодні)
+        // Повний рендер статистики та залишків у Панелі розробника для Stasan
         function renderDeveloperStats() {
             const totalTokensEl = document.getElementById('dev-total-tokens');
             const totalMsgsEl = document.getElementById('dev-total-msgs');
+            const remainingEl = document.getElementById('daily-remaining-tokens');
+            const limitEl = document.getElementById('daily-limit-display');
             const listContainer = document.getElementById('dev-contacts-stats-list');
             listContainer.innerHTML = '';
 
             let grandTotalTokens = 0;
             let grandTotalMsgs = 0;
+            let totalTodayUsed = 0;
             const todayStr = new Date().toISOString().slice(0, 10);
 
             for (let [contactName, stats] of Object.entries(tokenStatsData)) {
@@ -1450,6 +1437,7 @@
                 grandTotalMsgs += stats.messages;
 
                 const contactTodayTokens = (stats.dailyTokens && stats.dailyTokens[todayStr]) ? stats.dailyTokens[todayStr] : 0;
+                totalTodayUsed += contactTodayTokens;
 
                 const card = document.createElement('div');
                 card.style.cssText = "background: #242f3d; border: 1px solid #2b5278; border-radius: 10px; padding: 10px; display: flex; align-items: center; gap: 10px;";
@@ -1475,6 +1463,9 @@
                 listContainer.appendChild(card);
             }
 
+            const remaining = Math.max(0, dailyTokenLimit - totalTodayUsed);
+            if (remainingEl) remainingEl.textContent = remaining;
+            if (limitEl) limitEl.textContent = dailyTokenLimit;
             totalTokensEl.textContent = grandTotalTokens;
             totalMsgsEl.textContent = grandTotalMsgs;
         }
@@ -1568,7 +1559,6 @@
         updateProfileDisplay();
         checkAdminAccess();
         safeRenderContactsGrid();
-        updateDailyBannerDisplay();
     </script>
 </body>
 </html>
