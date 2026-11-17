@@ -1272,6 +1272,12 @@
         socket.on('incoming-message', (data) => {
             if (data.text) {
                 const isSelf = data.sender === username || data.isSent;
+                
+                // ВИПРАВЛЕННЯ: Відображаємо ім'я реального відправника у великому центральному колі
+                if (!isSelf && data.sender) {
+                    setRecipient(data.sender);
+                }
+
                 addMessageToStack(data.text, data.sender || 'Контакт', isSelf, data.originalText);
                 if (!isSelf && data.sender) {
                     recordTokenUsage(data.sender, 20);
