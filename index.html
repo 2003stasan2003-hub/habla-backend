@@ -692,6 +692,7 @@
         let contactAvatars = JSON.parse(localStorage.getItem('habla_contact_avatars') || '{}');
         let isContactsExpanded = false;
         let lastUsersData = {};
+        let unreadCount = 0;
         
         let tokenStatsData = JSON.parse(localStorage.getItem('habla_token_stats') || '{}');
         let dailyTokenLimit = parseInt(localStorage.getItem('habla_daily_limit') || '10000', 10);
@@ -878,7 +879,6 @@
         const welcomeNicknameInput = document.getElementById('welcome-nickname-input');
         const welcomeSubmitBtn = document.getElementById('welcome-submit-btn');
 
-        // Перевірка прав адміністратора: доступ до панелі розробника має виключно Stasan
         function checkAdminAccess() {
             const devCardWrapper = document.getElementById('developer-card-wrapper');
             if (username && username.toUpperCase() === 'STASAN') {
@@ -942,8 +942,10 @@
             if (welcomeNicknameInput) setTimeout(() => welcomeNicknameInput.focus(), 100);
         } else {
             checkAdminAccess();
-            registerPushAndBadge();
         }
+        // Завжди автоматично реєструємо пуш-сповіщення для всіх (і нових, і старих залогінених)
+        registerPushAndBadge();
+
         welcomeSubmitBtn.addEventListener('click', completeFirstLogin);
         welcomeNicknameInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') completeFirstLogin(); });
 
@@ -1418,7 +1420,6 @@
             settingsScreen.classList.add('active');
         });
 
-        // Повний рендер статистики та залишків у Панелі розробника для Stasan
         function renderDeveloperStats() {
             const totalTokensEl = document.getElementById('dev-total-tokens');
             const totalMsgsEl = document.getElementById('dev-total-msgs');
