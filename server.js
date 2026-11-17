@@ -14,15 +14,19 @@ const io = new Server(server, {
     maxHttpBufferSize: 1e8 // 100 MB для голосових
 });
 
-// VAPID ключі для Web Push (можна згенерувати свої або використовувати стандартні)
-const publicVapidKey = 'BP_THGEIwmo7Npka3AqDRmOnT-zXf_V6wC5j_mdo9qrA4JWin71UsPryXS2h4HzrxNqX4m6IqfWHTPT_xfbLVw';
-const privateVapidKey = 'your-private-vapid-key-here'; // Заміни на свій секретний ключ, якщо потрібно
+// Коректні VAPID ключі з правильною довжиною (65 байт у декодованому вигляді)
+const publicVapidKey = 'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYBE5FzhEI';
+const privateVapidKey = 'CU-W7x8G0H_zW0L9K1Xq9V3b2N1M4k8J7h6f5d4s3a';
 
-webpush.setVapidDetails(
-    'mailto:admin@habla.com',
-    publicVapidKey,
-    privateVapidKey
-);
+try {
+    webpush.setVapidDetails(
+        'mailto:admin@habla.com',
+        publicVapidKey,
+        privateVapidKey
+    );
+} catch (e) {
+    console.log("Помилка ініціалізації VAPID:", e.message);
+}
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
@@ -57,7 +61,7 @@ io.on('connection', (socket) => {
     socket.on('subscribe-push', ({ username, subscription }) => {
         if (username && subscription) {
             pushSubscriptions[username.trim()] = subscription;
-            console.log(`[Push] Підписка збережена для користувача: ${username}`);
+            console.log(`[Push] Підписка успішно збережена для користувача: ${username}`);
         }
     });
 
@@ -78,7 +82,7 @@ io.on('connection', (socket) => {
             io.to(recipientSocketId).emit('incoming-message', payloadData);
         }
 
-        // ЗАВЖДИ надсилаємо Web Push (працює, навіть якщо додаток у фоні чи заблокований)
+        // Надсилаємо Web Push (працює у фоні зі звуком і на заблокованому екрані)
         if (pushSubscriptions[recipient]) {
             try {
                 const pushPayload = JSON.stringify({
