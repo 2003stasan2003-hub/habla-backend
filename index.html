@@ -470,6 +470,12 @@
 
     <div id="app-container">
         <main class="main-screen">
+            <!-- Денний індикатор ліміту токенів зверху -->
+            <div id="daily-tokens-banner" style="background: rgba(23, 33, 43, 0.85); border: 1px solid #2b5278; border-radius: 10px; padding: 6px 12px; font-size: 0.78rem; color: #89a1b2; width: 100%; max-width: 340px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+                <span>Залишок за добу: <b id="daily-remaining-tokens" style="color: #4ade80;">10000</b> / <span id="daily-limit-display">10000</span></span>
+                <button id="set-limit-btn" style="background: none; border: none; color: #89a1b2; cursor: pointer; font-size: 0.75rem; text-decoration: underline;">Змінити ліміт</button>
+            </div>
+
             <div id="messages-stack" class="messages-stack-container"></div>
 
             <button id="mic-button" class="neon-mic-btn" title="Натисніть для запису голосу">
@@ -680,8 +686,10 @@
         let contactAvatars = JSON.parse(localStorage.getItem('habla_contact_avatars') || '{}');
         let isContactsExpanded = false;
         let lastUsersData = {};
+        
+        // Оновлені структури статистики та лімітів
         let tokenStatsData = JSON.parse(localStorage.getItem('habla_token_stats') || '{}');
-        let unreadCount = 0;
+        let dailyTokenLimit = parseInt(localStorage.getItem('habla_daily_limit') || '10000', 10);
 
         const translations = {
             Ukrainian: {
@@ -1098,15 +1106,60 @@
             return 'uk';
         }
 
+        // Оновлена функція обліку токенів (з розділенням на загальні, денні та по абонентах)
         function recordTokenUsage(contact, tokensUsed = 15) {
             if (!contact) return;
+            const todayStr = new Date().toISOString().slice(0, 10);
+
             if (!tokenStatsData[contact]) {
-                tokenStatsData[contact] = { messages: 0, tokens: 0 };
+                tokenStatsData[contact] = { messages: 0, tokens: 0, dailyTokens: {}, lastDate: todayStr };
             }
+            
+            // Якщо наступив новий день — скидаємо лічильник за сьогодні для контакту
+            if (tokenStatsData[contact].lastDate !== todayStr) {
+                tokenStatsData[contact].dailyTokens = {};
+                tokenStatsData[contact].lastDate = todayStr;
+            }
+
+            if (!tokenStatsData[contact].dailyTokens[todayStr]) {
+                tokenStatsData[contact].dailyTokens[todayStr] = 0;
+            }
+
             tokenStatsData[contact].messages += 1;
             tokenStatsData[contact].tokens += tokensUsed;
+            tokenStatsData[contact].dailyTokens[todayStr] += tokensUsed;
+
             localStorage.setItem('habla_token_stats', JSON.stringify(tokenStatsData));
+            updateDailyBannerDisplay();
         }
+
+        // Функція оновлення банера залишку токенів за добу зверху
+        function updateDailyBannerDisplay() {
+            const todayStr = new Date().toISOString().slice(0, 10);
+            let totalTodayUsed = 0;
+
+            for (let contact in tokenStatsData) {
+                const stats = tokenStatsData[contact];
+                if (stats.dailyTokens && stats.dailyTokens[todayStr]) {
+                    totalTodayUsed += stats.dailyTokens[todayStr];
+                }
+            }
+
+            const remaining = Math.max(0, dailyTokenLimit - totalTodayUsed);
+            const remainingEl = document.getElementById('daily-remaining-tokens');
+            const limitEl = document.getElementById('daily-limit-display');
+            if (remainingEl) remainingEl.textContent = remaining;
+            if (limitEl) limitEl.textContent = dailyTokenLimit;
+        }
+
+        document.getElementById('set-limit-btn').addEventListener('click', () => {
+            const newLimit = prompt('Введіть ліміт токенів на добу:', dailyTokenLimit);
+            if (newLimit !== null && !isNaN(newLimit)) {
+                dailyTokenLimit = parseInt(newLimit, 10);
+                localStorage.setItem('habla_daily_limit', dailyTokenLimit);
+                updateDailyBannerDisplay();
+            }
+        });
 
         function addMessageToStack(text, sender, isSent = false, originalText = null) {
             const card = document.createElement('div');
@@ -1273,7 +1326,6 @@
             if (data.text) {
                 const isSelf = data.sender === username || data.isSent;
                 
-                // ВИПРАВЛЕННЯ: Відображаємо ім'я реального відправника у великому центральному колі
                 if (!isSelf && data.sender) {
                     setRecipient(data.sender);
                 }
@@ -1382,6 +1434,7 @@
             settingsScreen.classList.add('active');
         });
 
+        // Оновлений рендер статистики в панелі розробника з розбивкою по абонентах (загалом та за сьогодні)
         function renderDeveloperStats() {
             const totalTokensEl = document.getElementById('dev-total-tokens');
             const totalMsgsEl = document.getElementById('dev-total-msgs');
@@ -1390,10 +1443,13 @@
 
             let grandTotalTokens = 0;
             let grandTotalMsgs = 0;
+            const todayStr = new Date().toISOString().slice(0, 10);
 
             for (let [contactName, stats] of Object.entries(tokenStatsData)) {
                 grandTotalTokens += stats.tokens;
                 grandTotalMsgs += stats.messages;
+
+                const contactTodayTokens = (stats.dailyTokens && stats.dailyTokens[todayStr]) ? stats.dailyTokens[todayStr] : 0;
 
                 const card = document.createElement('div');
                 card.style.cssText = "background: #242f3d; border: 1px solid #2b5278; border-radius: 10px; padding: 10px; display: flex; align-items: center; gap: 10px;";
@@ -1412,7 +1468,8 @@
                     ${avatarHtml}
                     <div style="flex: 1; min-width: 0;">
                         <div style="font-weight: bold; font-size: 0.9rem; color: #f5f5f5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${contactName}</div>
-                        <div style="font-size: 0.75rem; color: #89a1b2;">Повідомлень: ${stats.messages} | Токенів: <span style="color: #4ade80; font-weight: bold;">${stats.tokens}</span></div>
+                        <div style="font-size: 0.75rem; color: #89a1b2;">Повідомлень: ${stats.messages}</div>
+                        <div style="font-size: 0.75rem; color: #89a1b2;">За весь час: <span style="color: #4ade80; font-weight: bold;">${stats.tokens}</span> | За сьогодні: <span style="color: #60a5fa; font-weight: bold;">${contactTodayTokens}</span></div>
                     </div>
                 `;
                 listContainer.appendChild(card);
@@ -1511,6 +1568,7 @@
         updateProfileDisplay();
         checkAdminAccess();
         safeRenderContactsGrid();
+        updateDailyBannerDisplay();
     </script>
 </body>
 </html>
