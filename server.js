@@ -78,7 +78,7 @@ io.on('connection', (socket) => {
         if (pushSubscriptions[recipient]) {
             try {
                 const pushPayload = JSON.stringify({ 
-                    title: `Habla (${sender})`, 
+                    title: `${sender} надіслав повідомлення`, 
                     body: text 
                 });
                 await webpush.sendNotification(pushSubscriptions[recipient], pushPayload);
@@ -93,7 +93,12 @@ io.on('connection', (socket) => {
         if (!sender || !recipient || !audio) return;
 
         const recipientSocketId = onlineUsers.get(recipient);
-        const payloadData = { sender, text: "🎤 Голосове повідомлення", originalText: "Голосове повідомлення" };
+        
+        const payloadData = { 
+            sender, 
+            text: "🎤 Голосове повідомлення", 
+            originalText: "Голосове повідомлення" 
+        };
 
         if (recipientSocketId) {
             io.to(recipientSocketId).emit('incoming-message', payloadData);
@@ -102,7 +107,7 @@ io.on('connection', (socket) => {
         if (pushSubscriptions[recipient]) {
             try {
                 const pushPayload = JSON.stringify({ 
-                    title: `Habla (${sender})`, 
+                    title: `${sender} надіслав вам повідомлення`, 
                     body: "🎤 Нове голосове повідомлення" 
                 });
                 await webpush.sendNotification(pushSubscriptions[recipient], pushPayload);
