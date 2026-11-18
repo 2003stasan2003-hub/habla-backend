@@ -391,8 +391,6 @@
 </head>
 <body>
 
-    <audio id="notification-sound" src="/audio.mp3" preload="auto"></audio>
-
     <div id="pull-refresh-indicator">🔄 Потягніть, щоб оновити...</div>
     <div id="menu-overlay" class="menu-overlay"></div>
     <div id="top-watermark" class="top-mini-watermark">Stasan Habla Mobile</div>
@@ -471,6 +469,7 @@
     </div>
 
     <div id="app-container">
+        <!-- Головний екран залишається повністю чистим і призначеним лише для спілкування -->
         <main class="main-screen">
             <div id="messages-stack" class="messages-stack-container"></div>
 
@@ -541,6 +540,7 @@
                 <span data-i18n="settings_title">Налаштування</span>
                 <button id="close-settings-screen" style="background:none; border:none; color:#89a1b2; font-size:1.2rem; cursor:pointer;">✕</button>
             </div>
+            <!-- Панель розробника доступна ТІЛЬКИ адміністратору Stasan -->
             <div class="settings-card" id="developer-card-wrapper" style="display: none;">
                 <button id="open-developer-btn" class="sidebar-nav-btn" style="background: rgba(43, 82, 120, 0.4); border-color: #89a1b2; font-weight: bold;">
                     <span>👨‍💻 Панель розробника (Токени та Статистика)</span>
@@ -580,8 +580,32 @@
                     </div>
                 </div>
             </div>
+            <!-- НОВИЙ БЛОК НАЛАШТУВАНЬ: Пуш-сповіщення та лічильники на іконці -->
+            <div class="settings-card">
+                <div class="settings-row" id="toggle-notifications-dropdown">
+                    <span data-i18n="notifications_settings">Сповіщення та бейджі</span>
+                    <span class="dropdown-arrow" id="notifications-arrow">▼</span>
+                </div>
+                <div class="sub-options-box" id="notifications-options-box">
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0;">
+                        <span style="font-size: 0.85rem; color: #f5f5f5;" data-i18n="push_notifications">Push-сповіщення</span>
+                        <label class="switch">
+                            <input type="checkbox" id="push-notifications-toggle" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-top: 1px solid rgba(137, 161, 178, 0.15);">
+                        <span style="font-size: 0.85rem; color: #f5f5f5;" data-i18n="app_badge">Лічильник на іконці (Badge)</span>
+                        <label class="switch">
+                            <input type="checkbox" id="app-badge-toggle" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
         </div>
 
+        <!-- Повністю схована Панель розробника: залишок за добу, ліміти та детальна статистика по кожному абоненту -->
         <div id="developer-screen">
             <div class="settings-header" style="max-width:480px; width:100%; margin:0 auto;">
                 <span>Панель розробника (Stasan)</span>
@@ -677,7 +701,6 @@
         const contactsWrapperBox = document.getElementById('contacts-wrapper-box');
         const toggleExpandContactsBtn = document.getElementById('toggle-expand-contacts-btn');
         const interfaceLangSelect = document.getElementById('interface-lang');
-        const notificationSound = document.getElementById('notification-sound');
 
         let username = (localStorage.getItem('habla_username') || '').trim();
         if (username) localStorage.setItem('habla_username', username);
@@ -692,10 +715,11 @@
         let contactAvatars = JSON.parse(localStorage.getItem('habla_contact_avatars') || '{}');
         let isContactsExpanded = false;
         let lastUsersData = {};
-        let unreadCount = 0;
         
         let tokenStatsData = JSON.parse(localStorage.getItem('habla_token_stats') || '{}');
         let dailyTokenLimit = parseInt(localStorage.getItem('habla_daily_limit') || '10000', 10);
+
+        let unreadCount = 0;
 
         const translations = {
             Ukrainian: {
@@ -715,7 +739,10 @@
                 change_nickname: "Змінити нікнейм:",
                 icon_bg_color: "Колір фону іконки:",
                 avatar_gallery_label: "Фото аватарки (з галереї JPEG / PNG):",
-                choose_gallery_photo: "📁 Вибрати фото з галереї"
+                choose_gallery_photo: "📁 Вибрати фото з галереї",
+                notifications_settings: "Сповіщення та бейджі",
+                push_notifications: "Push-сповіщення",
+                app_badge: "Лічильник на іконці (Badge)"
             },
             English: {
                 settings_title: "Settings", update_app: "Update App", interface_lang: "Interface Language",
@@ -734,7 +761,10 @@
                 change_nickname: "Change nickname:",
                 icon_bg_color: "Icon background color:",
                 avatar_gallery_label: "Avatar photo (from gallery JPEG / PNG):",
-                choose_gallery_photo: "📁 Choose photo from gallery"
+                choose_gallery_photo: "📁 Choose photo from gallery",
+                notifications_settings: "Notifications & Badges",
+                push_notifications: "Push Notifications",
+                app_badge: "App Icon Badge"
             },
             Spanish: {
                 settings_title: "Ajustes", update_app: "Actualizar aplicación", interface_lang: "Idioma de interfaz",
@@ -753,7 +783,10 @@
                 change_nickname: "Cambiar apodo:",
                 icon_bg_color: "Color de fondo del icono:",
                 avatar_gallery_label: "Foto de avatar (galería JPEG / PNG):",
-                choose_gallery_photo: "📁 Elegir foto de galería"
+                choose_gallery_photo: "📁 Elegir foto de galería",
+                notifications_settings: "Notificaciones y medallas",
+                push_notifications: "Notificaciones Push",
+                app_badge: "Insignia en icono"
             },
             German: {
                 settings_title: "Einstellungen", update_app: "App aktualisieren", interface_lang: "Sprache",
@@ -772,7 +805,10 @@
                 change_nickname: "Spitznamen ändern:",
                 icon_bg_color: "Symbol-Hintergrundfarbe:",
                 avatar_gallery_label: "Avatar-Foto (aus Galerie JPEG / PNG):",
-                choose_gallery_photo: "📁 Foto aus Galerie wählen"
+                choose_gallery_photo: "📁 Foto aus Galerie wählen",
+                notifications_settings: "Benachrichtigungen & Badges",
+                push_notifications: "Push-Benachrichtigungen",
+                app_badge: "App-Symbol-Badge"
             },
             French: {
                 settings_title: "Paramètres", update_app: "Mettre à jour", interface_lang: "Langue",
@@ -791,7 +827,10 @@
                 change_nickname: "Changer le pseudo :",
                 icon_bg_color: "Couleur de fond de l'icône :",
                 avatar_gallery_label: "Photo d'avatar (galerie JPEG / PNG) :",
-                choose_gallery_photo: "📁 Choisir une photo de la galerie"
+                choose_gallery_photo: "📁 Choisir une photo de la galerie",
+                notifications_settings: "Notifications et badges",
+                push_notifications: "Notifications Push",
+                app_badge: "Badge d'icône"
             }
         };
 
@@ -889,13 +928,16 @@
         }
 
         async function registerPushAndBadge() {
+            const pushToggle = document.getElementById('push-notifications-toggle');
+            if (pushToggle && !pushToggle.checked) return;
+
             if ('serviceWorker' in navigator && 'PushManager' in window) {
                 try {
                     const reg = await navigator.serviceWorker.register('/sw.js');
                     const perm = await Notification.requestPermission();
                     if (perm !== 'granted') return;
                     
-                    const publicVapidKey = 'BJPOJWEtFRXcAoAjy9yMHdHAtU2IwrJnnwYtNVv1uLLpmkGpTHWy0zdNWrYJUnG7PDzZgsjOFb1sR1xW6_OP57g';
+                    const publicVapidKey = 'BP_THGEIwmo7Npka3AqDRmOnT-zXf_V6wC5j_mdo9qrA4JWin71UsPryXS2h4HzrxNqX4m6IqfWHTPT_xfbLVw';
                     
                     const subscription = await reg.pushManager.subscribe({
                         userVisibleOnly: true,
@@ -916,6 +958,9 @@
         }
 
         async function updateAppBadge(count) {
+            const badgeToggle = document.getElementById('app-badge-toggle');
+            if (badgeToggle && !badgeToggle.checked) return;
+
             if ('setAppBadge' in navigator) {
                 try {
                     if (count > 0) await navigator.setAppBadge(count);
@@ -942,9 +987,8 @@
             if (welcomeNicknameInput) setTimeout(() => welcomeNicknameInput.focus(), 100);
         } else {
             checkAdminAccess();
+            registerPushAndBadge();
         }
-        registerPushAndBadge();
-
         welcomeSubmitBtn.addEventListener('click', completeFirstLogin);
         welcomeNicknameInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') completeFirstLogin(); });
 
@@ -1316,15 +1360,6 @@
                 }
 
                 addMessageToStack(data.text, data.sender || 'Контакт', isSelf, data.originalText);
-                
-                if (!isSelf) {
-                    // Відтворення звукового файлу з репозиторію
-                    if (notificationSound) {
-                        notificationSound.currentTime = 0;
-                        notificationSound.play().catch(() => {});
-                    }
-                }
-
                 if (!isSelf && data.sender) {
                     recordTokenUsage(data.sender, 20);
                     if (document.hidden) {
@@ -1379,6 +1414,10 @@
         document.getElementById('toggle-voice-dropdown').addEventListener('click', () => {
             document.getElementById('voice-options-box').classList.toggle('active');
             document.getElementById('voice-arrow').classList.toggle('open');
+        });
+        document.getElementById('toggle-notifications-dropdown').addEventListener('click', () => {
+            document.getElementById('notifications-options-box').classList.toggle('active');
+            document.getElementById('notifications-arrow').classList.toggle('open');
         });
 
         const navHome = document.getElementById('nav-home');
