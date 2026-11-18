@@ -1,4 +1,4 @@
-// Повний файл sw.js для Habla Mobile з підтримкою пуш-сповіщень і логуванням
+// Повний файл sw.js для Habla Mobile з підтримкою пуш-сповіщень та звуку
 
 self.addEventListener('install', (event) => {
     self.skipWaiting();
@@ -8,7 +8,7 @@ self.addEventListener('activate', (event) => {
     event.waitUntil(self.clients.claim());
 });
 
-// Слухач вхідних пуш-сигналів від сервера
+// Перехоплення фонових пуш-сигналів та відтворення аудіо
 self.addEventListener('push', function(event) {
     console.log('[Service Worker] Пуш-сигнал успішно отримано!', event);
     
@@ -17,7 +17,9 @@ self.addEventListener('push', function(event) {
         body: 'Нове повідомлення у чаті',
         icon: '/icon.png',
         badge: '/badge.png',
-        vibrate: [200, 100, 200]
+        vibrate: [200, 100, 200],
+        // Підключаємо твій аудіофайл сповіщення
+        sound: 'https://github.com/stasan-dev/habla-assets/raw/main/mixkit-retro-game-notification-212.wav'
     };
 
     if (event.data) {
@@ -35,18 +37,13 @@ self.addEventListener('push', function(event) {
     );
 });
 
+// Клік по сповіщенню відкриває додаток без зависань
 self.addEventListener('notificationclick', function(event) {
     event.notification.close();
     event.waitUntil(
         clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clientList) {
             if (clientList.length > 0) {
-                let client = clientList[0];
-                for (let i = 0; i < clientList.length; i++) {
-                    if (clientList[i].focused) {
-                        client = clientList[i];
-                    }
-                }
-                return client.focus();
+                return clientList[0].focus();
             }
             return clients.openWindow('/');
         })
