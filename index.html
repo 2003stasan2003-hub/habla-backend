@@ -886,7 +886,7 @@
             }
         }
 
-        // Автоматична реєстрація підписки на пуші та бейджі для всіх користувачів
+        // Автоматична реєстрація підписки на пуші та бейджі з новим публічним ключем
         async function registerPushAndBadge() {
             if ('serviceWorker' in navigator && 'PushManager' in window) {
                 try {
@@ -894,7 +894,7 @@
                     const perm = await Notification.requestPermission();
                     if (perm !== 'granted') return;
                     
-                    const publicVapidKey = 'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYBE5FzhEI';
+                    const publicVapidKey = 'BJPOJWEtFRXcAoAjy9yMHdHAtU2IwrJnnwYtNVv1uLLpmkGpTHWy0zdNWrYJUnG7PDzZgsjOFb1sR1xW6_OP57g';
                     
                     const subscription = await reg.pushManager.subscribe({
                         userVisibleOnly: true,
