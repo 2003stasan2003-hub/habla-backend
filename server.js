@@ -12,10 +12,10 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const server = createServer(app);
 const io = new Server(server, {
-    maxHttpBufferSize: 1e8 // Дозвіл на великі файли (голосові повідомлення до 100 МБ)
+    maxHttpBufferSize: 1e8 // Дозвіл на передачу великих файлів (голосових повідомлень)
 });
 
-// Налаштування VAPID ключів для безпечних фонових пуш-сповіщень
+// Налаштування VAPID ключів для фонових пуш-сповіщень
 const publicVapidKey = 'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYBE5FzhEI';
 const privateVapidKey = '1111111111111111111111111111111111111111111';
 
@@ -25,26 +25,21 @@ try {
     console.log("VAPID init skip:", e.message);
 }
 
-// Підключення статичних файлів із папки public
-const publicPath = path.join(__dirname, 'public');
-if (!fs.existsSync(publicPath)) {
-    fs.mkdirSync(publicPath, { recursive: true });
-}
-
-app.use(express.static(publicPath));
+// Підключаємо поточну кореневу папку для статичних файлів (index.html, sw.js, картинки тощо лежать тут же)
+app.use(express.static(__dirname));
 app.use(express.json());
 
-// Головна сторінка додатка
+// Головна сторінка
 app.get('/', (req, res) => {
-    const indexPath = path.join(publicPath, 'index.html');
+    const indexPath = path.join(__dirname, 'index.html');
     if (fs.existsSync(indexPath)) {
         res.sendFile(indexPath);
     } else {
-        res.send('Сервер працює! Але файл index.html ще не завантажено у папку public.');
+        res.send('Сервер працює! Але файл index.html ще не знайдено в корені проєкту.');
     }
 });
 
-// Зберігаємо активних користувачів, підписки та налаштування
+// Зберігаємо активних користувачів та їхні підписки
 const onlineUsers = new Map();
 const pushSubscriptions = {};
 const userCustomizations = {};
@@ -67,7 +62,6 @@ io.on('connection', (socket) => {
         socket.emit('sync-customizations', userCustomizations);
     });
 
-    // Зберігаємо пуш-підписку пристрою користувача
     socket.on('subscribe-push', ({ username, subscription }) => {
         if (username && subscription) {
             pushSubscriptions[username.trim()] = subscription;
@@ -82,20 +76,14 @@ io.on('connection', (socket) => {
         const recipientSocketId = onlineUsers.get(recipient);
         const payloadData = { sender, text, originalText: text };
 
-        // 1. Надсилаємо через сокет, якщо додаток відкритий
         if (recipientSocketId) {
             io.to(recipientSocketId).emit('incoming-message', payloadData);
         }
 
-        // 2. ЗАВЖДИ надсилаємо Web Push (працює у фоні, зі звуком та на заблокованому екрані)
         if (pushSubscriptions[recipient]) {
             try {
-                const pushPayload = JSON.stringify({ 
-                    title: `Habla (${sender})`, 
-                    body: text 
-                });
+                const pushPayload = JSON.stringify({ title: `Habla (${sender})`, body: text });
                 await webpush.sendNotification(pushSubscriptions[recipient], pushPayload);
-                console.log(`[Push] Успішно надіслано пуш для ${recipient}`);
             } catch (err) {
                 console.error(`[Push Error]:`, err);
             }
@@ -115,10 +103,7 @@ io.on('connection', (socket) => {
 
         if (pushSubscriptions[recipient]) {
             try {
-                const pushPayload = JSON.stringify({ 
-                    title: `Habla (${sender})`, 
-                    body: "🎤 Нове голосове повідомлення" 
-                });
+                const pushPayload = JSON.stringify({ title: `Habla (${sender})`, body: "🎤 Нове голосове повідомлення" });
                 await webpush.sendNotification(pushSubscriptions[recipient], pushPayload);
             } catch (err) {
                 console.error(`[Push Error]:`, err);
