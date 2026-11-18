@@ -469,7 +469,6 @@
     </div>
 
     <div id="app-container">
-        <!-- Головний екран залишається повністю чистим і призначеним лише для спілкування -->
         <main class="main-screen">
             <div id="messages-stack" class="messages-stack-container"></div>
 
@@ -540,7 +539,6 @@
                 <span data-i18n="settings_title">Налаштування</span>
                 <button id="close-settings-screen" style="background:none; border:none; color:#89a1b2; font-size:1.2rem; cursor:pointer;">✕</button>
             </div>
-            <!-- Панель розробника доступна ТІЛЬКИ адміністратору Stasan -->
             <div class="settings-card" id="developer-card-wrapper" style="display: none;">
                 <button id="open-developer-btn" class="sidebar-nav-btn" style="background: rgba(43, 82, 120, 0.4); border-color: #89a1b2; font-weight: bold;">
                     <span>👨‍💻 Панель розробника (Токени та Статистика)</span>
@@ -582,7 +580,6 @@
             </div>
         </div>
 
-        <!-- Повністю схована Панель розробника: залишок за добу, ліміти та детальна статистика по кожному абоненту -->
         <div id="developer-screen">
             <div class="settings-header" style="max-width:480px; width:100%; margin:0 auto;">
                 <span>Панель розробника (Stasan)</span>
@@ -648,6 +645,7 @@
     </nav>
 
     <script>
+        // Реєстрація сервіс-воркера для фонових сповіщень
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => { navigator.serviceWorker.register('/sw.js').catch(() => {}); });
         }
@@ -888,6 +886,7 @@
             }
         }
 
+        // Автоматична реєстрація підписки на пуші та бейджі для всіх користувачів
         async function registerPushAndBadge() {
             if ('serviceWorker' in navigator && 'PushManager' in window) {
                 try {
@@ -895,7 +894,7 @@
                     const perm = await Notification.requestPermission();
                     if (perm !== 'granted') return;
                     
-                    const publicVapidKey = 'BP_THGEIwmo7Npka3AqDRmOnT-zXf_V6wC5j_mdo9qrA4JWin71UsPryXS2h4HzrxNqX4m6IqfWHTPT_xfbLVw';
+                    const publicVapidKey = 'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYBE5FzhEI';
                     
                     const subscription = await reg.pushManager.subscribe({
                         userVisibleOnly: true,
@@ -943,7 +942,6 @@
         } else {
             checkAdminAccess();
         }
-        // Завжди автоматично реєструємо пуш-сповіщення для всіх (і нових, і старих залогінених)
         registerPushAndBadge();
 
         welcomeSubmitBtn.addEventListener('click', completeFirstLogin);
