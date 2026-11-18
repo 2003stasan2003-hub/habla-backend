@@ -1147,6 +1147,46 @@
         const messagesStack = document.getElementById('messages-stack');
         let displayedMessages = [];
 
+        // 3-денне сховище історії повідомлень
+        const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
+
+        function loadStoredMessages() {
+            try {
+                const raw = localStorage.getItem('habla_message_history');
+                if (!raw) return;
+                const parsed = JSON.parse(raw);
+                const now = Date.now();
+                const validMessages = parsed.filter(m => (now - m.timestamp) < THREE_DAYS_MS);
+                
+                // Зберігаємо відфільтровані актуальні (не старші за 3 дні)
+                localStorage.setItem('habla_message_history', JSON.stringify(validMessages));
+
+                validMessages.forEach(msg => {
+                    renderMessageCard(msg.text, msg.sender, msg.isSent, msg.originalText, false);
+                });
+            } catch (e) {}
+        }
+
+        function saveMessageToStorage(text, sender, isSent, originalText) {
+            try {
+                const raw = localStorage.getItem('habla_message_history');
+                const parsed = raw ? JSON.parse(raw) : [];
+                const now = Date.now();
+                
+                parsed.push({
+                    text,
+                    sender,
+                    isSent,
+                    originalText,
+                    timestamp: now
+                });
+
+                // Фільтруємо все, що старше за 3 дні
+                const validMessages = parsed.filter(m => (now - m.timestamp) < THREE_DAYS_MS);
+                localStorage.setItem('habla_message_history', JSON.stringify(validMessages));
+            } catch (e) {}
+        }
+
         function detectMessageLanguage(text) {
             if (!text) return 'uk';
             const latinChars = text.match(/[a-zA-Z]/g);
@@ -1190,7 +1230,11 @@
             }
         });
 
-        function addMessageToStack(text, sender, isSent = false, originalText = null) {
+        function addMessageToStack(text, sender, isSent = false, originalText = null, saveToStorage = true) {
+            renderMessageCard(text, sender, isSent, originalText, saveToStorage);
+        }
+
+        function renderMessageCard(text, sender, isSent, originalText, saveToStorage) {
             const card = document.createElement('div');
             card.className = `message-card ${isSent ? 'sent' : 'received'}`;
             
@@ -1222,6 +1266,10 @@
             messagesStack.appendChild(card);
             displayedMessages.push(card);
             updateStackStyles();
+
+            if (saveToStorage) {
+                saveMessageToStorage(text, sender, isSent, originalText);
+            }
         }
 
         function updateStackStyles() {
@@ -1606,6 +1654,7 @@
 
         updateProfileDisplay();
         checkAdminAccess();
+        loadStoredMessages();
         safeRenderContactsGrid();
     </script>
 </body>
