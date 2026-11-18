@@ -12,10 +12,9 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const server = createServer(app);
 const io = new Server(server, {
-    maxHttpBufferSize: 1e8 // Дозвіл на передачу великих файлів (голосових повідомлень)
+    maxHttpBufferSize: 1e8
 });
 
-// Налаштування VAPID ключів для фонових пуш-сповіщень
 const publicVapidKey = 'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYBE5FzhEI';
 const privateVapidKey = '1111111111111111111111111111111111111111111';
 
@@ -25,21 +24,19 @@ try {
     console.log("VAPID init skip:", e.message);
 }
 
-// Підключаємо поточну кореневу папку для статичних файлів (index.html, sw.js, картинки тощо лежать тут же)
+// Обслуговування статичних файлів безпосередньо з кореня
 app.use(express.static(__dirname));
 app.use(express.json());
 
-// Головна сторінка
 app.get('/', (req, res) => {
     const indexPath = path.join(__dirname, 'index.html');
     if (fs.existsSync(indexPath)) {
         res.sendFile(indexPath);
     } else {
-        res.send('Сервер працює! Але файл index.html ще не знайдено в корені проєкту.');
+        res.send('Сервер працює! Файл index.html відсутній у корені.');
     }
 });
 
-// Зберігаємо активних користувачів та їхні підписки
 const onlineUsers = new Map();
 const pushSubscriptions = {};
 const userCustomizations = {};
@@ -65,7 +62,6 @@ io.on('connection', (socket) => {
     socket.on('subscribe-push', ({ username, subscription }) => {
         if (username && subscription) {
             pushSubscriptions[username.trim()] = subscription;
-            console.log(`[Push] Підписка збережена для: ${username}`);
         }
     });
 
@@ -82,7 +78,10 @@ io.on('connection', (socket) => {
 
         if (pushSubscriptions[recipient]) {
             try {
-                const pushPayload = JSON.stringify({ title: `Habla (${sender})`, body: text });
+                const pushPayload = JSON.stringify({ 
+                    title: `Habla (${sender})`, 
+                    body: text 
+                });
                 await webpush.sendNotification(pushSubscriptions[recipient], pushPayload);
             } catch (err) {
                 console.error(`[Push Error]:`, err);
@@ -103,7 +102,10 @@ io.on('connection', (socket) => {
 
         if (pushSubscriptions[recipient]) {
             try {
-                const pushPayload = JSON.stringify({ title: `Habla (${sender})`, body: "🎤 Нове голосове повідомлення" });
+                const pushPayload = JSON.stringify({ 
+                    title: `Habla (${sender})`, 
+                    body: "🎤 Нове голосове повідомлення" 
+                });
                 await webpush.sendNotification(pushSubscriptions[recipient], pushPayload);
             } catch (err) {
                 console.error(`[Push Error]:`, err);
