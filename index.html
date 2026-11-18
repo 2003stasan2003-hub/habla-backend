@@ -391,6 +391,8 @@
 </head>
 <body>
 
+    <audio id="notification-sound" src="/audio.mp3" preload="auto"></audio>
+
     <div id="pull-refresh-indicator">🔄 Потягніть, щоб оновити...</div>
     <div id="menu-overlay" class="menu-overlay"></div>
     <div id="top-watermark" class="top-mini-watermark">Stasan Habla Mobile</div>
@@ -645,7 +647,6 @@
     </nav>
 
     <script>
-        // Реєстрація сервіс-воркера для фонових сповіщень
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => { navigator.serviceWorker.register('/sw.js').catch(() => {}); });
         }
@@ -676,6 +677,7 @@
         const contactsWrapperBox = document.getElementById('contacts-wrapper-box');
         const toggleExpandContactsBtn = document.getElementById('toggle-expand-contacts-btn');
         const interfaceLangSelect = document.getElementById('interface-lang');
+        const notificationSound = document.getElementById('notification-sound');
 
         let username = (localStorage.getItem('habla_username') || '').trim();
         if (username) localStorage.setItem('habla_username', username);
@@ -1314,6 +1316,15 @@
                 }
 
                 addMessageToStack(data.text, data.sender || 'Контакт', isSelf, data.originalText);
+                
+                if (!isSelf) {
+                    // Відтворення звукового файлу з репозиторію
+                    if (notificationSound) {
+                        notificationSound.currentTime = 0;
+                        notificationSound.play().catch(() => {});
+                    }
+                }
+
                 if (!isSelf && data.sender) {
                     recordTokenUsage(data.sender, 20);
                     if (document.hidden) {
