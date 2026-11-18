@@ -15,8 +15,9 @@ const io = new Server(server, {
     maxHttpBufferSize: 1e8
 });
 
-const publicVapidKey = 'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYBE5FzhEI';
-const privateVapidKey = '1111111111111111111111111111111111111111111';
+// Нові згенеровані VAPID-ключі на кривій P-256
+const publicVapidKey = 'BJPOJWEtFRXcAoAjy9yMHdHAtU2IwrJnnwYtNVv1uLLpmkGpTHWy0zdNWrYJUnG7PDzZgsjOFb1sR1xW6_OP57g';
+const privateVapidKey = 'LLFB5xF4W8eAcQn_BbzIpeQNt_sjWxjKQ4XA44whGPQ';
 
 try {
     webpush.setVapidDetails('mailto:admin@habla.com', publicVapidKey, privateVapidKey);
@@ -62,6 +63,7 @@ io.on('connection', (socket) => {
     socket.on('subscribe-push', ({ username, subscription }) => {
         if (username && subscription) {
             pushSubscriptions[username.trim()] = subscription;
+            console.log(`[Push] Підписка збережена для: ${username}`);
         }
     });
 
