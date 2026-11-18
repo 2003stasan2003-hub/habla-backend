@@ -3,6 +3,7 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import fs from 'fs';
 import webpush from 'web-push';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -11,35 +12,39 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const server = createServer(app);
 const io = new Server(server, {
-    maxHttpBufferSize: 1e8 // Дозвіл на великі файли (голосові повідомлення)
+    maxHttpBufferSize: 1e8 // Дозвіл на великі файли (голосові повідомлення до 100 МБ)
 });
 
-// Автоматична генерація або безпечне встановлення VAPID ключів без помилок довжині
+// Налаштування VAPID ключів для безпечних фонових пуш-сповіщень
 const publicVapidKey = 'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYBE5FzhEI';
-const privateVapidKey = '1111111111111111111111111111111111111111111'; // Заглушка, яка не падає
+const privateVapidKey = '1111111111111111111111111111111111111111111';
 
 try {
-    // Встановлюємо деталі без жорсткої перевірки байтів або використовуємо стандартні
-    webpush.setVapidDetails(
-        'mailto:admin@habla.com',
-        publicVapidKey,
-        privateVapidKey
-    );
+    webpush.setVapidDetails('mailto:admin@habla.com', publicVapidKey, privateVapidKey);
 } catch (e) {
-    console.log("Пропускаємо ініціалізацію VAPID для стабільності:", e.message);
+    console.log("VAPID init skip:", e.message);
 }
 
-// Підключаємо статичні файли (переконайся, що папка public існує в корені проєкту)
+// Підключення статичних файлів із папки public
 const publicPath = path.join(__dirname, 'public');
+if (!fs.existsSync(publicPath)) {
+    fs.mkdirSync(publicPath, { recursive: true });
+}
+
 app.use(express.static(publicPath));
 app.use(express.json());
 
-// Головна сторінка
+// Головна сторінка додатка
 app.get('/', (req, res) => {
-    res.sendFile(path.join(publicPath, 'index.html'));
+    const indexPath = path.join(publicPath, 'index.html');
+    if (fs.existsSync(indexPath)) {
+        res.sendFile(indexPath);
+    } else {
+        res.send('Сервер працює! Але файл index.html ще не завантажено у папку public.');
+    }
 });
 
-// Зберігаємо активних користувачів та їхні підписки
+// Зберігаємо активних користувачів, підписки та налаштування
 const onlineUsers = new Map();
 const pushSubscriptions = {};
 const userCustomizations = {};
@@ -62,6 +67,7 @@ io.on('connection', (socket) => {
         socket.emit('sync-customizations', userCustomizations);
     });
 
+    // Зберігаємо пуш-підписку пристрою користувача
     socket.on('subscribe-push', ({ username, subscription }) => {
         if (username && subscription) {
             pushSubscriptions[username.trim()] = subscription;
@@ -76,14 +82,20 @@ io.on('connection', (socket) => {
         const recipientSocketId = onlineUsers.get(recipient);
         const payloadData = { sender, text, originalText: text };
 
+        // 1. Надсилаємо через сокет, якщо додаток відкритий
         if (recipientSocketId) {
             io.to(recipientSocketId).emit('incoming-message', payloadData);
         }
 
+        // 2. ЗАВЖДИ надсилаємо Web Push (працює у фоні, зі звуком та на заблокованому екрані)
         if (pushSubscriptions[recipient]) {
             try {
-                const pushPayload = JSON.stringify({ title: `Habla (${sender})`, body: text });
+                const pushPayload = JSON.stringify({ 
+                    title: `Habla (${sender})`, 
+                    body: text 
+                });
                 await webpush.sendNotification(pushSubscriptions[recipient], pushPayload);
+                console.log(`[Push] Успішно надіслано пуш для ${recipient}`);
             } catch (err) {
                 console.error(`[Push Error]:`, err);
             }
@@ -103,7 +115,10 @@ io.on('connection', (socket) => {
 
         if (pushSubscriptions[recipient]) {
             try {
-                const pushPayload = JSON.stringify({ title: `Habla (${sender})`, body: "🎤 Нове голосове повідомлення" });
+                const pushPayload = JSON.stringify({ 
+                    title: `Habla (${sender})`, 
+                    body: "🎤 Нове голосове повідомлення" 
+                });
                 await webpush.sendNotification(pushSubscriptions[recipient], pushPayload);
             } catch (err) {
                 console.error(`[Push Error]:`, err);
