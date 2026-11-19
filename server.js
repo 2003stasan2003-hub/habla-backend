@@ -58,7 +58,7 @@ function normalizeLangName(rawLang) {
     return 'Ukrainian';
 }
 
-// Заглушка для Web Push: серверні VAPID-пуші вимкнені, щоб у логах Render не було помилок.
+// Заглушка для Web Push: серверні VAPID-пуші вимкнені, щоб у логах не було помилок.
 async function sendPushToRecipient(recipientName, payload) {
     return;
 }
@@ -123,13 +123,13 @@ async function translateText(text, targetLang) {
 async function transcribeAndTranslateAudio(base64DataUrl, targetLang) {
     const cleanTargetLang = normalizeLangName(targetLang);
     if (!genAI) {
-        return { originalText: '[Голосове повідомлення]', translatedText: '[Голосове повідомлення]' };
+        return { originalText: '', translatedText: '' };
     }
 
     try {
         const matches = base64DataUrl.match(/^data:(.+?);base64,(.+)$/);
         if (!matches) {
-            return { originalText: '[Аудіо]', translatedText: '[Аудіо]' };
+            return { originalText: '', translatedText: '' };
         }
         const mimeType = matches[1] || 'audio/webm';
         const base64Audio = matches[2];
@@ -152,14 +152,14 @@ async function transcribeAndTranslateAudio(base64DataUrl, targetLang) {
         if (jsonMatch) {
             const parsed = JSON.parse(jsonMatch[0]);
             return {
-                originalText: parsed.original || '',
-                translatedText: parsed.translated || parsed.original || ''
+                originalText: (parsed.original || '').trim(),
+                translatedText: (parsed.translated || parsed.original || '').trim()
             };
         }
         return { originalText: raw, translatedText: raw };
     } catch (err) {
         console.error('Voice processing error:', err.message);
-        return { originalText: '[Помилка розпізнавання голосу]', translatedText: '[Помилка розпізнавання голосу]' };
+        return { originalText: '', translatedText: '' };
     }
 }
 
@@ -251,7 +251,7 @@ io.on('connection', (socket) => {
         emitToUser(cleanSender, 'incoming-message', {
             sender: cleanSender,
             recipient: cleanRecipient,
-            text: translatedForRecipient,
+            text: translatedForRecipient || cleanText,
             originalText: cleanText,
             isSent: true
         });
@@ -259,14 +259,14 @@ io.on('connection', (socket) => {
         emitToUser(cleanRecipient, 'incoming-message', {
             sender: cleanSender,
             recipient: cleanRecipient,
-            text: translatedForRecipient,
+            text: translatedForRecipient || cleanText,
             originalText: cleanText,
             isSent: false
         });
 
         await sendPushToRecipient(cleanRecipient, {
             title: cleanSender,
-            body: translatedForRecipient
+            body: translatedForRecipient || cleanText
         });
     });
 
@@ -283,26 +283,28 @@ io.on('connection', (socket) => {
         );
 
         const { originalText, translatedText } = await transcribeAndTranslateAudio(audio, recipientLang);
+        const finalText = (translatedText || originalText || '').trim();
+        if (!finalText) return;
 
         emitToUser(cleanSender, 'incoming-message', {
             sender: cleanSender,
             recipient: cleanRecipient,
-            text: translatedText,
-            originalText: originalText,
+            text: finalText,
+            originalText: originalText || finalText,
             isSent: true
         });
 
         emitToUser(cleanRecipient, 'incoming-message', {
             sender: cleanSender,
             recipient: cleanRecipient,
-            text: translatedText,
-            originalText: originalText,
+            text: finalText,
+            originalText: originalText || finalText,
             isSent: false
         });
 
         await sendPushToRecipient(cleanRecipient, {
             title: cleanSender,
-            body: translatedText
+            body: finalText
         });
     });
 
