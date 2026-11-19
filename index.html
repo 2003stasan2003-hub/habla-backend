@@ -727,6 +727,7 @@
         }
 
         let deferredPrompt;
+        let isPushActionInProgress = false;
         const installAppMainBtn = document.getElementById('install-app-main-btn');
         const pwaInstallModal = document.getElementById('pwa-install-modal');
         const pwaModalInstallBtn = document.getElementById('pwa-modal-install-btn');
@@ -746,12 +747,20 @@
             return params.get('source') === 'qr' || params.get('install') === '1' || window.location.hash.includes('qr');
         }
 
+        function shouldShowPwaOnboardingModal() {
+            if (isStandaloneMode() || !isMobileDevice()) return false;
+            if (sessionStorage.getItem('habla_pwa_modal_dismissed') === '1') return false;
+            if (localStorage.getItem('habla_pwa_installed') === '1') return false;
+            return Boolean(deferredPrompt) || isQrEntry();
+        }
+
         async function triggerPwaInstallFlow() {
             if (deferredPrompt) {
                 deferredPrompt.prompt();
                 const { outcome } = await deferredPrompt.userChoice;
                 deferredPrompt = null;
                 if (outcome === 'accepted') {
+                    localStorage.setItem('habla_pwa_installed', '1');
                     sessionStorage.setItem('habla_pwa_modal_dismissed', '1');
                     pwaInstallModal.classList.remove('active');
                     advanceOnboardingFlow();
@@ -769,11 +778,17 @@
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
-            if (!isStandaloneMode() && isMobileDevice() && !sessionStorage.getItem('habla_pwa_modal_dismissed')) {
-                if (!welcomeLoginModal.classList.contains('active') && !pushReminderModal.classList.contains('active')) {
-                    pwaInstallModal.classList.add('active');
-                }
+            if (shouldShowPwaOnboardingModal() && !welcomeLoginModal.classList.contains('active') && !pushReminderModal.classList.contains('active')) {
+                pwaInstallModal.classList.add('active');
             }
+        });
+
+        window.addEventListener('appinstalled', () => {
+            deferredPrompt = null;
+            localStorage.setItem('habla_pwa_installed', '1');
+            sessionStorage.setItem('habla_pwa_modal_dismissed', '1');
+            pwaInstallModal.classList.remove('active');
+            advanceOnboardingFlow();
         });
 
         if (installAppMainBtn) {
@@ -1067,6 +1082,7 @@
             if (pushToggle && !pushToggle.checked) return false;
 
             if ('serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window) {
+                isPushActionInProgress = true;
                 try {
                     const reg = await navigator.serviceWorker.register('/sw.js');
                     const readyReg = await navigator.serviceWorker.ready;
@@ -1090,12 +1106,15 @@
                     return Boolean(subscription);
                 } catch (e) {
                     return false;
+                } finally {
+                    isPushActionInProgress = false;
                 }
             }
             return false;
         }
 
         async function evaluatePushReminderModal() {
+            if (isPushActionInProgress) return;
             const pushToggle = document.getElementById('push-notifications-toggle');
             if (!username) {
                 pushReminderModal.classList.remove('active');
@@ -1131,7 +1150,7 @@
         }
 
         function advanceOnboardingFlow() {
-            if (!isStandaloneMode() && isMobileDevice() && !sessionStorage.getItem('habla_pwa_modal_dismissed')) {
+            if (shouldShowPwaOnboardingModal()) {
                 pwaInstallModal.classList.add('active');
                 welcomeLoginModal.classList.remove('active');
                 pushReminderModal.classList.remove('active');
@@ -1221,7 +1240,7 @@
         window.addEventListener('focus', () => {
             unreadCount = 0;
             updateAppBadge(0);
-            if (username && !pwaInstallModal.classList.contains('active') && !welcomeLoginModal.classList.contains('active')) {
+            if (!isPushActionInProgress && username && !pwaInstallModal.classList.contains('active') && !welcomeLoginModal.classList.contains('active')) {
                 evaluatePushReminderModal();
             }
         });
