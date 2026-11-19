@@ -37,13 +37,13 @@
         }
         .top-mini-watermark:hover { color: #f5f5f5; text-decoration: underline; }
 
-        #author-modal {
+        #author-modal, #push-reminder-modal {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
             width: 330px; background: #17212b; border: 1px solid #2b5278; border-radius: 16px;
             padding: 22px; z-index: 210; display: none; flex-direction: column; gap: 14px;
             box-shadow: 0 15px 35px rgba(0,0,0,0.8);
         }
-        #author-modal.active { display: flex; }
+        #author-modal.active, #push-reminder-modal.active { display: flex; }
         .author-modal-title { font-size: 1.1rem; font-weight: bold; color: #f5f5f5; border-bottom: 1px solid #242f3d; padding-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
         .author-info-text { font-size: 0.9rem; color: #89a1b2; line-height: 1.5; }
         .author-info-text b { color: #f5f5f5; }
@@ -395,6 +395,18 @@
     <div id="menu-overlay" class="menu-overlay"></div>
     <div id="top-watermark" class="top-mini-watermark">Stasan Habla Mobile</div>
 
+    <div id="push-reminder-modal">
+        <div class="author-modal-title">
+            <span data-i18n="push_reminder_title">Push-сповіщення вимкнені</span>
+            <button id="close-push-reminder-modal" class="modal-close-btn">✕</button>
+        </div>
+        <div class="author-info-text">
+            <p data-i18n="push_reminder_desc">Увімкніть push-сповіщення, щоб отримувати повідомлення навіть на заблокованому екрані або коли додаток згорнуто. Нагадування з'являтиметься при кожному запуску, поки сповіщення не увімкнені.</p>
+            <p id="push-reminder-status" style="margin-top: 8px; font-size: 0.8rem; color: #60a5fa;"></p>
+        </div>
+        <button id="push-reminder-enable-btn" class="modal-btn-save" data-i18n="push_reminder_enable">Увімкнути push-сповіщення</button>
+    </div>
+
     <div id="author-modal">
         <div class="author-modal-title">
             <span data-i18n="author_modal_title">Про автора та проєкт</span>
@@ -469,7 +481,6 @@
     </div>
 
     <div id="app-container">
-        <!-- Головний екран залишається повністю чистим і призначеним лише для спілкування -->
         <main class="main-screen">
             <div id="messages-stack" class="messages-stack-container"></div>
 
@@ -540,7 +551,6 @@
                 <span data-i18n="settings_title">Налаштування</span>
                 <button id="close-settings-screen" style="background:none; border:none; color:#89a1b2; font-size:1.2rem; cursor:pointer;">✕</button>
             </div>
-            <!-- Панель розробника доступна ТІЛЬКИ адміністратору Stasan -->
             <div class="settings-card" id="developer-card-wrapper" style="display: none;">
                 <button id="open-developer-btn" class="sidebar-nav-btn" style="background: rgba(43, 82, 120, 0.4); border-color: #89a1b2; font-weight: bold;">
                     <span>👨‍💻 Панель розробника (Токени та Статистика)</span>
@@ -580,7 +590,6 @@
                     </div>
                 </div>
             </div>
-            <!-- НОВИЙ БЛОК НАЛАШТУВАНЬ: Пуш-сповіщення та лічильники на іконці -->
             <div class="settings-card">
                 <div class="settings-row" id="toggle-notifications-dropdown">
                     <span data-i18n="notifications_settings">Сповіщення та бейджі</span>
@@ -605,7 +614,6 @@
             </div>
         </div>
 
-        <!-- Повністю схована Панель розробника: залишок за добу, ліміти та детальна статистика по кожному абоненту -->
         <div id="developer-screen">
             <div class="settings-header" style="max-width:480px; width:100%; margin:0 auto;">
                 <span>Панель розробника (Stasan)</span>
@@ -742,7 +750,10 @@
                 choose_gallery_photo: "📁 Вибрати фото з галереї",
                 notifications_settings: "Сповіщення та бейджі",
                 push_notifications: "Push-сповіщення",
-                app_badge: "Лічильник на іконці (Badge)"
+                app_badge: "Лічильник на іконці (Badge)",
+                push_reminder_title: "Push-сповіщення вимкнені",
+                push_reminder_desc: "Увімкніть push-сповіщення, щоб отримувати повідомлення навіть на заблокованому екрані або коли додаток згорнуто. Нагадування з'являтиметься при кожному запуску, поки сповіщення не увімкнені.",
+                push_reminder_enable: "Увімкнути push-сповіщення"
             },
             English: {
                 settings_title: "Settings", update_app: "Update App", interface_lang: "Interface Language",
@@ -764,7 +775,10 @@
                 choose_gallery_photo: "📁 Choose photo from gallery",
                 notifications_settings: "Notifications & Badges",
                 push_notifications: "Push Notifications",
-                app_badge: "App Icon Badge"
+                app_badge: "App Icon Badge",
+                push_reminder_title: "Push Notifications Disabled",
+                push_reminder_desc: "Enable push notifications to receive messages even on a lock screen or when the app is minimized. This reminder appears on every launch until enabled.",
+                push_reminder_enable: "Enable Push Notifications"
             },
             Spanish: {
                 settings_title: "Ajustes", update_app: "Actualizar aplicación", interface_lang: "Idioma de interfaz",
@@ -786,7 +800,10 @@
                 choose_gallery_photo: "📁 Elegir foto de galería",
                 notifications_settings: "Notificaciones y medallas",
                 push_notifications: "Notificaciones Push",
-                app_badge: "Insignia en icono"
+                app_badge: "Insignia en icono",
+                push_reminder_title: "Notificaciones Push desactivadas",
+                push_reminder_desc: "Activa las notificaciones push para recibir mensajes incluso con la pantalla bloqueada o la app minimizada. Este aviso aparecerá en cada inicio hasta activarlas.",
+                push_reminder_enable: "Activar notificaciones push"
             },
             German: {
                 settings_title: "Einstellungen", update_app: "App aktualisieren", interface_lang: "Sprache",
@@ -808,7 +825,10 @@
                 choose_gallery_photo: "📁 Foto aus Galerie wählen",
                 notifications_settings: "Benachrichtigungen & Badges",
                 push_notifications: "Push-Benachrichtigungen",
-                app_badge: "App-Symbol-Badge"
+                app_badge: "App-Symbol-Badge",
+                push_reminder_title: "Push-Benachrichtigungen deaktiviert",
+                push_reminder_desc: "Aktiviere Push-Benachrichtigungen, um Nachrichten auch auf dem Sperrbildschirm oder im Hintergrund zu erhalten. Dieser Hinweis erscheint bei jedem Start, bis sie aktiviert sind.",
+                push_reminder_enable: "Push-Benachrichtigungen aktivieren"
             },
             French: {
                 settings_title: "Paramètres", update_app: "Mettre à jour", interface_lang: "Langue",
@@ -830,7 +850,10 @@
                 choose_gallery_photo: "📁 Choisir une photo de la galerie",
                 notifications_settings: "Notifications et badges",
                 push_notifications: "Notifications Push",
-                app_badge: "Badge d'icône"
+                app_badge: "Badge d'icône",
+                push_reminder_title: "Notifications Push désactivées",
+                push_reminder_desc: "Activez les notifications push pour recevoir des messages même sur l'écran verrouillé ou en arrière-plan. Ce rappel s'affichera à chaque lancement tant qu'elles ne sont pas activées.",
+                push_reminder_enable: "Activer les notifications push"
             }
         };
 
@@ -861,6 +884,85 @@
             document.getElementById('menu-overlay').classList.remove('active');
         });
 
+        const pushReminderModal = document.getElementById('push-reminder-modal');
+        const pushReminderEnableBtn = document.getElementById('push-reminder-enable-btn');
+        const pushReminderStatus = document.getElementById('push-reminder-status');
+        const pushNotificationsToggle = document.getElementById('push-notifications-toggle');
+
+        function hidePushReminderModal() {
+            if (pushReminderModal) pushReminderModal.classList.remove('active');
+            if (document.getElementById('menu-overlay') && !authorModal.classList.contains('active') && !contactModal.classList.contains('active')) {
+                document.getElementById('menu-overlay').classList.remove('active');
+            }
+        }
+
+        function showPushReminderModal(statusText = '') {
+            if (!pushReminderModal || !username) return;
+            if (pushReminderStatus) pushReminderStatus.textContent = statusText;
+            pushReminderModal.classList.add('active');
+            if (document.getElementById('menu-overlay')) {
+                document.getElementById('menu-overlay').classList.add('active');
+            }
+        }
+
+        async function hasActivePushSetup() {
+            const toggleOn = pushNotificationsToggle ? pushNotificationsToggle.checked : true;
+            if (!toggleOn) return false;
+            if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) {
+                return false;
+            }
+            if (Notification.permission !== 'granted') return false;
+            try {
+                const reg = await navigator.serviceWorker.ready;
+                const sub = await reg.pushManager.getSubscription();
+                if (!sub) return false;
+                if (username && socket.connected) {
+                    socket.emit('subscribe-push', { username, subscription: sub });
+                }
+                return true;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        async function checkPushStatusAndRemind() {
+            if (!username) return;
+            const active = await hasActivePushSetup();
+            if (!active) {
+                const perm = ('Notification' in window) ? Notification.permission : 'unsupported';
+                const msg = perm === 'denied'
+                    ? 'Дозвіл заблоковано в браузері/Android. Дозвольте сповіщення у налаштуваннях сайту або натисніть кнопку нижче.'
+                    : 'Push-сповіщення ще не активовані.';
+                showPushReminderModal(msg);
+            } else {
+                hidePushReminderModal();
+            }
+        }
+
+        document.getElementById('close-push-reminder-modal').addEventListener('click', () => {
+            hidePushReminderModal();
+        });
+
+        pushReminderEnableBtn.addEventListener('click', async () => {
+            if (pushNotificationsToggle && !pushNotificationsToggle.checked) {
+                pushNotificationsToggle.checked = true;
+            }
+            if (pushReminderStatus) {
+                pushReminderStatus.textContent = 'Активуємо push-сповіщення...';
+            }
+            const ok = await registerPushAndBadge(true);
+            if (ok) {
+                hidePushReminderModal();
+            } else {
+                const perm = ('Notification' in window) ? Notification.permission : 'unsupported';
+                if (pushReminderStatus) {
+                    pushReminderStatus.textContent = perm === 'denied'
+                        ? 'Дозвіл відхилено. Увімкніть Сповіщення в налаштуваннях сайту/додатка на Android і спробуйте знову.'
+                        : 'Не вдалося активувати push-підписку. Перевірте HTTPS та підключення до сервера.';
+                }
+            }
+        });
+
         const selectedRecipientDisplay = document.getElementById('selected-recipient-display');
         const hablaLabel = document.getElementById('habla-label');
         const audioWave = document.getElementById('audio-wave');
@@ -884,17 +986,6 @@
                 selectedRecipientDisplay.classList.add('active');
             }
         }
-
-        micButton.addEventListener('click', () => {
-            if (!selectedRecipientName) {
-                closeAllScreens();
-                setActiveNav(navContacts);
-                joinWithLanguage();
-                contactsScreen.classList.add('active');
-                safeRenderContactsGrid(lastUsersData);
-                return;
-            }
-        });
 
         setRecipient(null);
 
@@ -927,25 +1018,37 @@
             }
         }
 
-        async function registerPushAndBadge() {
+        async function registerPushAndBadge(requestPermissionIfNeeded = false) {
             const pushToggle = document.getElementById('push-notifications-toggle');
-            if (pushToggle && !pushToggle.checked) return;
+            if (pushToggle && !pushToggle.checked) return false;
 
-            if ('serviceWorker' in navigator && 'PushManager' in window) {
+            if ('serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window) {
                 try {
                     const reg = await navigator.serviceWorker.register('/sw.js');
-                    const perm = await Notification.requestPermission();
-                    if (perm !== 'granted') return;
+                    let perm = Notification.permission;
+                    if (perm === 'default' && requestPermissionIfNeeded) {
+                        perm = await Notification.requestPermission();
+                    }
+                    if (perm !== 'granted') return false;
                     
                     const publicVapidKey = 'BP_THGEIwmo7Npka3AqDRmOnT-zXf_V6wC5j_mdo9qrA4JWin71UsPryXS2h4HzrxNqX4m6IqfWHTPT_xfbLVw';
                     
-                    const subscription = await reg.pushManager.subscribe({
-                        userVisibleOnly: true,
-                        applicationServerKey: urlBase64ToUint8Array(publicVapidKey)
-                    });
-                    socket.emit('subscribe-push', { username, subscription });
-                } catch (e) {}
+                    let subscription = await reg.pushManager.getSubscription();
+                    if (!subscription) {
+                        subscription = await reg.pushManager.subscribe({
+                            userVisibleOnly: true,
+                            applicationServerKey: urlBase64ToUint8Array(publicVapidKey)
+                        });
+                    }
+                    if (username && subscription) {
+                        socket.emit('subscribe-push', { username, subscription });
+                    }
+                    return true;
+                } catch (e) {
+                    return false;
+                }
             }
+            return false;
         }
 
         function urlBase64ToUint8Array(base64String) {
@@ -969,6 +1072,17 @@
             }
         }
 
+        if (pushNotificationsToggle) {
+            pushNotificationsToggle.addEventListener('change', async () => {
+                if (pushNotificationsToggle.checked) {
+                    const ok = await registerPushAndBadge(true);
+                    if (ok) hidePushReminderModal();
+                } else {
+                    showPushReminderModal('Push-сповіщення вимкнені у налаштуваннях.');
+                }
+            });
+        }
+
         function completeFirstLogin() {
             const enteredName = welcomeNicknameInput ? welcomeNicknameInput.value.trim() : '';
             if (!enteredName) { if (welcomeNicknameInput) welcomeNicknameInput.focus(); return; }
@@ -978,7 +1092,7 @@
             updateProfileDisplay();
             checkAdminAccess();
             joinWithLanguage();
-            registerPushAndBadge();
+            registerPushAndBadge(false).then(() => checkPushStatusAndRemind());
             safeRenderContactsGrid(lastUsersData);
         }
 
@@ -987,7 +1101,7 @@
             if (welcomeNicknameInput) setTimeout(() => welcomeNicknameInput.focus(), 100);
         } else {
             checkAdminAccess();
-            registerPushAndBadge();
+            registerPushAndBadge(false).then(() => checkPushStatusAndRemind());
         }
         welcomeSubmitBtn.addEventListener('click', completeFirstLogin);
         welcomeNicknameInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') completeFirstLogin(); });
@@ -995,6 +1109,7 @@
         window.addEventListener('focus', () => {
             unreadCount = 0;
             updateAppBadge(0);
+            if (username) checkPushStatusAndRemind();
         });
 
         interfaceLangSelect.addEventListener('change', () => {
@@ -1020,8 +1135,16 @@
             }
         }
 
-        socket.on('connect', () => joinWithLanguage());
-        document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') joinWithLanguage(); });
+        socket.on('connect', () => {
+            joinWithLanguage();
+            registerPushAndBadge(false);
+        });
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                joinWithLanguage();
+                if (username) checkPushStatusAndRemind();
+            }
+        });
         setInterval(() => { if (socket.connected && username) joinWithLanguage(); }, 10000);
 
         const userDisplay = document.getElementById('user-display');
@@ -1147,46 +1270,6 @@
         const messagesStack = document.getElementById('messages-stack');
         let displayedMessages = [];
 
-        // 3-денне сховище історії повідомлень
-        const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
-
-        function loadStoredMessages() {
-            try {
-                const raw = localStorage.getItem('habla_message_history');
-                if (!raw) return;
-                const parsed = JSON.parse(raw);
-                const now = Date.now();
-                const validMessages = parsed.filter(m => (now - m.timestamp) < THREE_DAYS_MS);
-                
-                // Зберігаємо відфільтровані актуальні (не старші за 3 дні)
-                localStorage.setItem('habla_message_history', JSON.stringify(validMessages));
-
-                validMessages.forEach(msg => {
-                    renderMessageCard(msg.text, msg.sender, msg.isSent, msg.originalText, false);
-                });
-            } catch (e) {}
-        }
-
-        function saveMessageToStorage(text, sender, isSent, originalText) {
-            try {
-                const raw = localStorage.getItem('habla_message_history');
-                const parsed = raw ? JSON.parse(raw) : [];
-                const now = Date.now();
-                
-                parsed.push({
-                    text,
-                    sender,
-                    isSent,
-                    originalText,
-                    timestamp: now
-                });
-
-                // Фільтруємо все, що старше за 3 дні
-                const validMessages = parsed.filter(m => (now - m.timestamp) < THREE_DAYS_MS);
-                localStorage.setItem('habla_message_history', JSON.stringify(validMessages));
-            } catch (e) {}
-        }
-
         function detectMessageLanguage(text) {
             if (!text) return 'uk';
             const latinChars = text.match(/[a-zA-Z]/g);
@@ -1230,11 +1313,7 @@
             }
         });
 
-        function addMessageToStack(text, sender, isSent = false, originalText = null, saveToStorage = true) {
-            renderMessageCard(text, sender, isSent, originalText, saveToStorage);
-        }
-
-        function renderMessageCard(text, sender, isSent, originalText, saveToStorage) {
+        function addMessageToStack(text, sender, isSent = false, originalText = null) {
             const card = document.createElement('div');
             card.className = `message-card ${isSent ? 'sent' : 'received'}`;
             
@@ -1266,10 +1345,6 @@
             messagesStack.appendChild(card);
             displayedMessages.push(card);
             updateStackStyles();
-
-            if (saveToStorage) {
-                saveMessageToStorage(text, sender, isSent, originalText);
-            }
         }
 
         function updateStackStyles() {
@@ -1484,6 +1559,7 @@
             isContactsExpanded = false; contactsWrapperBox.classList.remove('expanded-mode');
             testTextBox.classList.remove('active');
             authorModal.classList.remove('active');
+            pushReminderModal.classList.remove('active');
             document.querySelectorAll('.qr-img-box').forEach(b => b.classList.remove('fullscreen'));
         }
 
@@ -1654,7 +1730,6 @@
 
         updateProfileDisplay();
         checkAdminAccess();
-        loadStoredMessages();
         safeRenderContactsGrid();
     </script>
 </body>
