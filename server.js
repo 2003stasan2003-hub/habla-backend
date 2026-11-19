@@ -1,9 +1,13 @@
-const express = require('express');
-const http = require('http');
-const { Server } = require('socket.io');
-const path = require('path');
-const fs = require('fs');
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+import express from 'express';
+import http from 'http';
+import { Server } from 'socket.io';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+import { GoogleGenerativeAI } from '@google/generative-ai';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const server = http.createServer(app);
@@ -15,7 +19,7 @@ const io = new Server(server, {
 const PORT = process.env.PORT || 10000;
 
 app.use(express.json({ limit: '10mb' }));
-app.use(express.static(path.join(__dirname)));
+app.use(express.static(__dirname));
 
 const genAI = process.env.GEMINI_API_KEY ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY) : null;
 
@@ -26,7 +30,6 @@ const customizations = {};
 const pushSubscriptions = {};
 
 // Заглушка для Web Push: серверні VAPID-пуші вимкнені, щоб не засмічувати логи помилками.
-// Усі сповіщення, звук, миготіння вкладки та бейдж на ярлику працюють на клієнті (index.html + sw.js).
 async function sendPushToRecipient(recipientName, payload) {
     return;
 }
