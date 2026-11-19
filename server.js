@@ -1,268 +1,271 @@
-import express from 'express';
-import http from 'http';
-import { Server } from 'socket.io';
-import webpush from 'web-push';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
+const path = require('path');
+const fs = require('fs');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, { maxHttpBufferSize: 1e8 });
+const io = new Server(server, {
+    cors: { origin: '*' },
+    maxHttpBufferSize: 1e7
+});
 
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ limit: '50mb', extended: true }));
+const PORT = process.env.PORT || 10000;
+
+app.use(express.json({ limit: '10mb' }));
 app.use(express.static(path.join(__dirname)));
 
-const publicVapidKey = process.env.VAPID_PUBLIC_KEY || 'YOUR_PUBLIC_VAPID_KEY';
-const privateVapidKey = process.env.VAPID_PRIVATE_KEY || 'YOUR_PRIVATE_VAPID_KEY';
+const genAI = process.env.GEMINI_API_KEY ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY) : null;
 
-const isVapidConfigured =
-    publicVapidKey &&
-    privateVapidKey &&
-    publicVapidKey !== 'YOUR_PUBLIC_VAPID_KEY' &&
-    privateVapidKey !== 'YOUR_PRIVATE_VAPID_KEY';
+const usersByName = {};
+const socketToUser = {};
+const userContacts = {};
+const customizations = {};
+const pushSubscriptions = {};
 
-if (isVapidConfigured) {
-    webpush.setVapidDetails('mailto:admin@habla.com', publicVapidKey, privateVapidKey);
-} else {
-    console.warn('Web Push VAPID keys are not configured. Set VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY.');
+// Заглушка для Web Push: серверні VAPID-пуші вимкнені, щоб не засмічувати логи помилками.
+// Усі сповіщення, звук, миготіння вкладки та бейдж на ярлику працюють на клієнті (index.html + sw.js).
+async function sendPushToRecipient(recipientName, payload) {
+    return;
 }
 
-const GROQ_API_KEY = process.env.GROQ_API_KEY || '';
+function getUsersPayload() {
+    const allNames = new Set([
+        ...Object.keys(usersByName),
+        ...Object.keys(customizations)
+    ]);
 
-const FALLBACK_MODELS = [
-    "llama-3.3-70b-versatile",
-    "llama-3.3-70b-specdec",
-    "llama-3.1-70b-versatile",
-    "llama-3.1-8b-instant",
-    "llama3-70b-8192",
-    "llama3-8b-8192",
-    "gemma2-9b-it",
-    "mixtral-8x7b-32768",
-    "llama-guard-3-8b"
-];
+    return Array.from(allNames).map((name) => {
+        const record = usersByName[name];
+        return {
+            name,
+            isOnline: Boolean(record && record.sockets && record.sockets.size > 0),
+            lang: record ? record.lang : 'Ukrainian'
+        };
+    });
+}
+
+function broadcastUsers() {
+    io.emit('update-users', getUsersPayload());
+}
 
 async function translateText(text, targetLang) {
-    if (!GROQ_API_KEY) return text;
-    if (!text) return text;
-
-    let modelsToTry = [...FALLBACK_MODELS];
+    if (!text || !text.trim()) return text;
+    if (!genAI) return text;
 
     try {
-        const modelsRes = await fetch('https://api.groq.com/openai/v1/models', {
-            headers: { 'Authorization': `Bearer ${GROQ_API_KEY}` }
-        });
-        const modelsData = await modelsRes.json();
-        if (modelsData && modelsData.data) {
-            const activeGroqModels = modelsData.data
-                .map(m => m.id)
-                .filter(id => !id.includes('whisper') && !id.includes('embed') && !id.includes('guard'));
-            if (activeGroqModels.length > 0) {
-                modelsToTry = [...new Set([...activeGroqModels, ...FALLBACK_MODELS])];
-            }
-        }
-    } catch (e) {}
-
-    for (const model of modelsToTry) {
-        try {
-            const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${GROQ_API_KEY}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    model: model,
-                    messages: [
-                        {
-                            role: "system",
-                            content: `You are a strict translation machine. Your ONLY task is to translate the user's text directly into ${targetLang || 'Ukrainian'}. Do not converse, do not answer questions, do not add greetings, do not explain anything, and do not act as an AI assistant. Return ONLY the direct translation of the text.`
-                        },
-                        { role: "user", content: text }
-                    ],
-                    temperature: 0.1
-                })
-            });
-            
-            const data = await response.json();
-            if (data.error) continue;
-
-            const translated = data.choices?.[0]?.message?.content?.trim();
-            if (translated) return translated;
-        } catch (e) {}
-    }
-
-    return text;
-}
-
-async function transcribeAudio(base64Audio) {
-    if (!GROQ_API_KEY || !base64Audio) return "Voice message";
-    try {
-        const base64Data = base64Audio.split(';base64,').pop();
-        const buffer = Buffer.from(base64Data, 'base64');
-        const blob = new Blob([buffer], { type: 'audio/webm' });
-        
-        const formData = new FormData();
-        formData.append('file', blob, 'audio.webm');
-        formData.append('model', 'whisper-large-v3');
-        formData.append('language', 'uk');
-
-        const response = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${GROQ_API_KEY}` },
-            body: formData
-        });
-        const data = await response.json();
-        return data.text || "Voice message";
-    } catch (e) {
-        return "Voice message";
-    }
-}
-
-let activeSockets = {};
-let userLanguages = {}; 
-let userPushSubscriptions = {};
-let userCustomizations = {};
-
-async function sendPushToRecipient(cleanRecipient, senderName, translatedText) {
-    const subscription = userPushSubscriptions[cleanRecipient];
-    if (!subscription) return;
-
-    if (!isVapidConfigured) {
-        console.warn('Cannot send push notification: VAPID keys are missing.');
-        return;
-    }
-
-    const pushPayload = JSON.stringify({
-        title: `${senderName}`,
-        body: translatedText,
-        sound: '/mixkit-retro-game-notification-212.wav',
-        url: '/'
-    });
-
-    try {
-        await webpush.sendNotification(subscription, pushPayload);
+        const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+        const prompt = `Translate the following message into ${targetLang}. Return ONLY the translated text without quotes, notes, or explanations:\n\n${text}`;
+        const result = await model.generateContent(prompt);
+        const translated = result?.response?.text()?.trim();
+        return translated || text;
     } catch (err) {
-        if (err && (err.statusCode === 404 || err.statusCode === 410)) {
-            delete userPushSubscriptions[cleanRecipient];
-        } else {
-            console.error('Web Push send error:', err?.message || err);
-        }
+        console.error('Translation error:', err.message);
+        return text;
     }
+}
+
+async function transcribeAndTranslateAudio(base64DataUrl, targetLang) {
+    if (!genAI) {
+        return { originalText: '[Голосове повідомлення]', translatedText: '[Голосове повідомлення]' };
+    }
+
+    try {
+        const matches = base64DataUrl.match(/^data:(.+?);base64,(.+)$/);
+        if (!matches) {
+            return { originalText: '[Аудіо]', translatedText: '[Аудіо]' };
+        }
+        const mimeType = matches[1] || 'audio/webm';
+        const base64Audio = matches[2];
+
+        const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+        const prompt = `Listen to this voice message. First transcribe the exact spoken words in their original language, then translate them into ${targetLang}. Respond strictly in JSON format: {"original": "...", "translated": "..."}`;
+
+        const result = await model.generateContent([
+            prompt,
+            {
+                inlineData: {
+                    data: base64Audio,
+                    mimeType: mimeType
+                }
+            }
+        ]);
+
+        const raw = result?.response?.text()?.trim() || '';
+        const jsonMatch = raw.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+            const parsed = JSON.parse(jsonMatch[0]);
+            return {
+                originalText: parsed.original || '',
+                translatedText: parsed.translated || parsed.original || ''
+            };
+        }
+        return { originalText: raw, translatedText: raw };
+    } catch (err) {
+        console.error('Voice processing error:', err.message);
+        return { originalText: '[Помилка розпізнавання голосу]', translatedText: '[Помилка розпізнавання голосу]' };
+    }
+}
+
+function emitToUser(targetName, eventName, data) {
+    const cleanTarget = (targetName || '').trim();
+    const entry = Object.entries(usersByName).find(
+        ([name]) => name.toLowerCase() === cleanTarget.toLowerCase()
+    );
+    if (entry && entry[1].sockets) {
+        entry[1].sockets.forEach((sockId) => {
+            io.to(sockId).emit(eventName, data);
+        });
+        return true;
+    }
+    return false;
 }
 
 io.on('connection', (socket) => {
-    let currentUsername = null;
-
     socket.on('join', ({ username, lang }) => {
-        if (!username) return;
-        currentUsername = username.trim();
-        activeSockets[socket.id] = currentUsername;
-        if (lang) userLanguages[currentUsername.toLowerCase()] = lang;
-        socket.emit('sync-customizations', userCustomizations);
+        const cleanName = (username || '').trim();
+        if (!cleanName) return;
+
+        socketToUser[socket.id] = cleanName;
+        if (!usersByName[cleanName]) {
+            usersByName[cleanName] = {
+                sockets: new Set(),
+                lang: lang || 'Ukrainian'
+            };
+        }
+        usersByName[cleanName].sockets.add(socket.id);
+        if (lang) usersByName[cleanName].lang = lang;
+
+        socket.emit('sync-customizations', customizations);
         broadcastUsers();
     });
 
-    socket.on('update-language', (lang) => {
-        if (currentUsername && lang) {
-            userLanguages[currentUsername.toLowerCase()] = lang;
+    socket.on('update-language', (newLang) => {
+        const user = socketToUser[socket.id];
+        if (user && usersByName[user] && newLang) {
+            usersByName[user].lang = newLang;
+            broadcastUsers();
         }
-    });
-
-    socket.on('subscribe-push', ({ username, subscription }) => {
-        if (username && subscription) {
-            userPushSubscriptions[username.toLowerCase().trim()] = subscription;
-        }
-    });
-
-    socket.on('update-customization', ({ targetName, color, avatar }) => {
-        if (!targetName) return;
-        userCustomizations[targetName] = { color, avatar };
-        io.emit('sync-customizations', userCustomizations);
     });
 
     socket.on('add-contact', (contactName) => {
-        socket.emit('sync-customizations', userCustomizations);
+        const user = socketToUser[socket.id];
+        const cleanContact = (contactName || '').trim();
+        if (!user || !cleanContact) return;
+
+        if (!userContacts[user]) userContacts[user] = new Set();
+        userContacts[user].add(cleanContact);
+        broadcastUsers();
     });
 
-    socket.on('text-message', async (data) => {
-        const cleanRecipient = (data.recipient || '').toLowerCase().trim();
-        const senderName = data.sender || 'notebook';
-        const recipientSocketId = Object.keys(activeSockets).find(
-            id => activeSockets[id] && activeSockets[id].toLowerCase().trim() === cleanRecipient
-        );
-
-        const foundKey = Object.keys(userLanguages).find(k => k.toLowerCase() === cleanRecipient);
-        const recipientLang = foundKey ? userLanguages[foundKey] : (data.targetLang || 'Ukrainian');
-        
-        const translatedText = await translateText(data.text, recipientLang);
-
-        const messagePayload = {
-            sender: senderName,
-            recipient: data.recipient,
-            text: translatedText,
-            originalText: data.text
+    socket.on('update-customization', ({ targetName, color, avatar }) => {
+        const cleanTarget = (targetName || '').trim();
+        if (!cleanTarget) return;
+        customizations[cleanTarget] = {
+            color: color || '#2b5278',
+            avatar: avatar || ''
         };
+        io.emit('sync-customizations', customizations);
+        broadcastUsers();
+    });
 
-        if (recipientSocketId) {
-            io.to(recipientSocketId).emit('incoming-message', messagePayload);
+    socket.on('subscribe-push', ({ username, subscription }) => {
+        const cleanName = (username || '').trim();
+        if (cleanName && subscription) {
+            pushSubscriptions[cleanName] = subscription;
         }
-        
-        await sendPushToRecipient(cleanRecipient, senderName, translatedText);
+    });
 
-        socket.emit('incoming-message', {
-            ...messagePayload,
+    socket.on('text-message', async ({ sender, recipient, text, targetLang }) => {
+        const cleanSender = (sender || socketToUser[socket.id] || '').trim();
+        const cleanRecipient = (recipient || '').trim();
+        const cleanText = (text || '').trim();
+        if (!cleanSender || !cleanRecipient || !cleanText) return;
+
+        const recipientRecord = Object.entries(usersByName).find(
+            ([name]) => name.toLowerCase() === cleanRecipient.toLowerCase()
+        );
+        const recipientLang = recipientRecord ? recipientRecord[1].lang : (targetLang || 'Ukrainian');
+
+        const translated = await translateText(cleanText, recipientLang);
+
+        emitToUser(cleanSender, 'incoming-message', {
+            sender: cleanSender,
+            recipient: cleanRecipient,
+            text: translated,
+            originalText: cleanText,
             isSent: true
+        });
+
+        emitToUser(cleanRecipient, 'incoming-message', {
+            sender: cleanSender,
+            recipient: cleanRecipient,
+            text: translated,
+            originalText: cleanText,
+            isSent: false
+        });
+
+        await sendPushToRecipient(cleanRecipient, {
+            title: cleanSender,
+            body: translated
         });
     });
 
-    socket.on('voice-message', async (data) => {
-        const cleanRecipient = (data.recipient || '').toLowerCase().trim();
-        const senderName = data.sender || 'notebook';
-        const recipientSocketId = Object.keys(activeSockets).find(
-            id => activeSockets[id] && activeSockets[id].toLowerCase().trim() === cleanRecipient
+    socket.on('voice-message', async ({ sender, recipient, audio, targetLang }) => {
+        const cleanSender = (sender || socketToUser[socket.id] || '').trim();
+        const cleanRecipient = (recipient || '').trim();
+        if (!cleanSender || !cleanRecipient || !audio) return;
+
+        const recipientRecord = Object.entries(usersByName).find(
+            ([name]) => name.toLowerCase() === cleanRecipient.toLowerCase()
         );
+        const recipientLang = recipientRecord ? recipientRecord[1].lang : (targetLang || 'Ukrainian');
 
-        const transcribedText = await transcribeAudio(data.audio);
-        const foundKey = Object.keys(userLanguages).find(k => k.toLowerCase() === cleanRecipient);
-        const recipientLang = foundKey ? userLanguages[foundKey] : (data.targetLang || 'Ukrainian');
-        
-        const translatedText = await translateText(transcribedText, recipientLang);
+        const { originalText, translatedText } = await transcribeAndTranslateAudio(audio, recipientLang);
 
-        const messagePayload = {
-            sender: senderName,
-            recipient: data.recipient,
+        emitToUser(cleanSender, 'incoming-message', {
+            sender: cleanSender,
+            recipient: cleanRecipient,
             text: translatedText,
-            originalText: transcribedText
-        };
-
-        if (recipientSocketId) {
-            io.to(recipientSocketId).emit('incoming-message', messagePayload);
-        } 
-        
-        await sendPushToRecipient(cleanRecipient, senderName, translatedText);
-
-        socket.emit('incoming-message', {
-            ...messagePayload,
+            originalText: originalText,
             isSent: true
+        });
+
+        emitToUser(cleanRecipient, 'incoming-message', {
+            sender: cleanSender,
+            recipient: cleanRecipient,
+            text: translatedText,
+            originalText: originalText,
+            isSent: false
+        });
+
+        await sendPushToRecipient(cleanRecipient, {
+            title: cleanSender,
+            body: translatedText
         });
     });
 
     socket.on('disconnect', () => {
-        delete activeSockets[socket.id];
-        broadcastUsers();
+        const user = socketToUser[socket.id];
+        delete socketToUser[socket.id];
+        if (user && usersByName[user]) {
+            usersByName[user].sockets.delete(socket.id);
+            broadcastUsers();
+        }
     });
 });
 
-function broadcastUsers() {
-    const usersList = Object.values(activeSockets).map(name => ({ name, isOnline: true }));
-    io.emit('update-users', usersList);
-}
+app.get('*', (req, res) => {
+    const indexPath = path.join(__dirname, 'index.html');
+    if (fs.existsSync(indexPath)) {
+        res.sendFile(indexPath);
+    } else {
+        res.status(404).send('index.html not found');
+    }
+});
 
-const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
