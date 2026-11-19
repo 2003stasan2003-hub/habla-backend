@@ -88,7 +88,10 @@ async function fallbackTranslate(text, targetLang) {
     try {
         if (typeof fetch !== 'function') return text;
         const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${encodeURIComponent(targetCode)}&dt=t&q=${encodeURIComponent(text)}`;
-        const resp = await fetch(url);
+        const signal = typeof AbortSignal !== 'undefined' && AbortSignal.timeout
+            ? AbortSignal.timeout(4000)
+            : undefined;
+        const resp = await fetch(url, { signal });
         if (!resp.ok) return text;
         const data = await resp.json();
         if (Array.isArray(data) && Array.isArray(data[0])) {
@@ -191,7 +194,9 @@ io.on('connection', (socket) => {
             };
         }
         usersByName[cleanName].sockets.add(socket.id);
-        usersByName[cleanName].lang = cleanLang;
+        if (lang) {
+            usersByName[cleanName].lang = cleanLang;
+        }
 
         socket.emit('sync-customizations', customizations);
         broadcastUsers();
@@ -233,11 +238,15 @@ io.on('connection', (socket) => {
         }
     });
 
-    socket.on('text-message', async ({ sender, recipient, text, targetLang }) => {
+    socket.on('text-message', async ({ sender, recipient, text, targetLang, senderLang }) => {
         const cleanSender = (sender || socketToUser[socket.id] || '').trim();
         const cleanRecipient = (recipient || '').trim();
         const cleanText = (text || '').trim();
         if (!cleanSender || !cleanRecipient || !cleanText) return;
+
+        if (cleanSender && usersByName[cleanSender] && senderLang) {
+            usersByName[cleanSender].lang = normalizeLangName(senderLang);
+        }
 
         const recipientRecord = Object.entries(usersByName).find(
             ([name]) => name.toLowerCase() === cleanRecipient.toLowerCase()
@@ -270,10 +279,14 @@ io.on('connection', (socket) => {
         });
     });
 
-    socket.on('voice-message', async ({ sender, recipient, audio, targetLang }) => {
+    socket.on('voice-message', async ({ sender, recipient, audio, targetLang, senderLang }) => {
         const cleanSender = (sender || socketToUser[socket.id] || '').trim();
         const cleanRecipient = (recipient || '').trim();
         if (!cleanSender || !cleanRecipient || !audio) return;
+
+        if (cleanSender && usersByName[cleanSender] && senderLang) {
+            usersByName[cleanSender].lang = normalizeLangName(senderLang);
+        }
 
         const recipientRecord = Object.entries(usersByName).find(
             ([name]) => name.toLowerCase() === cleanRecipient.toLowerCase()
