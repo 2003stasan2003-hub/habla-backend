@@ -37,13 +37,13 @@
         }
         .top-mini-watermark:hover { color: #f5f5f5; text-decoration: underline; }
 
-        #author-modal, #push-reminder-modal {
+        #author-modal {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
             width: 330px; background: #17212b; border: 1px solid #2b5278; border-radius: 16px;
             padding: 22px; z-index: 210; display: none; flex-direction: column; gap: 14px;
             box-shadow: 0 15px 35px rgba(0,0,0,0.8);
         }
-        #author-modal.active, #push-reminder-modal.active { display: flex; }
+        #author-modal.active { display: flex; }
         .author-modal-title { font-size: 1.1rem; font-weight: bold; color: #f5f5f5; border-bottom: 1px solid #242f3d; padding-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
         .author-info-text { font-size: 0.9rem; color: #89a1b2; line-height: 1.5; }
         .author-info-text b { color: #f5f5f5; }
@@ -105,6 +105,20 @@
         .modal-btn-save { background: #2b5278; color: #fff; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; text-align: center; }
         .modal-btn-delete { background: rgba(201, 74, 74, 0.15); border: 1px solid #c94a4a; color: #c94a4a; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; text-align: center; }
 
+        #pwa-install-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(14, 22, 33, 0.94); z-index: 220; display: none; flex-direction: column;
+            align-items: center; justify-content: center; padding: 24px;
+        }
+        #pwa-install-modal.active { display: flex; }
+
+        #push-reminder-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(14, 22, 33, 0.92); z-index: 205; display: none; flex-direction: column;
+            align-items: center; justify-content: center; padding: 24px;
+        }
+        #push-reminder-modal.active { display: flex; }
+
         #welcome-login-modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #0e1621; z-index: 200; display: none; flex-direction: column;
@@ -112,18 +126,19 @@
         }
         #welcome-login-modal.active { display: flex; }
         .welcome-card {
-            width: 100%; max-width: 350px; background: rgba(23, 33, 43, 0.9);
+            width: 100%; max-width: 350px; background: rgba(23, 33, 43, 0.95);
             border: 1px solid #89a1b2; border-radius: 20px; padding: 28px 24px;
-            display: flex; flex-direction: column; align-items: center; gap: 18px;
-            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.75);
+            display: flex; flex-direction: column; align-items: center; gap: 16px;
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.75); position: relative;
         }
         .welcome-logo-ring {
             width: 72px; height: 72px; border-radius: 50%; border: 2px solid #89a1b2;
             background: rgba(43, 82, 120, 0.35); display: flex; align-items: center; justify-content: center;
         }
         .welcome-logo-ring svg { width: 34px; height: 34px; stroke: #f5f5f5; fill: none; }
-        .welcome-title { font-size: 1.35rem; font-weight: 700; color: #f5f5f5; }
-        .welcome-subtitle { font-size: 0.85rem; color: #89a1b2; text-align: center; line-height: 1.4; }
+        .welcome-title { font-size: 1.35rem; font-weight: 700; color: #f5f5f5; text-align: center; }
+        .welcome-subtitle { font-size: 0.85rem; color: #89a1b2; text-align: center; line-height: 1.45; }
+        .welcome-status-note { font-size: 0.78rem; color: #60a5fa; text-align: center; min-height: 18px; }
         .welcome-input {
             width: 100%; background: #242f3d; border: 1px solid #2b5278; color: #f5f5f5;
             padding: 13px 16px; border-radius: 12px; font-size: 1rem; outline: none; text-align: center;
@@ -131,6 +146,10 @@
         .welcome-submit-btn {
             width: 100%; background: #2b5278; border: 1px solid #89a1b2; color: #f5f5f5;
             padding: 13px; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer;
+        }
+        .welcome-secondary-btn {
+            width: 100%; background: transparent; border: 1px solid #2b5278; color: #89a1b2;
+            padding: 11px; border-radius: 12px; font-size: 0.9rem; font-weight: 500; cursor: pointer;
         }
 
         #app-container {
@@ -395,18 +414,6 @@
     <div id="menu-overlay" class="menu-overlay"></div>
     <div id="top-watermark" class="top-mini-watermark">Stasan Habla Mobile</div>
 
-    <div id="push-reminder-modal">
-        <div class="author-modal-title">
-            <span data-i18n="push_reminder_title">Push-сповіщення вимкнені</span>
-            <button id="close-push-reminder-modal" class="modal-close-btn">✕</button>
-        </div>
-        <div class="author-info-text">
-            <p data-i18n="push_reminder_desc">Увімкніть push-сповіщення, щоб отримувати повідомлення навіть на заблокованому екрані або коли додаток згорнуто. Нагадування з'являтиметься при кожному запуску, поки сповіщення не увімкнені.</p>
-            <p id="push-reminder-status" style="margin-top: 8px; font-size: 0.8rem; color: #60a5fa;"></p>
-        </div>
-        <button id="push-reminder-enable-btn" class="modal-btn-save" data-i18n="push_reminder_enable">Увімкнути push-сповіщення</button>
-    </div>
-
     <div id="author-modal">
         <div class="author-modal-title">
             <span data-i18n="author_modal_title">Про автора та проєкт</span>
@@ -422,6 +429,25 @@
         <button id="author-ok-btn" class="modal-btn-save" data-i18n="modal_understood">Зрозуміло</button>
     </div>
 
+    <!-- Крок 1: Мобільне вікно встановлення додатка -->
+    <div id="pwa-install-modal">
+        <div class="welcome-card">
+            <div class="welcome-logo-ring">
+                <svg viewBox="0 0 24 24" stroke-width="2">
+                    <path d="M12 3v12"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <path d="M5 20h14"></path>
+                </svg>
+            </div>
+            <div class="welcome-title" data-i18n="pwa_modal_title">Встановити Habla Mobile</div>
+            <div class="welcome-subtitle" data-i18n="pwa_modal_subtitle">Встановіть додаток на головний екран для швидкого доступу, голосових повідомлень та push-сповіщень.</div>
+            <div id="pwa-install-status" class="welcome-status-note"></div>
+            <button id="pwa-modal-install-btn" class="welcome-submit-btn" data-i18n="install_app">Встановити додаток</button>
+            <button id="pwa-modal-skip-btn" class="welcome-secondary-btn" data-i18n="continue_in_browser">Продовжити у браузері</button>
+        </div>
+    </div>
+
+    <!-- Крок 2: Вікно реєстрації / введення нікнейму -->
     <div id="welcome-login-modal">
         <div class="welcome-card">
             <div class="welcome-logo-ring">
@@ -436,6 +462,23 @@
             <div class="welcome-subtitle" data-i18n="welcome_subtitle">Введіть ваш нікнейм для миттєвого голосового перекладу та зв'язку</div>
             <input type="text" id="welcome-nickname-input" class="welcome-input" placeholder="Ваш нікнейм..." autocomplete="off">
             <button id="welcome-submit-btn" class="welcome-submit-btn" data-i18n="welcome_enter">Увійти</button>
+        </div>
+    </div>
+
+    <!-- Крок 3: Вікно нагадування про push-сповіщення -->
+    <div id="push-reminder-modal">
+        <div class="welcome-card">
+            <button id="close-push-reminder-btn" class="modal-close-btn" style="position: absolute; top: 14px; right: 16px;">✕</button>
+            <div class="welcome-logo-ring">
+                <svg viewBox="0 0 24 24" stroke-width="2">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                </svg>
+            </div>
+            <div class="welcome-title" data-i18n="push_reminder_title">Push-сповіщення вимкнені</div>
+            <div class="welcome-subtitle" data-i18n="push_reminder_desc">Увімкніть push-сповіщення, щоб отримувати повідомлення навіть на заблокованому екрані або коли додаток згорнуто.</div>
+            <div id="push-reminder-status" class="welcome-status-note" data-i18n="push_not_active">Push-сповіщення ще не активовані.</div>
+            <button id="push-reminder-enable-btn" class="welcome-submit-btn" data-i18n="enable_push_btn">Увімкнути push-сповіщення</button>
         </div>
     </div>
 
@@ -685,21 +728,67 @@
 
         let deferredPrompt;
         const installAppMainBtn = document.getElementById('install-app-main-btn');
+        const pwaInstallModal = document.getElementById('pwa-install-modal');
+        const pwaModalInstallBtn = document.getElementById('pwa-modal-install-btn');
+        const pwaModalSkipBtn = document.getElementById('pwa-modal-skip-btn');
+        const pwaInstallStatus = document.getElementById('pwa-install-status');
+
+        function isStandaloneMode() {
+            return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+        }
+
+        function isMobileDevice() {
+            return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || '');
+        }
+
+        function isQrEntry() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('source') === 'qr' || params.get('install') === '1' || window.location.hash.includes('qr');
+        }
+
+        async function triggerPwaInstallFlow() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                deferredPrompt = null;
+                if (outcome === 'accepted') {
+                    sessionStorage.setItem('habla_pwa_modal_dismissed', '1');
+                    pwaInstallModal.classList.remove('active');
+                    advanceOnboardingFlow();
+                } else if (pwaInstallStatus) {
+                    pwaInstallStatus.textContent = 'Встановлення скасовано. Можете спробувати ще раз або продовжити у браузері.';
+                }
+            } else {
+                if (pwaInstallStatus) {
+                    pwaInstallStatus.textContent = 'Натисніть меню браузера (⋮ або поділитися) → «Встановити додаток» або «На головний екран».';
+                }
+                alert('Для встановлення додатка натисніть на меню вашого браузера та виберіть «Додати на головний екран» або «Встановити додаток».');
+            }
+        }
 
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
+            if (!isStandaloneMode() && isMobileDevice() && !sessionStorage.getItem('habla_pwa_modal_dismissed')) {
+                if (!welcomeLoginModal.classList.contains('active') && !pushReminderModal.classList.contains('active')) {
+                    pwaInstallModal.classList.add('active');
+                }
+            }
         });
 
         if (installAppMainBtn) {
-            installAppMainBtn.addEventListener('click', async () => {
-                if (deferredPrompt) {
-                    deferredPrompt.prompt();
-                    const { outcome } = await deferredPrompt.userChoice;
-                    deferredPrompt = null;
-                } else {
-                    alert('Для встановлення додатка натисніть на меню вашого браузера та виберіть «Додати на головний екран» або «Встановити додаток».');
-                }
+            installAppMainBtn.addEventListener('click', triggerPwaInstallFlow);
+        }
+
+        if (pwaModalInstallBtn) {
+            pwaModalInstallBtn.addEventListener('click', triggerPwaInstallFlow);
+        }
+
+        if (pwaModalSkipBtn) {
+            pwaModalSkipBtn.addEventListener('click', () => {
+                sessionStorage.setItem('habla_pwa_modal_dismissed', '1');
+                pwaInstallModal.classList.remove('active');
+                advanceOnboardingFlow();
             });
         }
 
@@ -751,9 +840,13 @@
                 notifications_settings: "Сповіщення та бейджі",
                 push_notifications: "Push-сповіщення",
                 app_badge: "Лічильник на іконці (Badge)",
+                pwa_modal_title: "Встановити Habla Mobile",
+                pwa_modal_subtitle: "Встановіть додаток на головний екран для швидкого доступу, голосових повідомлень та push-сповіщень.",
+                continue_in_browser: "Продовжити у браузері",
                 push_reminder_title: "Push-сповіщення вимкнені",
-                push_reminder_desc: "Увімкніть push-сповіщення, щоб отримувати повідомлення навіть на заблокованому екрані або коли додаток згорнуто. Нагадування з'являтиметься при кожному запуску, поки сповіщення не увімкнені.",
-                push_reminder_enable: "Увімкнути push-сповіщення"
+                push_reminder_desc: "Увімкніть push-сповіщення, щоб отримувати повідомлення навіть на заблокованому екрані або коли додаток згорнуто.",
+                push_not_active: "Push-сповіщення ще не активовані.",
+                enable_push_btn: "Увімкнути push-сповіщення"
             },
             English: {
                 settings_title: "Settings", update_app: "Update App", interface_lang: "Interface Language",
@@ -776,9 +869,13 @@
                 notifications_settings: "Notifications & Badges",
                 push_notifications: "Push Notifications",
                 app_badge: "App Icon Badge",
-                push_reminder_title: "Push Notifications Disabled",
-                push_reminder_desc: "Enable push notifications to receive messages even on a lock screen or when the app is minimized. This reminder appears on every launch until enabled.",
-                push_reminder_enable: "Enable Push Notifications"
+                pwa_modal_title: "Install Habla Mobile",
+                pwa_modal_subtitle: "Install the app on your home screen for quick access, voice messages, and push notifications.",
+                continue_in_browser: "Continue in browser",
+                push_reminder_title: "Push Notifications Off",
+                push_reminder_desc: "Enable push notifications to receive messages even on a lock screen or when the app is minimized.",
+                push_not_active: "Push notifications are not active yet.",
+                enable_push_btn: "Enable push notifications"
             },
             Spanish: {
                 settings_title: "Ajustes", update_app: "Actualizar aplicación", interface_lang: "Idioma de interfaz",
@@ -801,9 +898,13 @@
                 notifications_settings: "Notificaciones y medallas",
                 push_notifications: "Notificaciones Push",
                 app_badge: "Insignia en icono",
-                push_reminder_title: "Notificaciones Push desactivadas",
-                push_reminder_desc: "Activa las notificaciones push para recibir mensajes incluso con la pantalla bloqueada o la app minimizada. Este aviso aparecerá en cada inicio hasta activarlas.",
-                push_reminder_enable: "Activar notificaciones push"
+                pwa_modal_title: "Instalar Habla Mobile",
+                pwa_modal_subtitle: "Instala la aplicación en tu pantalla de inicio para acceso rápido y notificaciones push.",
+                continue_in_browser: "Continuar en el navegador",
+                push_reminder_title: "Notificaciones push desactivadas",
+                push_reminder_desc: "Activa las notificaciones push para recibir mensajes incluso con la pantalla bloqueada.",
+                push_not_active: "Las notificaciones push aún no están activadas.",
+                enable_push_btn: "Activar notificaciones push"
             },
             German: {
                 settings_title: "Einstellungen", update_app: "App aktualisieren", interface_lang: "Sprache",
@@ -826,9 +927,13 @@
                 notifications_settings: "Benachrichtigungen & Badges",
                 push_notifications: "Push-Benachrichtigungen",
                 app_badge: "App-Symbol-Badge",
-                push_reminder_title: "Push-Benachrichtigungen deaktiviert",
-                push_reminder_desc: "Aktiviere Push-Benachrichtigungen, um Nachrichten auch auf dem Sperrbildschirm oder im Hintergrund zu erhalten. Dieser Hinweis erscheint bei jedem Start, bis sie aktiviert sind.",
-                push_reminder_enable: "Push-Benachrichtigungen aktivieren"
+                pwa_modal_title: "Habla Mobile installieren",
+                pwa_modal_subtitle: "Installiere die App auf dem Startbildschirm für schnellen Zugriff und Push-Benachrichtigungen.",
+                continue_in_browser: "Im Browser fortfahren",
+                push_reminder_title: "Push-Benachrichtigungen aus",
+                push_reminder_desc: "Aktiviere Push-Benachrichtigungen, um Nachrichten auch im Sperrbildschirm zu erhalten.",
+                push_not_active: "Push-Benachrichtigungen sind noch nicht aktiv.",
+                enable_push_btn: "Push-Benachrichtigungen aktivieren"
             },
             French: {
                 settings_title: "Paramètres", update_app: "Mettre à jour", interface_lang: "Langue",
@@ -851,9 +956,13 @@
                 notifications_settings: "Notifications et badges",
                 push_notifications: "Notifications Push",
                 app_badge: "Badge d'icône",
-                push_reminder_title: "Notifications Push désactivées",
-                push_reminder_desc: "Activez les notifications push pour recevoir des messages même sur l'écran verrouillé ou en arrière-plan. Ce rappel s'affichera à chaque lancement tant qu'elles ne sont pas activées.",
-                push_reminder_enable: "Activer les notifications push"
+                pwa_modal_title: "Installer Habla Mobile",
+                pwa_modal_subtitle: "Installez l'application sur l'écran d'accueil pour un accès rapide et les notifications push.",
+                continue_in_browser: "Continuer dans le navigateur",
+                push_reminder_title: "Notifications push désactivées",
+                push_reminder_desc: "Activez les notifications push pour recevoir des messages même sur l'écran verrouillé.",
+                push_not_active: "Les notifications push ne sont pas encore activées.",
+                enable_push_btn: "Activer les notifications push"
             }
         };
 
@@ -882,85 +991,6 @@
         document.getElementById('author-ok-btn').addEventListener('click', () => {
             authorModal.classList.remove('active');
             document.getElementById('menu-overlay').classList.remove('active');
-        });
-
-        const pushReminderModal = document.getElementById('push-reminder-modal');
-        const pushReminderEnableBtn = document.getElementById('push-reminder-enable-btn');
-        const pushReminderStatus = document.getElementById('push-reminder-status');
-        const pushNotificationsToggle = document.getElementById('push-notifications-toggle');
-
-        function hidePushReminderModal() {
-            if (pushReminderModal) pushReminderModal.classList.remove('active');
-            if (document.getElementById('menu-overlay') && !authorModal.classList.contains('active') && !contactModal.classList.contains('active')) {
-                document.getElementById('menu-overlay').classList.remove('active');
-            }
-        }
-
-        function showPushReminderModal(statusText = '') {
-            if (!pushReminderModal || !username) return;
-            if (pushReminderStatus) pushReminderStatus.textContent = statusText;
-            pushReminderModal.classList.add('active');
-            if (document.getElementById('menu-overlay')) {
-                document.getElementById('menu-overlay').classList.add('active');
-            }
-        }
-
-        async function hasActivePushSetup() {
-            const toggleOn = pushNotificationsToggle ? pushNotificationsToggle.checked : true;
-            if (!toggleOn) return false;
-            if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) {
-                return false;
-            }
-            if (Notification.permission !== 'granted') return false;
-            try {
-                const reg = await navigator.serviceWorker.ready;
-                const sub = await reg.pushManager.getSubscription();
-                if (!sub) return false;
-                if (username && socket.connected) {
-                    socket.emit('subscribe-push', { username, subscription: sub });
-                }
-                return true;
-            } catch (e) {
-                return false;
-            }
-        }
-
-        async function checkPushStatusAndRemind() {
-            if (!username) return;
-            const active = await hasActivePushSetup();
-            if (!active) {
-                const perm = ('Notification' in window) ? Notification.permission : 'unsupported';
-                const msg = perm === 'denied'
-                    ? 'Дозвіл заблоковано в браузері/Android. Дозвольте сповіщення у налаштуваннях сайту або натисніть кнопку нижче.'
-                    : 'Push-сповіщення ще не активовані.';
-                showPushReminderModal(msg);
-            } else {
-                hidePushReminderModal();
-            }
-        }
-
-        document.getElementById('close-push-reminder-modal').addEventListener('click', () => {
-            hidePushReminderModal();
-        });
-
-        pushReminderEnableBtn.addEventListener('click', async () => {
-            if (pushNotificationsToggle && !pushNotificationsToggle.checked) {
-                pushNotificationsToggle.checked = true;
-            }
-            if (pushReminderStatus) {
-                pushReminderStatus.textContent = 'Активуємо push-сповіщення...';
-            }
-            const ok = await registerPushAndBadge(true);
-            if (ok) {
-                hidePushReminderModal();
-            } else {
-                const perm = ('Notification' in window) ? Notification.permission : 'unsupported';
-                if (pushReminderStatus) {
-                    pushReminderStatus.textContent = perm === 'denied'
-                        ? 'Дозвіл відхилено. Увімкніть Сповіщення в налаштуваннях сайту/додатка на Android і спробуйте знову.'
-                        : 'Не вдалося активувати push-підписку. Перевірте HTTPS та підключення до сервера.';
-                }
-            }
         });
 
         const selectedRecipientDisplay = document.getElementById('selected-recipient-display');
@@ -1008,6 +1038,10 @@
         const welcomeLoginModal = document.getElementById('welcome-login-modal');
         const welcomeNicknameInput = document.getElementById('welcome-nickname-input');
         const welcomeSubmitBtn = document.getElementById('welcome-submit-btn');
+        const pushReminderModal = document.getElementById('push-reminder-modal');
+        const pushReminderEnableBtn = document.getElementById('push-reminder-enable-btn');
+        const closePushReminderBtn = document.getElementById('close-push-reminder-btn');
+        const pushReminderStatus = document.getElementById('push-reminder-status');
 
         function checkAdminAccess() {
             const devCardWrapper = document.getElementById('developer-card-wrapper');
@@ -1018,37 +1052,103 @@
             }
         }
 
-        async function registerPushAndBadge(requestPermissionIfNeeded = false) {
+        async function getExistingPushSubscription() {
+            if (!('serviceWorker' in navigator) || !('PushManager' in window)) return null;
+            try {
+                const reg = await navigator.serviceWorker.ready;
+                return await reg.pushManager.getSubscription();
+            } catch (e) {
+                return null;
+            }
+        }
+
+        async function registerPushAndBadge(requestPromptIfNeeded = false) {
             const pushToggle = document.getElementById('push-notifications-toggle');
             if (pushToggle && !pushToggle.checked) return false;
 
             if ('serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window) {
                 try {
                     const reg = await navigator.serviceWorker.register('/sw.js');
+                    const readyReg = await navigator.serviceWorker.ready;
                     let perm = Notification.permission;
-                    if (perm === 'default' && requestPermissionIfNeeded) {
+                    if (perm === 'default' && requestPromptIfNeeded) {
                         perm = await Notification.requestPermission();
                     }
                     if (perm !== 'granted') return false;
-                    
-                    const publicVapidKey = 'BP_THGEIwmo7Npka3AqDRmOnT-zXf_V6wC5j_mdo9qrA4JWin71UsPryXS2h4HzrxNqX4m6IqfWHTPT_xfbLVw';
-                    
-                    let subscription = await reg.pushManager.getSubscription();
+
+                    let subscription = await readyReg.pushManager.getSubscription();
                     if (!subscription) {
-                        subscription = await reg.pushManager.subscribe({
+                        const publicVapidKey = 'BP_THGEIwmo7Npka3AqDRmOnT-zXf_V6wC5j_mdo9qrA4JWin71UsPryXS2h4HzrxNqX4m6IqfWHTPT_xfbLVw';
+                        subscription = await readyReg.pushManager.subscribe({
                             userVisibleOnly: true,
                             applicationServerKey: urlBase64ToUint8Array(publicVapidKey)
                         });
                     }
-                    if (username && subscription) {
+                    if (subscription && username) {
                         socket.emit('subscribe-push', { username, subscription });
                     }
-                    return true;
+                    return Boolean(subscription);
                 } catch (e) {
                     return false;
                 }
             }
             return false;
+        }
+
+        async function evaluatePushReminderModal() {
+            const pushToggle = document.getElementById('push-notifications-toggle');
+            if (!username) {
+                pushReminderModal.classList.remove('active');
+                return;
+            }
+            if (pushToggle && !pushToggle.checked) {
+                pushReminderModal.classList.remove('active');
+                return;
+            }
+            if (!('Notification' in window) || !('PushManager' in window) || !('serviceWorker' in navigator)) {
+                pushReminderModal.classList.remove('active');
+                return;
+            }
+
+            const isGranted = Notification.permission === 'granted';
+            const existingSub = await getExistingPushSubscription();
+
+            if (isGranted && existingSub) {
+                socket.emit('subscribe-push', { username, subscription: existingSub });
+                pushReminderModal.classList.remove('active');
+                return;
+            }
+
+            if (isGranted && !existingSub) {
+                const restored = await registerPushAndBadge(false);
+                if (restored) {
+                    pushReminderModal.classList.remove('active');
+                    return;
+                }
+            }
+
+            pushReminderModal.classList.add('active');
+        }
+
+        function advanceOnboardingFlow() {
+            if (!isStandaloneMode() && isMobileDevice() && !sessionStorage.getItem('habla_pwa_modal_dismissed')) {
+                pwaInstallModal.classList.add('active');
+                welcomeLoginModal.classList.remove('active');
+                pushReminderModal.classList.remove('active');
+                return;
+            }
+
+            pwaInstallModal.classList.remove('active');
+
+            if (!username) {
+                welcomeLoginModal.classList.add('active');
+                pushReminderModal.classList.remove('active');
+                if (welcomeNicknameInput) setTimeout(() => welcomeNicknameInput.focus(), 100);
+                return;
+            }
+
+            welcomeLoginModal.classList.remove('active');
+            evaluatePushReminderModal();
         }
 
         function urlBase64ToUint8Array(base64String) {
@@ -1072,17 +1172,6 @@
             }
         }
 
-        if (pushNotificationsToggle) {
-            pushNotificationsToggle.addEventListener('change', async () => {
-                if (pushNotificationsToggle.checked) {
-                    const ok = await registerPushAndBadge(true);
-                    if (ok) hidePushReminderModal();
-                } else {
-                    showPushReminderModal('Push-сповіщення вимкнені у налаштуваннях.');
-                }
-            });
-        }
-
         function completeFirstLogin() {
             const enteredName = welcomeNicknameInput ? welcomeNicknameInput.value.trim() : '';
             if (!enteredName) { if (welcomeNicknameInput) welcomeNicknameInput.focus(); return; }
@@ -1092,24 +1181,49 @@
             updateProfileDisplay();
             checkAdminAccess();
             joinWithLanguage();
-            registerPushAndBadge(false).then(() => checkPushStatusAndRemind());
             safeRenderContactsGrid(lastUsersData);
+            evaluatePushReminderModal();
         }
 
-        if (!username) {
-            welcomeLoginModal.classList.add('active');
-            if (welcomeNicknameInput) setTimeout(() => welcomeNicknameInput.focus(), 100);
-        } else {
-            checkAdminAccess();
-            registerPushAndBadge(false).then(() => checkPushStatusAndRemind());
+        if (pushReminderEnableBtn) {
+            pushReminderEnableBtn.addEventListener('click', async () => {
+                if (pushReminderStatus) pushReminderStatus.textContent = 'Активуємо push-сповіщення...';
+                const ok = await registerPushAndBadge(true);
+                if (ok) {
+                    pushReminderModal.classList.remove('active');
+                } else if (pushReminderStatus) {
+                    pushReminderStatus.textContent = 'Дозвіл не надано або підписку не створено. Перевірте налаштування браузера.';
+                }
+            });
         }
+
+        if (closePushReminderBtn) {
+            closePushReminderBtn.addEventListener('click', () => {
+                pushReminderModal.classList.remove('active');
+            });
+        }
+
+        const pushNotificationsToggleEl = document.getElementById('push-notifications-toggle');
+        if (pushNotificationsToggleEl) {
+            pushNotificationsToggleEl.addEventListener('change', async () => {
+                if (pushNotificationsToggleEl.checked) {
+                    await registerPushAndBadge(true);
+                    await evaluatePushReminderModal();
+                } else {
+                    pushReminderModal.classList.remove('active');
+                }
+            });
+        }
+
         welcomeSubmitBtn.addEventListener('click', completeFirstLogin);
         welcomeNicknameInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') completeFirstLogin(); });
 
         window.addEventListener('focus', () => {
             unreadCount = 0;
             updateAppBadge(0);
-            if (username) checkPushStatusAndRemind();
+            if (username && !pwaInstallModal.classList.contains('active') && !welcomeLoginModal.classList.contains('active')) {
+                evaluatePushReminderModal();
+            }
         });
 
         interfaceLangSelect.addEventListener('change', () => {
@@ -1135,16 +1249,16 @@
             }
         }
 
-        socket.on('connect', () => {
+        socket.on('connect', async () => {
             joinWithLanguage();
-            registerPushAndBadge(false);
-        });
-        document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'visible') {
-                joinWithLanguage();
-                if (username) checkPushStatusAndRemind();
+            if (username && Notification.permission === 'granted') {
+                const sub = await getExistingPushSubscription();
+                if (sub) {
+                    socket.emit('subscribe-push', { username, subscription: sub });
+                }
             }
         });
+        document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') joinWithLanguage(); });
         setInterval(() => { if (socket.connected && username) joinWithLanguage(); }, 10000);
 
         const userDisplay = document.getElementById('user-display');
@@ -1512,12 +1626,13 @@
         });
 
         const currentAppUrl = window.location.origin;
-        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(currentAppUrl)}`;
+        const qrTargetUrl = `${currentAppUrl}/?source=qr`;
+        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(qrTargetUrl)}`;
         document.getElementById('qr-android-img').src = qrUrl;
         document.getElementById('qr-pc-img').src = qrUrl;
         
         document.getElementById('copy-android-btn').addEventListener('click', () => {
-            navigator.clipboard.writeText(currentAppUrl).then(() => alert('Скопійовано!'));
+            navigator.clipboard.writeText(qrTargetUrl).then(() => alert('Скопійовано!'));
         });
         document.getElementById('copy-pc-btn').addEventListener('click', () => {
             navigator.clipboard.writeText(currentAppUrl).then(() => alert('Скопійовано!'));
@@ -1559,7 +1674,6 @@
             isContactsExpanded = false; contactsWrapperBox.classList.remove('expanded-mode');
             testTextBox.classList.remove('active');
             authorModal.classList.remove('active');
-            pushReminderModal.classList.remove('active');
             document.querySelectorAll('.qr-img-box').forEach(b => b.classList.remove('fullscreen'));
         }
 
@@ -1731,6 +1845,7 @@
         updateProfileDisplay();
         checkAdminAccess();
         safeRenderContactsGrid();
+        advanceOnboardingFlow();
     </script>
 </body>
 </html>
