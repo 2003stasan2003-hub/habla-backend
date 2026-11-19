@@ -16,13 +16,19 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(express.static(path.join(__dirname)));
 
-const publicVapidKey = process.env.VAPID_PUBLIC_KEY || 'BP_THGEIwmo7Npka3AqDRmOnT-zXf_V6wC5j_mdo9qrA4JWin71UsPryXS2h4HzrxNqX4m6IqfWHTPT_xfbLVw';
+const publicVapidKey = process.env.VAPID_PUBLIC_KEY || 'YOUR_PUBLIC_VAPID_KEY';
 const privateVapidKey = process.env.VAPID_PRIVATE_KEY || 'YOUR_PRIVATE_VAPID_KEY';
 
-if (publicVapidKey && privateVapidKey && privateVapidKey !== 'YOUR_PRIVATE_VAPID_KEY') {
-    try {
-        webpush.setVapidDetails('mailto:admin@habla.com', publicVapidKey, privateVapidKey);
-    } catch (e) {}
+const isVapidConfigured =
+    publicVapidKey &&
+    privateVapidKey &&
+    publicVapidKey !== 'YOUR_PUBLIC_VAPID_KEY' &&
+    privateVapidKey !== 'YOUR_PRIVATE_VAPID_KEY';
+
+if (isVapidConfigured) {
+    webpush.setVapidDetails('mailto:admin@habla.com', publicVapidKey, privateVapidKey);
+} else {
+    console.warn('Web Push VAPID keys are not configured. Set VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY.');
 }
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY || '';
@@ -121,6 +127,33 @@ let userLanguages = {};
 let userPushSubscriptions = {};
 let userCustomizations = {};
 
+async function sendPushToRecipient(cleanRecipient, senderName, translatedText) {
+    const subscription = userPushSubscriptions[cleanRecipient];
+    if (!subscription) return;
+
+    if (!isVapidConfigured) {
+        console.warn('Cannot send push notification: VAPID keys are missing.');
+        return;
+    }
+
+    const pushPayload = JSON.stringify({
+        title: `${senderName}`,
+        body: translatedText,
+        sound: '/mixkit-retro-game-notification-212.wav',
+        url: '/'
+    });
+
+    try {
+        await webpush.sendNotification(subscription, pushPayload);
+    } catch (err) {
+        if (err && (err.statusCode === 404 || err.statusCode === 410)) {
+            delete userPushSubscriptions[cleanRecipient];
+        } else {
+            console.error('Web Push send error:', err?.message || err);
+        }
+    }
+}
+
 io.on('connection', (socket) => {
     let currentUsername = null;
 
@@ -140,7 +173,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on('subscribe-push', ({ username, subscription }) => {
-        if (username) {
+        if (username && subscription) {
             userPushSubscriptions[username.toLowerCase().trim()] = subscription;
         }
     });
@@ -178,14 +211,7 @@ io.on('connection', (socket) => {
             io.to(recipientSocketId).emit('incoming-message', messagePayload);
         }
         
-        if (userPushSubscriptions[cleanRecipient]) {
-            const pushPayload = JSON.stringify({
-                title: `${senderName}`,
-                body: translatedText,
-                sound: '/mixkit-retro-game-notification-212.wav'
-            });
-            webpush.sendNotification(userPushSubscriptions[cleanRecipient], pushPayload).catch(() => {});
-        }
+        await sendPushToRecipient(cleanRecipient, senderName, translatedText);
 
         socket.emit('incoming-message', {
             ...messagePayload,
@@ -217,14 +243,7 @@ io.on('connection', (socket) => {
             io.to(recipientSocketId).emit('incoming-message', messagePayload);
         } 
         
-        if (userPushSubscriptions[cleanRecipient]) {
-            const pushPayload = JSON.stringify({
-                title: `${senderName}`,
-                body: translatedText,
-                sound: '/mixkit-retro-game-notification-212.wav'
-            });
-            webpush.sendNotification(userPushSubscriptions[cleanRecipient], pushPayload).catch(() => {});
-        }
+        await sendPushToRecipient(cleanRecipient, senderName, translatedText);
 
         socket.emit('incoming-message', {
             ...messagePayload,
