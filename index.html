@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="uk">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -839,6 +839,16 @@
 
         let unreadCount = parseInt(localStorage.getItem('habla_unread_count') || '0', 10) || 0;
 
+        function detectDefaultAppLang() {
+            const navLang = (navigator.language || '').toLowerCase();
+            if (navLang.startsWith('uk')) return 'Ukrainian';
+            if (navLang.startsWith('en')) return 'English';
+            if (navLang.startsWith('es')) return 'Spanish';
+            if (navLang.startsWith('de')) return 'German';
+            if (navLang.startsWith('fr')) return 'French';
+            return 'Ukrainian';
+        }
+
         const translations = {
             Ukrainian: {
                 settings_title: "Налаштування", update_app: "Оновлення програми", interface_lang: "Мова інтерфейсу",
@@ -1051,7 +1061,7 @@
             safeRenderContactsGrid(lastUsersData);
         });
 
-        let savedInterfaceLang = localStorage.getItem('habla_interface_lang') || 'Ukrainian';
+        let savedInterfaceLang = localStorage.getItem('habla_interface_lang') || detectDefaultAppLang();
         if (savedInterfaceLang === 'Russian') savedInterfaceLang = 'Ukrainian';
         interfaceLangSelect.value = savedInterfaceLang;
         applyLocalization(savedInterfaceLang);
@@ -1136,7 +1146,6 @@
 
         async function triggerHomeScreenBadgeAndNotification(senderName, bodyText, count) {
             const pushToggle = document.getElementById('push-notifications-toggle');
-            const badgeToggle = document.getElementById('app-badge-toggle');
 
             await updateAppBadge(count);
 
@@ -1359,7 +1368,8 @@
 
         function joinWithLanguage() {
             if (username) {
-                socket.emit('join', { username: username.trim(), lang: interfaceLangSelect.value });
+                const effectiveLang = interfaceLangSelect.value || detectDefaultAppLang();
+                socket.emit('join', { username: username.trim(), lang: effectiveLang });
                 syncSavedContactsToServer();
             }
         }
@@ -1632,7 +1642,7 @@
                 sender: username,
                 recipient: selectedRecipientName,
                 text: text,
-                targetLang: interfaceLangSelect.value
+                targetLang: interfaceLangSelect.value || detectDefaultAppLang()
             });
             testTextInput.value = '';
             testTextBox.classList.remove('active');
@@ -1676,7 +1686,7 @@
                                 sender: username, 
                                 recipient: selectedRecipientName, 
                                 audio: reader.result,
-                                targetLang: interfaceLangSelect.value 
+                                targetLang: interfaceLangSelect.value || detectDefaultAppLang()
                             });
                         };
                         stream.getTracks().forEach(t => t.stop());
