@@ -172,7 +172,7 @@
         .message-card {
             background: rgba(23, 33, 43, 0.9); border: 1px solid #2b5278; border-radius: 12px;
             padding: 8px 10px; color: #f5f5f5; font-size: 0.88rem; line-height: 1.3; position: relative;
-            padding-right: 32px; transform-origin: bottom center; transition: all 0.3s ease;
+            padding-right: 12px; transform-origin: bottom center; transition: all 0.3s ease;
         }
         .message-card.sent { border-color: #89a1b2; background: rgba(43, 82, 120, 0.4); align-self: flex-end; }
         .message-card.received { border-color: #2b5278; align-self: flex-start; }
@@ -190,12 +190,6 @@
         .msg-original-row { display: flex; align-items: center; gap: 5px; font-size: 0.78rem; color: #89a1b2; border-bottom: 1px solid rgba(137, 161, 178, 0.2); padding-bottom: 2px; }
         .lang-badge { background: rgba(137, 161, 178, 0.2); color: #f5f5f5; font-size: 0.6rem; padding: 1px 4px; border-radius: 3px; font-weight: bold; text-transform: uppercase; }
         .msg-translation-row { font-size: 0.9rem; color: #f5f5f5; }
-
-        .message-tts-btn {
-            position: absolute; right: 6px; bottom: 6px; background: none; border: none;
-            color: #89a1b2; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;
-        }
-        .message-tts-btn svg { width: 16px; height: 16px; fill: currentColor; }
 
         .neon-mic-btn {
             background: transparent; border: 1px solid #89a1b2; border-radius: 50%;
@@ -429,7 +423,6 @@
         <button id="author-ok-btn" class="modal-btn-save" data-i18n="modal_understood">Зрозуміло</button>
     </div>
 
-    <!-- Крок 1: Мобільне вікно встановлення додатка -->
     <div id="pwa-install-modal">
         <div class="welcome-card">
             <div class="welcome-logo-ring">
@@ -440,32 +433,27 @@
                 </svg>
             </div>
             <div class="welcome-title" data-i18n="pwa_modal_title">Встановити Habla Mobile</div>
-            <div class="welcome-subtitle" data-i18n="pwa_modal_subtitle">Встановіть додаток на головний екран для швидкого доступу, голосових повідомлень та індикатора непрочитаних на ярлику.</div>
+            <div class="welcome-subtitle" data-i18n="pwa_modal_subtitle">Встановіть додаток на головний екран для швидкого доступу, звукового сповіщення та цифри непрочитаних на ярлику.</div>
             <div id="pwa-install-status" class="welcome-status-note"></div>
             <button id="pwa-modal-install-btn" class="welcome-submit-btn" data-i18n="install_app">Встановити додаток</button>
             <button id="pwa-modal-skip-btn" class="welcome-secondary-btn" data-i18n="continue_in_browser">Продовжити у браузері</button>
         </div>
     </div>
 
-    <!-- Крок 2: Вікно реєстрації / введення нікнейму -->
     <div id="welcome-login-modal">
         <div class="welcome-card">
             <div class="welcome-logo-ring">
                 <svg viewBox="0 0 24 24" stroke-width="2">
-                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
-                    <path d="M19 10v1a7 7 0 0 1-14 0v-1"></path>
-                    <line x1="12" y1="19" x2="12" y2="23"></line>
-                    <line x1="8" y1="23" x2="16" y2="23"></line>
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                 </svg>
             </div>
             <div class="welcome-title">Habla Mobile</div>
-            <div class="welcome-subtitle" data-i18n="welcome_subtitle">Введіть ваш нікнейм для миттєвого голосового перекладу та зв'язку</div>
+            <div class="welcome-subtitle" data-i18n="welcome_subtitle">Введіть ваш нікнейм для миттєвого перекладу та повідомлень</div>
             <input type="text" id="welcome-nickname-input" class="welcome-input" placeholder="Ваш нікнейм..." autocomplete="off">
             <button id="welcome-submit-btn" class="welcome-submit-btn" data-i18n="welcome_enter">Увійти</button>
         </div>
     </div>
 
-    <!-- Крок 3: Вікно нагадування про сповіщення та бейдж ярлика -->
     <div id="push-reminder-modal">
         <div class="welcome-card">
             <button id="close-push-reminder-btn" class="modal-close-btn" style="position: absolute; top: 14px; right: 16px;">✕</button>
@@ -476,7 +464,7 @@
                 </svg>
             </div>
             <div class="welcome-title" data-i18n="push_reminder_title">Сповіщення вимкнені</div>
-            <div class="welcome-subtitle" data-i18n="push_reminder_desc">Увімкніть сповіщення, звук та індикатор на ярлику додатка (як у Telegram/Viber), щоб бачити непрочитані повідомлення.</div>
+            <div class="welcome-subtitle" data-i18n="push_reminder_desc">Увімкніть звукове сповіщення та цифру непрочитаних на ярлику додатка.</div>
             <div id="push-reminder-status" class="welcome-status-note" data-i18n="push_not_active">Сповіщення ще не активовані.</div>
             <button id="push-reminder-enable-btn" class="welcome-submit-btn" data-i18n="enable_push_btn">Увімкнути сповіщення</button>
         </div>
@@ -527,7 +515,7 @@
         <main class="main-screen">
             <div id="messages-stack" class="messages-stack-container"></div>
 
-            <button id="mic-button" class="neon-mic-btn" title="Натисніть для запису голосу">
+            <button id="mic-button" class="neon-mic-btn" title="Натисніть для запису">
                 <div id="selected-recipient-display" class="selected-recipient-inside"></div>
                 <div id="recording-timer" class="recording-timer">00:00</div>
                 <div id="habla-label" class="habla-text-label">Habla</div>
@@ -619,35 +607,20 @@
                 </div>
             </div>
             <div class="settings-card">
-                <div class="settings-row" id="toggle-voice-dropdown">
-                    <span data-i18n="voice_over">Озвучування перекладу</span>
-                    <span class="dropdown-arrow" id="voice-arrow">▼</span>
-                </div>
-                <div class="sub-options-box" id="voice-options-box">
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0;">
-                        <span style="font-size: 0.85rem; color: #f5f5f5;" data-i18n="force_voice">Примусово озвучувати</span>
-                        <label class="switch">
-                            <input type="checkbox" id="sound-toggle">
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-                </div>
-            </div>
-            <div class="settings-card">
                 <div class="settings-row" id="toggle-notifications-dropdown">
-                    <span data-i18n="notifications_settings">Сповіщення та бейджі</span>
+                    <span data-i18n="notifications_settings">Звук та цифра на ярлику</span>
                     <span class="dropdown-arrow" id="notifications-arrow">▼</span>
                 </div>
                 <div class="sub-options-box" id="notifications-options-box">
                     <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0;">
-                        <span style="font-size: 0.85rem; color: #f5f5f5;" data-i18n="push_notifications">Системні сповіщення та звук</span>
+                        <span style="font-size: 0.85rem; color: #f5f5f5;" data-i18n="push_notifications">Звукове сповіщення</span>
                         <label class="switch">
                             <input type="checkbox" id="push-notifications-toggle" checked>
                             <span class="slider"></span>
                         </label>
                     </div>
                     <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-top: 1px solid rgba(137, 161, 178, 0.15);">
-                        <span style="font-size: 0.85rem; color: #f5f5f5;" data-i18n="app_badge">Лічильник на іконці (Badge)</span>
+                        <span style="font-size: 0.85rem; color: #f5f5f5;" data-i18n="app_badge">Цифра на ярлику (Badge)</span>
                         <label class="switch">
                             <input type="checkbox" id="app-badge-toggle" checked>
                             <span class="slider"></span>
@@ -852,146 +825,146 @@
         const translations = {
             Ukrainian: {
                 settings_title: "Налаштування", update_app: "Оновлення програми", interface_lang: "Мова інтерфейсу",
-                voice_over: "Озвучування перекладу", force_voice: "Примусово озвучувати", saved_contacts: "Збережені контакти",
-                profile_settings: "Налаштування профілю", add: "Додати", add_new_contact: "Додати новий контакт", cancel: "Скасувати",
-                tab_home: "Головна", tab_contacts: "Контакти", tab_keyboard: "Текст", tab_qr: "QR", tab_settings: "Налаштування",
+                saved_contacts: "Збережені контакти", profile_settings: "Налаштування профілю", add: "Додати",
+                add_new_contact: "Додати новий контакт", cancel: "Скасувати", tab_home: "Головна",
+                tab_contacts: "Контакти", tab_keyboard: "Текст", tab_qr: "QR", tab_settings: "Налаштування",
                 save: "Зберегти", delete_contact: "Видалити контакт", show_all: "Показати всі", collapse: "Згорнути",
-                copy_link: "Копіювати", install_app: "Встановити додаток", welcome_subtitle: "Введіть ваш нікнейм для миттєвого голосового перекладу",
+                copy_link: "Копіювати", install_app: "Встановити додаток", welcome_subtitle: "Введіть ваш нікнейм для миттєвого перекладу та повідомлень",
                 welcome_enter: "Увійти", test_text_placeholder: "Введіть текст...",
                 watermark: "© 2026 Stasan Habla Mobile. Усі права захищено.",
                 author_modal_title: "Про автора та проєкт",
                 author_label: "Автор проєкту:",
                 about_app_label: "Про додаток:",
-                about_app_desc: "Habla Mobile — це сучасний захищений месенджер з голосовим та текстовим перекладом у реальному часі.",
+                about_app_desc: "Habla Mobile — месенджер з перекладом у реальному часі, звуковим сповіщенням і лічильником на ярлику.",
                 modal_understood: "Зрозуміло",
                 change_nickname: "Змінити нікнейм:",
                 icon_bg_color: "Колір фону іконки:",
                 avatar_gallery_label: "Фото аватарки (з галереї JPEG / PNG):",
                 choose_gallery_photo: "📁 Вибрати фото з галереї",
-                notifications_settings: "Сповіщення та бейджі",
-                push_notifications: "Системні сповіщення та звук",
-                app_badge: "Лічильник на іконці (Badge)",
+                notifications_settings: "Звук та цифра на ярлику",
+                push_notifications: "Звукове сповіщення",
+                app_badge: "Цифра на ярлику (Badge)",
                 pwa_modal_title: "Встановити Habla Mobile",
-                pwa_modal_subtitle: "Встановіть додаток на головний екран для швидкого доступу, голосових повідомлень та індикатора непрочитаних на ярлику.",
+                pwa_modal_subtitle: "Встановіть додаток на головний екран для швидкого доступу, звукового сповіщення та цифри непрочитаних на ярлику.",
                 continue_in_browser: "Продовжити у браузері",
                 push_reminder_title: "Сповіщення вимкнені",
-                push_reminder_desc: "Увімкніть сповіщення, звук та індикатор на ярлику додатка (як у Telegram/Viber), щоб бачити непрочитані повідомлення.",
+                push_reminder_desc: "Увімкніть звукове сповіщення та цифру непрочитаних на ярлику додатка.",
                 push_not_active: "Сповіщення ще не активовані.",
                 enable_push_btn: "Увімкнути сповіщення"
             },
             English: {
                 settings_title: "Settings", update_app: "Update App", interface_lang: "Interface Language",
-                voice_over: "Voice-over Translation", force_voice: "Force voice-over", saved_contacts: "Saved Contacts",
-                profile_settings: "Profile Settings", add: "Add", add_new_contact: "Add New Contact", cancel: "Cancel",
-                tab_home: "Home", tab_contacts: "Contacts", tab_keyboard: "Text", tab_qr: "QR", tab_settings: "Settings",
+                saved_contacts: "Saved Contacts", profile_settings: "Profile Settings", add: "Add",
+                add_new_contact: "Add New Contact", cancel: "Cancel", tab_home: "Home",
+                tab_contacts: "Contacts", tab_keyboard: "Text", tab_qr: "QR", tab_settings: "Settings",
                 save: "Save", delete_contact: "Delete contact", show_all: "Show all", collapse: "Collapse",
-                copy_link: "Copy Link", install_app: "Install App", welcome_subtitle: "Enter your nickname for instant translation",
+                copy_link: "Copy Link", install_app: "Install App", welcome_subtitle: "Enter your nickname for instant translation and messages",
                 welcome_enter: "Enter", test_text_placeholder: "Type a message...",
                 watermark: "© 2026 Stasan Habla Mobile. All rights reserved.",
                 author_modal_title: "About Author & Project",
                 author_label: "Project Author:",
                 about_app_label: "About App:",
-                about_app_desc: "Habla Mobile is a modern secure messenger with real-time voice and text translation.",
+                about_app_desc: "Habla Mobile — messenger with real-time translation, sound alert, and icon badge counter.",
                 modal_understood: "Understood",
                 change_nickname: "Change nickname:",
                 icon_bg_color: "Icon background color:",
                 avatar_gallery_label: "Avatar photo (from gallery JPEG / PNG):",
                 choose_gallery_photo: "📁 Choose photo from gallery",
-                notifications_settings: "Notifications & Badges",
-                push_notifications: "System Notifications & Sound",
-                app_badge: "App Icon Badge",
+                notifications_settings: "Sound & Icon Badge",
+                push_notifications: "Sound Notification",
+                app_badge: "Icon Badge Counter",
                 pwa_modal_title: "Install Habla Mobile",
-                pwa_modal_subtitle: "Install the app on your home screen for quick access, voice messages, and unread badge on the icon.",
+                pwa_modal_subtitle: "Install the app on your home screen for quick access, sound alert, and unread badge on the icon.",
                 continue_in_browser: "Continue in browser",
                 push_reminder_title: "Notifications Off",
-                push_reminder_desc: "Enable notifications, sound, and home screen icon badge (like Telegram/Viber) to see unread messages.",
+                push_reminder_desc: "Enable sound notification and unread badge counter on the app icon.",
                 push_not_active: "Notifications are not active yet.",
                 enable_push_btn: "Enable notifications"
             },
             Spanish: {
                 settings_title: "Ajustes", update_app: "Actualizar aplicación", interface_lang: "Idioma de interfaz",
-                voice_over: "Voz de traducción", force_voice: "Forzar voz", saved_contacts: "Contactos guardados",
-                profile_settings: "Ajustes de perfil", add: "Añadir", add_new_contact: "Añadir nuevo contacto", cancel: "Cancelar",
-                tab_home: "Inicio", tab_contacts: "Contactos", tab_keyboard: "Texto", tab_qr: "QR", tab_settings: "Ajustes",
+                saved_contacts: "Contactos guardados", profile_settings: "Ajustes de perfil", add: "Añadir",
+                add_new_contact: "Añadir nuevo contacto", cancel: "Cancelar", tab_home: "Inicio",
+                tab_contacts: "Contactos", tab_keyboard: "Texto", tab_qr: "QR", tab_settings: "Ajustes",
                 save: "Guardar", delete_contact: "Eliminar contacto", show_all: "Mostrar todos", collapse: "Contraer",
-                copy_link: "Copiar enlace", install_app: "Instalar aplicación", welcome_subtitle: "Introduce tu apodo",
+                copy_link: "Copiar enlace", install_app: "Instalar aplicación", welcome_subtitle: "Introduce tu apodo para traducción y mensajes al instante",
                 welcome_enter: "Entrar", test_text_placeholder: "Escribe un mensaje...",
                 watermark: "© 2026 Stasan Habla Mobile. Todos los derechos reservados.",
                 author_modal_title: "Sobre el autor y proyecto",
                 author_label: "Autor del proyecto:",
                 about_app_label: "Sobre la aplicación:",
-                about_app_desc: "Habla Mobile es un mensajero seguro moderno con traducción de voz y texto en tiempo real.",
+                about_app_desc: "Habla Mobile — mensajero con traducción en tiempo real, sonido y contador en el icono.",
                 modal_understood: "Entendido",
                 change_nickname: "Cambiar apodo:",
                 icon_bg_color: "Color de fondo del icono:",
                 avatar_gallery_label: "Foto de avatar (galería JPEG / PNG):",
                 choose_gallery_photo: "📁 Elegir foto de galería",
-                notifications_settings: "Notificaciones y medallas",
-                push_notifications: "Notificaciones del sistema y sonido",
-                app_badge: "Insignia en icono",
+                notifications_settings: "Sonido y contador en icono",
+                push_notifications: "Notificación sonora",
+                app_badge: "Contador en icono (Badge)",
                 pwa_modal_title: "Instalar Habla Mobile",
-                pwa_modal_subtitle: "Instala la aplicación en tu pantalla de inicio para acceso rápido y contador en el icono.",
+                pwa_modal_subtitle: "Instala la aplicación en tu pantalla de inicio para acceso rápido, sonido y contador en el icono.",
                 continue_in_browser: "Continuar en el navegador",
                 push_reminder_title: "Notificaciones desactivadas",
-                push_reminder_desc: "Activa las notificaciones, el sonido y el contador en el icono (como Telegram/Viber).",
+                push_reminder_desc: "Activa el sonido y el contador de no leídos en el icono de la app.",
                 push_not_active: "Las notificaciones aún no están activadas.",
                 enable_push_btn: "Activar notificaciones"
             },
             German: {
                 settings_title: "Einstellungen", update_app: "App aktualisieren", interface_lang: "Sprache",
-                voice_over: "Übersetzungssprache", force_voice: "Sprachausgabe erzwingen", saved_contacts: "Kontakte",
-                profile_settings: "Profileinstellungen", add: "Hinzufügen", add_new_contact: "Neuen Kontakt hinzufügen", cancel: "Abbrechen",
-                tab_home: "Start", tab_contacts: "Kontakte", tab_keyboard: "Text", tab_qr: "QR", tab_settings: "Einstellungen",
+                saved_contacts: "Kontakte", profile_settings: "Profileinstellungen", add: "Hinzufügen",
+                add_new_contact: "Neuen Kontakt hinzufügen", cancel: "Abbrechen", tab_home: "Start",
+                tab_contacts: "Kontakte", tab_keyboard: "Text", tab_qr: "QR", tab_settings: "Einstellungen",
                 save: "Speichern", delete_contact: "Löschen", show_all: "Alle anzeigen", collapse: "Einklappen",
-                copy_link: "Link kopieren", install_app: "Installieren", welcome_subtitle: "Gib deinen Spitznamen ein",
+                copy_link: "Link kopieren", install_app: "Installieren", welcome_subtitle: "Gib deinen Spitznamen für Sofortübersetzung ein",
                 welcome_enter: "Beitreten", test_text_placeholder: "Nachricht eingeben...",
                 watermark: "© 2026 Stasan Habla Mobile. Alle Rechte vorbehalten.",
                 author_modal_title: "Über Autor & Projekt",
                 author_label: "Projektautor:",
                 about_app_label: "Über die App:",
-                about_app_desc: "Habla Mobile ist ein moderner, sicherer Messenger mit Echtzeit-Sprach- und Textübersetzung.",
+                about_app_desc: "Habla Mobile — Messenger mit Echtzeit-Übersetzung, Ton und Symbol-Zähler.",
                 modal_understood: "Verstanden",
                 change_nickname: "Spitznamen ändern:",
                 icon_bg_color: "Symbol-Hintergrundfarbe:",
                 avatar_gallery_label: "Avatar-Foto (aus Galerie JPEG / PNG):",
                 choose_gallery_photo: "📁 Foto aus Galerie wählen",
-                notifications_settings: "Benachrichtigungen & Badges",
-                push_notifications: "Systembenachrichtigungen & Ton",
-                app_badge: "App-Symbol-Badge",
+                notifications_settings: "Ton & Symbol-Zähler",
+                push_notifications: "Tonbenachrichtigung",
+                app_badge: "Symbol-Zähler (Badge)",
                 pwa_modal_title: "Habla Mobile installieren",
-                pwa_modal_subtitle: "Installiere die App auf dem Startbildschirm für schnellen Zugriff und Ungelesen-Zähler.",
+                pwa_modal_subtitle: "Installiere die App auf dem Startbildschirm für Tonbenachrichtigung und Ungelesen-Zähler.",
                 continue_in_browser: "Im Browser fortfahren",
                 push_reminder_title: "Benachrichtigungen aus",
-                push_reminder_desc: "Aktiviere Benachrichtigungen, Ton und Symbol-Badge (wie Telegram/Viber).",
+                push_reminder_desc: "Aktiviere Ton und Ungelesen-Zähler auf dem App-Symbol.",
                 push_not_active: "Benachrichtigungen sind noch nicht aktiv.",
                 enable_push_btn: "Benachrichtigungen aktivieren"
             },
             French: {
                 settings_title: "Paramètres", update_app: "Mettre à jour", interface_lang: "Langue",
-                voice_over: "Voix de traduction", force_voice: "Forcer la voix", saved_contacts: "Contacts",
-                profile_settings: "Profil", add: "Ajouter", add_new_contact: "Ajouter un nouveau contact", cancel: "Annuler",
-                tab_home: "Accueil", tab_contacts: "Contacts", tab_keyboard: "Texte", tab_qr: "QR", tab_settings: "Paramètres",
+                saved_contacts: "Contacts", profile_settings: "Profil", add: "Ajouter",
+                add_new_contact: "Ajouter un nouveau contact", cancel: "Annuler", tab_home: "Accueil",
+                tab_contacts: "Contacts", tab_keyboard: "Texte", tab_qr: "QR", tab_settings: "Paramètres",
                 save: "Enregistrer", delete_contact: "Supprimer", show_all: "Tout afficher", collapse: "Réduire",
-                copy_link: "Copier", install_app: "Installer", welcome_subtitle: "Entrez votre pseudo",
+                copy_link: "Copier", install_app: "Installer", welcome_subtitle: "Entrez votre pseudo pour traduction instantanée",
                 welcome_enter: "Entrer", test_text_placeholder: "Écrivez un message...",
                 watermark: "© 2026 Stasan Habla Mobile. Tous droits réservés.",
                 author_modal_title: "À propos de l'auteur et du projet",
                 author_label: "Auteur du projet :",
                 about_app_label: "À propos de l'application :",
-                about_app_desc: "Habla Mobile est une messagerie sécurisée moderne avec traduction vocale et textuelle en temps réel.",
+                about_app_desc: "Habla Mobile — messagerie avec traduction en temps réel, son et compteur sur l'icône.",
                 modal_understood: "Compris",
                 change_nickname: "Changer le pseudo :",
                 icon_bg_color: "Couleur de fond de l'icône :",
                 avatar_gallery_label: "Photo d'avatar (galerie JPEG / PNG) :",
                 choose_gallery_photo: "📁 Choisir une photo de la galerie",
-                notifications_settings: "Notifications et badges",
-                push_notifications: "Notifications système et son",
-                app_badge: "Badge d'icône",
+                notifications_settings: "Son et compteur sur l'icône",
+                push_notifications: "Notification sonore",
+                app_badge: "Compteur sur l'icône (Badge)",
                 pwa_modal_title: "Installer Habla Mobile",
-                pwa_modal_subtitle: "Installez l'application sur l'écran d'accueil pour un accès rapide et le compteur sur l'icône.",
+                pwa_modal_subtitle: "Installez l'application sur l'écran d'accueil pour le son et le compteur de non lus sur l'icône.",
                 continue_in_browser: "Continuer dans le navigateur",
                 push_reminder_title: "Notifications désactivées",
-                push_reminder_desc: "Activez les notifications, le son et le badge d'icône (comme Telegram/Viber).",
+                push_reminder_desc: "Activez la notification sonore et le compteur sur l'icône de l'application.",
                 push_not_active: "Les notifications ne sont pas encore activées.",
                 enable_push_btn: "Activer les notifications"
             }
@@ -1144,60 +1117,13 @@
             }
         }
 
-        async function triggerHomeScreenBadgeAndNotification(senderName, bodyText, count) {
-            const pushToggle = document.getElementById('push-notifications-toggle');
-
+        async function triggerHomeScreenBadge(count) {
             await updateAppBadge(count);
-
-            if (pushToggle && !pushToggle.checked) return;
-            if (!('Notification' in window) || Notification.permission !== 'granted') return;
-
-            if ('serviceWorker' in navigator) {
-                try {
-                    const reg = swRegistration || await navigator.serviceWorker.ready;
-                    if (reg && reg.active) {
-                        reg.active.postMessage({
-                            type: 'LOCAL_NOTIFY',
-                            title: senderName || 'Habla Mobile',
-                            body: bodyText || 'Нове повідомлення',
-                            count: count
-                        });
-                        return;
-                    }
-                    if (reg && reg.showNotification) {
-                        await reg.showNotification(senderName || 'Habla Mobile', {
-                            body: bodyText || 'Нове повідомлення',
-                            icon: '/icon.png',
-                            badge: '/icon.png',
-                            tag: 'habla-unread-msg',
-                            renotify: true,
-                            vibrate: [200, 100, 200]
-                        });
-                        return;
-                    }
-                } catch (e) {}
-            }
-
-            try {
-                const notif = new Notification(senderName || 'Habla Mobile', {
-                    body: bodyText || 'Нове повідомлення',
-                    icon: '/icon.png',
-                    badge: '/icon.png',
-                    tag: 'habla-unread-msg',
-                    renotify: true
-                });
-                notif.onclick = function () {
-                    window.focus();
-                    clearBackgroundAlertState();
-                    notif.close();
-                };
-            } catch (e) {}
         }
 
         async function registerPushAndBadge(requestPromptIfNeeded = false) {
             const pushToggle = document.getElementById('push-notifications-toggle');
             if (pushToggle && !pushToggle.checked) return false;
-            if (!('Notification' in window)) return false;
 
             isPushActionInProgress = true;
             try {
@@ -1205,21 +1131,17 @@
                     swRegistration = await navigator.serviceWorker.register('/sw.js').catch(() => null);
                 }
 
-                let perm = Notification.permission;
-                if (perm === 'default' && requestPromptIfNeeded) {
-                    perm = await Notification.requestPermission();
+                if ('Notification' in window && Notification.permission === 'default' && requestPromptIfNeeded) {
+                    await Notification.requestPermission().catch(() => null);
                 }
 
-                if (perm === 'granted') {
-                    localStorage.setItem('habla_local_notif_enabled', '1');
-                    pushReminderModal.classList.remove('active');
-                    if (pushReminderStatus) {
-                        pushReminderStatus.textContent = 'Сповіщення та бейдж на ярлику активовані.';
-                    }
-                    await updateAppBadge(unreadCount);
-                    return true;
+                localStorage.setItem('habla_local_notif_enabled', '1');
+                pushReminderModal.classList.remove('active');
+                if (pushReminderStatus) {
+                    pushReminderStatus.textContent = 'Звук та цифра на ярлику активовані.';
                 }
-                return false;
+                await updateAppBadge(unreadCount);
+                return true;
             } catch (e) {
                 return false;
             } finally {
@@ -1230,30 +1152,14 @@
         async function evaluatePushReminderModal() {
             if (isPushActionInProgress) return;
             const pushToggle = document.getElementById('push-notifications-toggle');
-            if (!username) {
+            if (!username || (pushToggle && !pushToggle.checked)) {
                 pushReminderModal.classList.remove('active');
                 return;
             }
-            if (pushToggle && !pushToggle.checked) {
+            if (localStorage.getItem('habla_local_notif_enabled') === '1') {
                 pushReminderModal.classList.remove('active');
                 return;
             }
-            if (!('Notification' in window)) {
-                pushReminderModal.classList.remove('active');
-                return;
-            }
-
-            if (Notification.permission === 'granted') {
-                localStorage.setItem('habla_local_notif_enabled', '1');
-                pushReminderModal.classList.remove('active');
-                return;
-            }
-
-            if (Notification.permission === 'denied') {
-                pushReminderModal.classList.remove('active');
-                return;
-            }
-
             pushReminderModal.classList.add('active');
         }
 
@@ -1303,12 +1209,8 @@
         if (pushReminderEnableBtn) {
             pushReminderEnableBtn.addEventListener('click', async () => {
                 if (pushReminderStatus) pushReminderStatus.textContent = 'Активуємо сповіщення...';
-                const ok = await registerPushAndBadge(true);
-                if (ok || Notification.permission === 'granted') {
-                    pushReminderModal.classList.remove('active');
-                } else if (pushReminderStatus) {
-                    pushReminderStatus.textContent = 'Дозвіл не надано. Перевірте налаштування сповіщень у браузері.';
-                }
+                await registerPushAndBadge(true);
+                pushReminderModal.classList.remove('active');
             });
         }
 
@@ -1322,8 +1224,7 @@
         if (pushNotificationsToggleEl) {
             pushNotificationsToggleEl.addEventListener('change', async () => {
                 if (pushNotificationsToggleEl.checked) {
-                    await registerPushAndBadge(true);
-                    await evaluatePushReminderModal();
+                    await registerPushAndBadge(false);
                 } else {
                     stopTabTitleBlink();
                     pushReminderModal.classList.remove('active');
@@ -1336,6 +1237,8 @@
             appBadgeToggleEl.addEventListener('change', () => {
                 if (!appBadgeToggleEl.checked) {
                     updateAppBadge(0);
+                } else {
+                    updateAppBadge(unreadCount);
                 }
             });
         }
@@ -1557,11 +1460,14 @@
         });
 
         function addMessageToStack(text, sender, isSent = false, originalText = null) {
+            const mainText = (text || originalText || '').trim();
+            if (!mainText || mainText === '[Голосове повідомлення]') return;
+
             const card = document.createElement('div');
             card.className = `message-card ${isSent ? 'sent' : 'received'}`;
             
             let contentHtml = '';
-            if (originalText && originalText.trim() !== text.trim()) {
+            if (originalText && originalText.trim() && originalText.trim() !== mainText) {
                 const detectedLang = detectMessageLanguage(originalText);
                 contentHtml = `
                     <div class="dual-msg-wrapper">
@@ -1569,22 +1475,18 @@
                             <span class="lang-badge">${detectedLang}</span>
                             <span>${escapeHtml(originalText)}</span>
                         </div>
-                        <div class="msg-translation-row">${escapeHtml(text)}</div>
+                        <div class="msg-translation-row">${escapeHtml(mainText)}</div>
                     </div>
                 `;
             } else {
-                contentHtml = `<div>${escapeHtml(text)}</div>`;
+                contentHtml = `<div>${escapeHtml(mainText)}</div>`;
             }
 
             card.innerHTML = `
                 <div class="message-sender-tag">${isSent ? `Ви ➔ ${selectedRecipientName || 'Контакт'}` : (sender || 'Контакт')}</div>
                 ${contentHtml}
-                <button class="message-tts-btn" title="Прослухати">
-                    <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
-                </button>
             `;
 
-            card.querySelector('.message-tts-btn').addEventListener('click', (e) => { e.stopPropagation(); speakText(text); });
             messagesStack.appendChild(card);
             displayedMessages.push(card);
             updateStackStyles();
@@ -1718,45 +1620,33 @@
         });
 
         socket.on('incoming-message', async (data) => {
-            if (data.text) {
-                const isSelf = data.sender === username || data.isSent;
-                const senderLabel = data.sender || 'Контакт';
-                
-                if (!isSelf && data.sender) {
-                    setRecipient(data.sender);
+            const msgText = (data && (data.text || data.originalText) || '').trim();
+            if (!msgText || msgText === '[Голосове повідомлення]') return;
+
+            const isSelf = data.sender === username || data.isSent;
+            const senderLabel = data.sender || 'Контакт';
+            
+            if (!isSelf && data.sender) {
+                setRecipient(data.sender);
+            }
+
+            addMessageToStack(msgText, senderLabel, isSelf, data.originalText);
+
+            if (!isSelf) {
+                if (data.sender) {
+                    recordTokenUsage(data.sender, 20);
                 }
 
-                addMessageToStack(data.text, senderLabel, isSelf, data.originalText);
-
-                if (!isSelf) {
-                    if (data.sender) {
-                        recordTokenUsage(data.sender, 20);
-                    }
-
-                    const isBackgroundOrUnfocused = document.hidden || !document.hasFocus();
-                    if (isBackgroundOrUnfocused) {
-                        const nextUnread = unreadCount + 1;
-                        startTabTitleBlink(senderLabel);
-                        await triggerHomeScreenBadgeAndNotification(senderLabel, data.text, nextUnread);
-                    }
-
-                    playNotificationSound();
-
-                    if (document.getElementById('sound-toggle').checked) {
-                        speakText(data.text);
-                    }
+                const isBackgroundOrUnfocused = document.hidden || !document.hasFocus();
+                if (isBackgroundOrUnfocused) {
+                    const nextUnread = unreadCount + 1;
+                    startTabTitleBlink(senderLabel);
+                    await triggerHomeScreenBadge(nextUnread);
                 }
+
+                playNotificationSound();
             }
         });
-
-        const ttsLangMap = { 'Ukrainian': 'uk-UA', 'English': 'en-US', 'Spanish': 'es-ES', 'German': 'de-DE', 'French': 'fr-FR' };
-        function speakText(text) {
-            if (!('speechSynthesis' in window)) return;
-            window.speechSynthesis.cancel();
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = ttsLangMap[interfaceLangSelect.value] || 'uk-UA';
-            window.speechSynthesis.speak(utterance);
-        }
 
         document.getElementById('update-app-btn').addEventListener('click', async () => {
             try {
@@ -1789,10 +1679,6 @@
         document.getElementById('toggle-lang-dropdown').addEventListener('click', () => {
             document.getElementById('lang-options-box').classList.toggle('active');
             document.getElementById('lang-arrow').classList.toggle('open');
-        });
-        document.getElementById('toggle-voice-dropdown').addEventListener('click', () => {
-            document.getElementById('voice-options-box').classList.toggle('active');
-            document.getElementById('voice-arrow').classList.toggle('open');
         });
         document.getElementById('toggle-notifications-dropdown').addEventListener('click', () => {
             document.getElementById('notifications-options-box').classList.toggle('active');
