@@ -40,6 +40,9 @@ self.addEventListener('notificationclick', function (event) {
             for (let i = 0; i < clientList.length; i++) {
                 const client = clientList[i];
                 if ('focus' in client) {
+                    if ('navigate' in client && targetUrl && !client.url.endsWith(targetUrl)) {
+                        return client.navigate(targetUrl).then(() => client.focus());
+                    }
                     return client.focus();
                 }
             }
