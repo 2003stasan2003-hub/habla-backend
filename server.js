@@ -16,14 +16,14 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(express.static(path.join(__dirname)));
 
-const publicVapidKey = process.env.VAPID_PUBLIC_KEY || '';
+const publicVapidKey = process.env.VAPID_PUBLIC_KEY || 'BP_THGEIwmo7Npka3AqDRmOnT-zXf_V6wC5j_mdo9qrA4JWin71UsPryXS2h4HzrxNqX4m6IqfWHTPT_xfbLVw';
 const privateVapidKey = process.env.VAPID_PRIVATE_KEY || '';
 
 if (publicVapidKey && privateVapidKey) {
     try {
         webpush.setVapidDetails('mailto:admin@habla.com', publicVapidKey, privateVapidKey);
     } catch (e) {
-        console.warn('VAPID setup skipped:', e.message);
+        console.warn('VAPID config warning:', e.message);
     }
 }
 
@@ -37,8 +37,7 @@ const FALLBACK_MODELS = [
     "llama3-70b-8192",
     "llama3-8b-8192",
     "gemma2-9b-it",
-    "mixtral-8x7b-32768",
-    "llama-guard-3-8b"
+    "mixtral-8x7b-32768"
 ];
 
 const LANG_CODE_MAP = {
@@ -49,10 +48,9 @@ const LANG_CODE_MAP = {
     French: 'fr'
 };
 
-function normalizeLangName(rawLang) {
-    if (!rawLang) return 'Ukrainian';
-    const clean = String(rawLang).trim();
-    const lower = clean.toLowerCase();
+function normalizeLang(lang) {
+    if (!lang) return 'Ukrainian';
+    const lower = String(lang).trim().toLowerCase();
     if (lower.startsWith('uk') || lower.includes('ukrain')) return 'Ukrainian';
     if (lower.startsWith('en') || lower.includes('engl')) return 'English';
     if (lower.startsWith('es') || lower.includes('span')) return 'Spanish';
@@ -61,30 +59,26 @@ function normalizeLangName(rawLang) {
     return 'Ukrainian';
 }
 
-async function fallbackGoogleTranslate(text, targetLang) {
-    const targetCode = LANG_CODE_MAP[normalizeLangName(targetLang)] || 'uk';
+async function googleFallbackTranslate(text, targetLang) {
+    const cleanTarget = normalizeLang(targetLang);
+    const tl = LANG_CODE_MAP[cleanTarget] || 'uk';
     try {
-        if (typeof fetch !== 'function') return text;
-        const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${encodeURIComponent(targetCode)}&dt=t&q=${encodeURIComponent(text)}`;
-        const signal = typeof AbortSignal !== 'undefined' && AbortSignal.timeout
-            ? AbortSignal.timeout(4000)
-            : undefined;
-        const resp = await fetch(url, { signal });
-        if (!resp.ok) return text;
-        const data = await resp.json();
+        const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${encodeURIComponent(tl)}&dt=t&q=${encodeURIComponent(text)}`;
+        const signal = typeof AbortSignal !== 'undefined' && AbortSignal.timeout ? AbortSignal.timeout(4500) : undefined;
+        const res = await fetch(url, { signal });
+        if (!res.ok) return text;
+        const data = await res.json();
         if (Array.isArray(data) && Array.isArray(data[0])) {
-            const translated = data[0].map(part => (Array.isArray(part) ? part[0] : '')).join('').trim();
-            if (translated) return translated;
+            const out = data[0].map(item => (Array.isArray(item) ? item[0] : '')).join('').trim();
+            if (out) return out;
         }
-        return text;
-    } catch (e) {
-        return text;
-    }
+    } catch (e) {}
+    return text;
 }
 
 async function translateText(text, targetLang) {
     if (!text || !text.trim()) return text;
-    const cleanTargetLang = normalizeLangName(targetLang);
+    const cleanTargetLang = normalizeLang(targetLang);
 
     if (GROQ_API_KEY) {
         let modelsToTry = [...FALLBACK_MODELS];
@@ -124,7 +118,7 @@ async function translateText(text, targetLang) {
                         temperature: 0.1
                     })
                 });
-
+                
                 const data = await response.json();
                 if (data.error) continue;
 
@@ -134,7 +128,7 @@ async function translateText(text, targetLang) {
         }
     }
 
-    return await fallbackGoogleTranslate(text, cleanTargetLang);
+    return await googleFallbackTranslate(text, cleanTargetLang);
 }
 
 async function transcribeAudio(base64Audio) {
@@ -143,11 +137,10 @@ async function transcribeAudio(base64Audio) {
         const base64Data = base64Audio.split(';base64,').pop();
         const buffer = Buffer.from(base64Data, 'base64');
         const blob = new Blob([buffer], { type: 'audio/webm' });
-
+        
         const formData = new FormData();
         formData.append('file', blob, 'audio.webm');
         formData.append('model', 'whisper-large-v3');
-        formData.append('language', 'uk');
 
         const response = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
             method: 'POST',
@@ -162,47 +155,45 @@ async function transcribeAudio(base64Audio) {
 }
 
 let activeSockets = {};
-let userLanguages = {};
+let userSockets = {};
+let userDisplayNames = {};
+let userLanguages = {}; 
 let userPushSubscriptions = {};
 let userCustomizations = {};
-let knownUsers = new Set();
+let userUnreadCounts = {};
 
-function findSocketsByUsername(targetName) {
-    const clean = (targetName || '').toLowerCase().trim();
-    if (!clean) return [];
-    return Object.entries(activeSockets)
-        .filter(([, name]) => name && name.toLowerCase().trim() === clean)
-        .map(([sockId]) => sockId);
+function emitToAllUserDevices(userKey, eventName, payload) {
+    const cleanKey = (userKey || '').toLowerCase().trim();
+    const sockSet = userSockets[cleanKey];
+    if (!sockSet) return false;
+    let sent = false;
+    sockSet.forEach(sockId => {
+        if (activeSockets[sockId]) {
+            io.to(sockId).emit(eventName, payload);
+            sent = true;
+        }
+    });
+    return sent;
 }
 
-function getRecipientLanguage(cleanRecipient, fallbackLang) {
-    const foundKey = Object.keys(userLanguages).find(k => k.toLowerCase().trim() === cleanRecipient);
-    if (foundKey && userLanguages[foundKey]) {
-        return normalizeLangName(userLanguages[foundKey]);
+async function sendPushNotification(userKey, payloadObj) {
+    const cleanKey = (userKey || '').toLowerCase().trim();
+    const subs = userPushSubscriptions[cleanKey];
+    if (!subs || subs.length === 0 || !privateVapidKey) return;
+
+    const payloadStr = JSON.stringify(payloadObj);
+    const validSubs = [];
+    for (const sub of subs) {
+        try {
+            await webpush.sendNotification(sub, payloadStr);
+            validSubs.push(sub);
+        } catch (err) {
+            if (err && err.statusCode !== 410 && err.statusCode !== 404) {
+                validSubs.push(sub);
+            }
+        }
     }
-    return normalizeLangName(fallbackLang || 'Ukrainian');
-}
-
-function broadcastUsers() {
-    const onlineSet = new Set(
-        Object.values(activeSockets)
-            .filter(Boolean)
-            .map(name => name.trim().toLowerCase())
-    );
-
-    const allNames = new Set([
-        ...Array.from(knownUsers),
-        ...Object.values(activeSockets).filter(Boolean).map(n => n.trim()),
-        ...Object.keys(userCustomizations)
-    ]);
-
-    const usersList = Array.from(allNames).map(name => ({
-        name,
-        isOnline: onlineSet.has(name.toLowerCase()),
-        lang: getRecipientLanguage(name.toLowerCase(), 'Ukrainian')
-    }));
-
-    io.emit('update-users', usersList);
+    userPushSubscriptions[cleanKey] = validSubs;
 }
 
 io.on('connection', (socket) => {
@@ -211,89 +202,98 @@ io.on('connection', (socket) => {
     socket.on('join', ({ username, lang }) => {
         if (!username) return;
         currentUsername = username.trim();
-        if (!currentUsername) return;
+        const cleanKey = currentUsername.toLowerCase();
 
-        knownUsers.add(currentUsername);
         activeSockets[socket.id] = currentUsername;
+        userDisplayNames[cleanKey] = currentUsername;
+
+        if (!userSockets[cleanKey]) userSockets[cleanKey] = new Set();
+        userSockets[cleanKey].add(socket.id);
+
         if (lang) {
-            userLanguages[currentUsername.toLowerCase()] = normalizeLangName(lang);
-        } else if (!userLanguages[currentUsername.toLowerCase()]) {
-            userLanguages[currentUsername.toLowerCase()] = 'Ukrainian';
+            userLanguages[cleanKey] = normalizeLang(lang);
+        } else if (!userLanguages[cleanKey]) {
+            userLanguages[cleanKey] = 'Ukrainian';
+        }
+
+        if (typeof userUnreadCounts[cleanKey] !== 'number') {
+            userUnreadCounts[cleanKey] = 0;
         }
 
         socket.emit('sync-customizations', userCustomizations);
+        socket.emit('sync-unread-count', { count: userUnreadCounts[cleanKey] });
         broadcastUsers();
     });
 
     socket.on('update-language', (lang) => {
         if (currentUsername && lang) {
-            userLanguages[currentUsername.toLowerCase()] = normalizeLangName(lang);
-            broadcastUsers();
+            userLanguages[currentUsername.toLowerCase()] = normalizeLang(lang);
         }
     });
 
     socket.on('subscribe-push', ({ username, subscription }) => {
-        if (username && subscription) {
-            userPushSubscriptions[username.toLowerCase().trim()] = subscription;
+        if (!username || !subscription || !subscription.endpoint) return;
+        const cleanKey = username.toLowerCase().trim();
+        if (!userPushSubscriptions[cleanKey]) userPushSubscriptions[cleanKey] = [];
+        const exists = userPushSubscriptions[cleanKey].some(s => s.endpoint === subscription.endpoint);
+        if (!exists) {
+            userPushSubscriptions[cleanKey].push(subscription);
         }
+    });
+
+    socket.on('mark-read', ({ username } = {}) => {
+        const targetName = (username || currentUsername || '').trim();
+        if (!targetName) return;
+        const cleanKey = targetName.toLowerCase();
+        userUnreadCounts[cleanKey] = 0;
+        emitToAllUserDevices(cleanKey, 'sync-unread-count', { count: 0 });
     });
 
     socket.on('update-customization', ({ targetName, color, avatar }) => {
         if (!targetName) return;
-        const cleanTarget = targetName.trim();
-        knownUsers.add(cleanTarget);
-        userCustomizations[cleanTarget] = { color, avatar };
+        userCustomizations[targetName] = { color, avatar };
         io.emit('sync-customizations', userCustomizations);
-        broadcastUsers();
     });
 
     socket.on('add-contact', (contactName) => {
-        if (contactName && contactName.trim()) {
-            knownUsers.add(contactName.trim());
-        }
         socket.emit('sync-customizations', userCustomizations);
-        broadcastUsers();
     });
 
     socket.on('text-message', async (data) => {
         const cleanRecipient = (data.recipient || '').toLowerCase().trim();
         const senderName = (data.sender || currentUsername || 'notebook').trim();
-        const rawText = (data.text || '').trim();
-        if (!cleanRecipient || !rawText) return;
+        const senderKey = senderName.toLowerCase();
+        if (!cleanRecipient || !data.text || !data.text.trim()) return;
 
-        knownUsers.add(senderName);
-        if (data.recipient && data.recipient.trim()) {
-            knownUsers.add(data.recipient.trim());
-        }
         if (data.senderLang) {
-            userLanguages[senderName.toLowerCase()] = normalizeLangName(data.senderLang);
+            userLanguages[senderKey] = normalizeLang(data.senderLang);
         }
 
-        const recipientSocketIds = findSocketsByUsername(cleanRecipient);
-        const recipientLang = getRecipientLanguage(cleanRecipient, data.targetLang || 'Ukrainian');
-        const translatedText = await translateText(rawText, recipientLang);
+        const recipientLang = userLanguages[cleanRecipient] || normalizeLang(data.targetLang || 'Ukrainian');
+        const translatedText = await translateText(data.text.trim(), recipientLang);
+
+        userUnreadCounts[cleanRecipient] = (userUnreadCounts[cleanRecipient] || 0) + 1;
+        const currentBadgeCount = userUnreadCounts[cleanRecipient];
 
         const messagePayload = {
             sender: senderName,
-            recipient: data.recipient,
-            text: translatedText || rawText,
-            originalText: rawText
+            recipient: userDisplayNames[cleanRecipient] || data.recipient,
+            text: translatedText,
+            originalText: data.text.trim(),
+            unreadCount: currentBadgeCount
         };
 
-        recipientSocketIds.forEach(sockId => {
-            io.to(sockId).emit('incoming-message', messagePayload);
+        emitToAllUserDevices(cleanRecipient, 'incoming-message', messagePayload);
+        emitToAllUserDevices(cleanRecipient, 'sync-unread-count', { count: currentBadgeCount });
+
+        await sendPushNotification(cleanRecipient, {
+            title: `${senderName}`,
+            body: translatedText,
+            badgeCount: currentBadgeCount,
+            sound: '/mixkit-retro-game-notification-212.wav'
         });
 
-        if (publicVapidKey && privateVapidKey && userPushSubscriptions[cleanRecipient]) {
-            const pushPayload = JSON.stringify({
-                title: `${senderName}`,
-                body: translatedText || rawText,
-                sound: '/mixkit-retro-game-notification-212.wav'
-            });
-            webpush.sendNotification(userPushSubscriptions[cleanRecipient], pushPayload).catch(() => {});
-        }
-
-        socket.emit('incoming-message', {
+        emitToAllUserDevices(senderKey, 'incoming-message', {
             ...messagePayload,
             isSent: true
         });
@@ -302,54 +302,76 @@ io.on('connection', (socket) => {
     socket.on('voice-message', async (data) => {
         const cleanRecipient = (data.recipient || '').toLowerCase().trim();
         const senderName = (data.sender || currentUsername || 'notebook').trim();
+        const senderKey = senderName.toLowerCase();
         if (!cleanRecipient || !data.audio) return;
 
-        knownUsers.add(senderName);
-        if (data.recipient && data.recipient.trim()) {
-            knownUsers.add(data.recipient.trim());
-        }
         if (data.senderLang) {
-            userLanguages[senderName.toLowerCase()] = normalizeLangName(data.senderLang);
+            userLanguages[senderKey] = normalizeLang(data.senderLang);
         }
 
         const transcribedText = await transcribeAudio(data.audio);
         if (!transcribedText) return;
 
-        const recipientSocketIds = findSocketsByUsername(cleanRecipient);
-        const recipientLang = getRecipientLanguage(cleanRecipient, data.targetLang || 'Ukrainian');
+        const recipientLang = userLanguages[cleanRecipient] || normalizeLang(data.targetLang || 'Ukrainian');
         const translatedText = await translateText(transcribedText, recipientLang);
+
+        userUnreadCounts[cleanRecipient] = (userUnreadCounts[cleanRecipient] || 0) + 1;
+        const currentBadgeCount = userUnreadCounts[cleanRecipient];
 
         const messagePayload = {
             sender: senderName,
-            recipient: data.recipient,
-            text: translatedText || transcribedText,
-            originalText: transcribedText
+            recipient: userDisplayNames[cleanRecipient] || data.recipient,
+            text: translatedText,
+            originalText: transcribedText,
+            unreadCount: currentBadgeCount
         };
 
-        recipientSocketIds.forEach(sockId => {
-            io.to(sockId).emit('incoming-message', messagePayload);
+        emitToAllUserDevices(cleanRecipient, 'incoming-message', messagePayload);
+        emitToAllUserDevices(cleanRecipient, 'sync-unread-count', { count: currentBadgeCount });
+
+        await sendPushNotification(cleanRecipient, {
+            title: `${senderName}`,
+            body: translatedText,
+            badgeCount: currentBadgeCount,
+            sound: '/mixkit-retro-game-notification-212.wav'
         });
 
-        if (publicVapidKey && privateVapidKey && userPushSubscriptions[cleanRecipient]) {
-            const pushPayload = JSON.stringify({
-                title: `${senderName}`,
-                body: translatedText || transcribedText,
-                sound: '/mixkit-retro-game-notification-212.wav'
-            });
-            webpush.sendNotification(userPushSubscriptions[cleanRecipient], pushPayload).catch(() => {});
-        }
-
-        socket.emit('incoming-message', {
+        emitToAllUserDevices(senderKey, 'incoming-message', {
             ...messagePayload,
             isSent: true
         });
     });
 
     socket.on('disconnect', () => {
+        const user = activeSockets[socket.id];
         delete activeSockets[socket.id];
+        if (user) {
+            const cleanKey = user.toLowerCase();
+            if (userSockets[cleanKey]) {
+                userSockets[cleanKey].delete(socket.id);
+                if (userSockets[cleanKey].size === 0) {
+                    delete userSockets[cleanKey];
+                }
+            }
+        }
         broadcastUsers();
     });
 });
+
+function broadcastUsers() {
+    const allKnownKeys = new Set([
+        ...Object.keys(userDisplayNames),
+        ...Object.keys(userCustomizations).map(n => n.toLowerCase())
+    ]);
+
+    const usersList = Array.from(allKnownKeys).map(key => {
+        const displayName = userDisplayNames[key] || Object.keys(userCustomizations).find(k => k.toLowerCase() === key) || key;
+        const isOnline = Boolean(userSockets[key] && userSockets[key].size > 0);
+        return { name: displayName, isOnline };
+    });
+
+    io.emit('update-users', usersList);
+}
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
