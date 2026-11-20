@@ -2,6 +2,7 @@ import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
 import webpush from 'web-push';
+import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -16,16 +17,77 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(express.static(path.join(__dirname)));
 
-const publicVapidKey = process.env.VAPID_PUBLIC_KEY || 'BP_THGEIwmo7Npka3AqDRmOnT-zXf_V6wC5j_mdo9qrA4JWin71UsPryXS2h4HzrxNqX4m6IqfWHTPT_xfbLVw';
-const privateVapidKey = process.env.VAPID_PRIVATE_KEY || '';
+const STATE_FILE = path.join(__dirname, 'push-state.json');
 
-if (publicVapidKey && privateVapidKey) {
+let activeSockets = {};
+let userSockets = {};
+let userDisplayNames = {};
+let userLanguages = {};
+let userPushSubscriptions = {};
+let userCustomizations = {};
+let userUnreadCounts = {};
+let savedVapidKeys = null;
+
+function loadPushState() {
     try {
-        webpush.setVapidDetails('mailto:admin@habla.com', publicVapidKey, privateVapidKey);
+        if (fs.existsSync(STATE_FILE)) {
+            const raw = JSON.parse(fs.readFileSync(STATE_FILE, 'utf8'));
+            if (raw.subs && typeof raw.subs === 'object') userPushSubscriptions = raw.subs;
+            if (raw.unread && typeof raw.unread === 'object') userUnreadCounts = raw.unread;
+            if (raw.langs && typeof raw.langs === 'object') userLanguages = raw.langs;
+            if (raw.displayNames && typeof raw.displayNames === 'object') userDisplayNames = raw.displayNames;
+            if (raw.customizations && typeof raw.customizations === 'object') userCustomizations = raw.customizations;
+            if (raw.vapidKeys && raw.vapidKeys.publicKey && raw.vapidKeys.privateKey) {
+                savedVapidKeys = raw.vapidKeys;
+            }
+        }
     } catch (e) {
-        console.warn('VAPID config warning:', e.message);
+        console.warn('Could not load push-state.json:', e.message);
     }
 }
+
+function savePushState() {
+    try {
+        fs.writeFileSync(STATE_FILE, JSON.stringify({
+            subs: userPushSubscriptions,
+            unread: userUnreadCounts,
+            langs: userLanguages,
+            displayNames: userDisplayNames,
+            customizations: userCustomizations,
+            vapidKeys: savedVapidKeys
+        }, null, 2), 'utf8');
+    } catch (e) {
+        console.warn('Could not save push-state.json:', e.message);
+    }
+}
+
+loadPushState();
+
+let publicVapidKey = process.env.VAPID_PUBLIC_KEY || '';
+let privateVapidKey = process.env.VAPID_PRIVATE_KEY || '';
+
+if (!publicVapidKey || !privateVapidKey) {
+    if (savedVapidKeys) {
+        publicVapidKey = savedVapidKeys.publicKey;
+        privateVapidKey = savedVapidKeys.privateKey;
+    } else {
+        const generated = webpush.generateVAPIDKeys();
+        publicVapidKey = generated.publicKey;
+        privateVapidKey = generated.privateKey;
+        savedVapidKeys = { publicKey: publicVapidKey, privateKey: privateVapidKey };
+        savePushState();
+    }
+}
+
+try {
+    webpush.setVapidDetails('mailto:admin@habla.com', publicVapidKey, privateVapidKey);
+} catch (e) {
+    console.warn('VAPID config warning:', e.message);
+}
+
+app.get('/vapid-public-key', (req, res) => {
+    res.json({ publicKey: publicVapidKey });
+});
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY || '';
 
@@ -154,14 +216,6 @@ async function transcribeAudio(base64Audio) {
     }
 }
 
-let activeSockets = {};
-let userSockets = {};
-let userDisplayNames = {};
-let userLanguages = {}; 
-let userPushSubscriptions = {};
-let userCustomizations = {};
-let userUnreadCounts = {};
-
 function emitToAllUserDevices(userKey, eventName, payload) {
     const cleanKey = (userKey || '').toLowerCase().trim();
     const sockSet = userSockets[cleanKey];
@@ -183,6 +237,8 @@ async function sendPushNotification(userKey, payloadObj) {
 
     const payloadStr = JSON.stringify(payloadObj);
     const validSubs = [];
+    let changed = false;
+
     for (const sub of subs) {
         try {
             await webpush.sendNotification(sub, payloadStr);
@@ -190,10 +246,14 @@ async function sendPushNotification(userKey, payloadObj) {
         } catch (err) {
             if (err && err.statusCode !== 410 && err.statusCode !== 404) {
                 validSubs.push(sub);
+            } else {
+                changed = true;
             }
         }
     }
+
     userPushSubscriptions[cleanKey] = validSubs;
+    if (changed) savePushState();
 }
 
 io.on('connection', (socket) => {
@@ -220,6 +280,8 @@ io.on('connection', (socket) => {
             userUnreadCounts[cleanKey] = 0;
         }
 
+        savePushState();
+
         socket.emit('sync-customizations', userCustomizations);
         socket.emit('sync-unread-count', { count: userUnreadCounts[cleanKey] });
         broadcastUsers();
@@ -228,6 +290,7 @@ io.on('connection', (socket) => {
     socket.on('update-language', (lang) => {
         if (currentUsername && lang) {
             userLanguages[currentUsername.toLowerCase()] = normalizeLang(lang);
+            savePushState();
         }
     });
 
@@ -235,10 +298,13 @@ io.on('connection', (socket) => {
         if (!username || !subscription || !subscription.endpoint) return;
         const cleanKey = username.toLowerCase().trim();
         if (!userPushSubscriptions[cleanKey]) userPushSubscriptions[cleanKey] = [];
-        const exists = userPushSubscriptions[cleanKey].some(s => s.endpoint === subscription.endpoint);
-        if (!exists) {
+        const existingIdx = userPushSubscriptions[cleanKey].findIndex(s => s.endpoint === subscription.endpoint);
+        if (existingIdx >= 0) {
+            userPushSubscriptions[cleanKey][existingIdx] = subscription;
+        } else {
             userPushSubscriptions[cleanKey].push(subscription);
         }
+        savePushState();
     });
 
     socket.on('mark-read', ({ username } = {}) => {
@@ -246,12 +312,14 @@ io.on('connection', (socket) => {
         if (!targetName) return;
         const cleanKey = targetName.toLowerCase();
         userUnreadCounts[cleanKey] = 0;
+        savePushState();
         emitToAllUserDevices(cleanKey, 'sync-unread-count', { count: 0 });
     });
 
     socket.on('update-customization', ({ targetName, color, avatar }) => {
         if (!targetName) return;
         userCustomizations[targetName] = { color, avatar };
+        savePushState();
         io.emit('sync-customizations', userCustomizations);
     });
 
@@ -274,6 +342,7 @@ io.on('connection', (socket) => {
 
         userUnreadCounts[cleanRecipient] = (userUnreadCounts[cleanRecipient] || 0) + 1;
         const currentBadgeCount = userUnreadCounts[cleanRecipient];
+        savePushState();
 
         const messagePayload = {
             sender: senderName,
@@ -317,6 +386,7 @@ io.on('connection', (socket) => {
 
         userUnreadCounts[cleanRecipient] = (userUnreadCounts[cleanRecipient] || 0) + 1;
         const currentBadgeCount = userUnreadCounts[cleanRecipient];
+        savePushState();
 
         const messagePayload = {
             sender: senderName,
