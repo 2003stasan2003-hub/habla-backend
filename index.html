@@ -381,12 +381,22 @@
         .nav-item {
             background: none; border: none; color: #89a1b2; display: flex; flex-direction: column;
             align-items: center; justify-content: center; gap: 4px; cursor: pointer;
-            padding: 6px 1px; border-radius: 8px; flex: 1; min-width: 0;
+            padding: 6px 1px; border-radius: 8px; flex: 1; min-width: 0; position: relative;
         }
         .nav-item svg { width: 22px; height: 22px; stroke: #89a1b2; fill: none; flex-shrink: 0; }
         .nav-item small { font-size: 0.62rem; font-weight: 500; color: #89a1b2; white-space: nowrap; }
         .nav-item:hover svg, .nav-item.active svg { color: #f5f5f5; stroke: #f5f5f5; }
         .nav-item.active small { color: #f5f5f5; }
+
+        .nav-unread-badge {
+            position: absolute; top: 2px; right: 22%;
+            min-width: 18px; height: 18px; padding: 0 5px;
+            background: #ef4444; color: #ffffff;
+            border-radius: 999px; font-size: 0.68rem; font-weight: 700;
+            display: none; align-items: center; justify-content: center;
+            border: 1.5px solid #17212b; box-shadow: 0 2px 6px rgba(0,0,0,0.6);
+        }
+        .nav-unread-badge.visible { display: flex; }
     </style>
 </head>
 <body>
@@ -552,6 +562,11 @@
                 </button>
             </div>
             <div class="settings-card">
+                <button id="enable-push-badge-btn" class="sidebar-nav-btn" style="border-color: #4ade80; color: #f5f5f5;">
+                    🔔 <span id="push-status-label">Увімкнути сповіщення та лічильник</span>
+                </button>
+            </div>
+            <div class="settings-card">
                 <button id="update-app-btn" class="sidebar-nav-btn"><span data-i18n="update_app">Оновлення програми</span></button>
             </div>
             <div class="settings-card">
@@ -632,6 +647,7 @@
 
     <nav class="bottom-nav-bar">
         <button class="nav-item active" id="nav-home" title="Home">
+            <span id="nav-home-badge" class="nav-unread-badge">0</span>
             <svg viewBox="0 0 24 24" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
             <small data-i18n="tab_home">Головна</small>
         </button>
@@ -780,10 +796,31 @@
             document.title = DEFAULT_PAGE_TITLE;
         }
 
-        async function updateAppBadge(count) {
+        async function postToServiceWorker(messageObj) {
+            if (!('serviceWorker' in navigator)) return;
+            try {
+                const reg = swRegistration || await navigator.serviceWorker.ready;
+                if (reg && reg.active) {
+                    reg.active.postMessage(messageObj);
+                }
+            } catch (err) {}
+        }
+
+        async function updateAppBadge(count, notifyPayload = null) {
             const safeCount = Math.max(0, Number(count) || 0);
             unreadCount = safeCount;
             localStorage.setItem('habla_unread_count', String(safeCount));
+
+            const navBadge = document.getElementById('nav-home-badge');
+            if (navBadge) {
+                if (safeCount > 0) {
+                    navBadge.textContent = safeCount > 99 ? '99+' : String(safeCount);
+                    navBadge.classList.add('visible');
+                } else {
+                    navBadge.textContent = '0';
+                    navBadge.classList.remove('visible');
+                }
+            }
 
             if ('setAppBadge' in navigator) {
                 try {
@@ -792,17 +829,19 @@
                 } catch (err) {}
             }
 
-            if ('serviceWorker' in navigator) {
-                try {
-                    const reg = swRegistration || await navigator.serviceWorker.ready;
-                    if (reg && reg.active) {
-                        reg.active.postMessage({ type: 'SET_BADGE', count: safeCount });
-                    }
-                } catch (err) {}
-            }
-
-            if (safeCount === 0) {
+            if (safeCount > 0 && notifyPayload) {
+                await postToServiceWorker({
+                    type: 'SHOW_BADGE_NOTIFICATION',
+                    title: notifyPayload.title || 'Habla Mobile',
+                    body: notifyPayload.body || 'Нове повідомлення',
+                    count: safeCount,
+                    sound: '/mixkit-retro-game-notification-212.wav'
+                });
+            } else if (safeCount > 0) {
+                await postToServiceWorker({ type: 'SET_BADGE', count: safeCount });
+            } else {
                 stopTabTitleAlert();
+                await postToServiceWorker({ type: 'CLEAR_NOTIFICATIONS' });
             }
         }
 
@@ -1023,23 +1062,51 @@
             }
         }
 
-        async function registerPushAndBadge() {
-            if ('serviceWorker' in navigator && 'PushManager' in window) {
-                try {
+        function updatePushStatusButton() {
+            const label = document.getElementById('push-status-label');
+            if (!label || !('Notification' in window)) return;
+            if (Notification.permission === 'granted') {
+                label.textContent = 'Сповіщення та лічильник активні ✓';
+            } else if (Notification.permission === 'denied') {
+                label.textContent = 'Сповіщення заблоковані в браузері';
+            } else {
+                label.textContent = 'Увімкнути сповіщення та лічильник';
+            }
+        }
+
+        async function registerPushAndBadge(forcePrompt = false) {
+            if (!('Notification' in window)) return;
+            updatePushStatusButton();
+
+            if (Notification.permission === 'default' && !forcePrompt) return;
+
+            try {
+                const perm = Notification.permission === 'granted'
+                    ? 'granted'
+                    : await Notification.requestPermission();
+                updatePushStatusButton();
+                if (perm !== 'granted') return;
+
+                if ('serviceWorker' in navigator && 'PushManager' in window) {
                     const reg = swRegistration || await navigator.serviceWorker.register('/sw.js');
                     swRegistration = reg;
-                    const perm = await Notification.requestPermission();
-                    if (perm !== 'granted') return;
-                    
+
                     const publicVapidKey = 'BP_THGEIwmo7Npka3AqDRmOnT-zXf_V6wC5j_mdo9qrA4JWin71UsPryXS2h4HzrxNqX4m6IqfWHTPT_xfbLVw';
-                    
-                    const subscription = await reg.pushManager.subscribe({
+                    const existingSub = await reg.pushManager.getSubscription();
+                    const subscription = existingSub || await reg.pushManager.subscribe({
                         userVisibleOnly: true,
                         applicationServerKey: urlBase64ToUint8Array(publicVapidKey)
                     });
-                    socket.emit('subscribe-push', { username, subscription });
-                } catch (e) {}
-            }
+                    if (username && subscription) {
+                        socket.emit('subscribe-push', { username, subscription });
+                    }
+                }
+            } catch (e) {}
+        }
+
+        const enablePushBadgeBtn = document.getElementById('enable-push-badge-btn');
+        if (enablePushBadgeBtn) {
+            enablePushBadgeBtn.addEventListener('click', () => registerPushAndBadge(true));
         }
 
         function urlBase64ToUint8Array(base64String) {
@@ -1064,7 +1131,7 @@
             updateProfileDisplay();
             checkAdminAccess();
             joinWithLanguage();
-            registerPushAndBadge();
+            registerPushAndBadge(true);
             safeRenderContactsGrid(lastUsersData);
         }
 
@@ -1073,7 +1140,7 @@
             if (welcomeNicknameInput) setTimeout(() => welcomeNicknameInput.focus(), 100);
         } else {
             checkAdminAccess();
-            registerPushAndBadge();
+            registerPushAndBadge(false);
         }
         welcomeSubmitBtn.addEventListener('click', completeFirstLogin);
         welcomeNicknameInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') completeFirstLogin(); });
@@ -1107,6 +1174,7 @@
 
         socket.on('connect', () => {
             joinWithLanguage();
+            registerPushAndBadge(false);
             if (!document.hidden && document.hasFocus()) {
                 markAllMessagesAsRead();
             }
@@ -1478,7 +1546,10 @@
                 if (isBackground) {
                     const nextBadge = typeof data.unreadCount === 'number' ? data.unreadCount : (unreadCount + 1);
                     startTabTitleAlert(data.sender || 'Habla', nextBadge);
-                    updateAppBadge(nextBadge);
+                    updateAppBadge(nextBadge, {
+                        title: data.sender || 'Habla Mobile',
+                        body: msgText
+                    });
                 } else {
                     markAllMessagesAsRead();
                 }
@@ -1567,7 +1638,7 @@
         navSettings.addEventListener('click', () => {
             const isOpen = settingsScreen.classList.contains('active');
             closeAllScreens();
-            if (isOpen) setActiveNav(navHome); else { setActiveNav(navSettings); settingsScreen.classList.add('active'); }
+            if (isOpen) setActiveNav(navHome); else { setActiveNav(navSettings); settingsScreen.classList.add('active'); updatePushStatusButton(); }
         });
         document.getElementById('close-settings-screen').addEventListener('click', () => { closeAllScreens(); setActiveNav(navHome); });
 
@@ -1720,6 +1791,7 @@
 
         updateProfileDisplay();
         checkAdminAccess();
+        updatePushStatusButton();
         safeRenderContactsGrid();
     </script>
 </body>
