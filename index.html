@@ -1074,6 +1074,20 @@
             }
         }
 
+        async function fetchServerVapidKey() {
+            try {
+                const res = await fetch('/vapid-public-key', { cache: 'no-store' });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && data.publicKey) {
+                        localStorage.setItem('habla_vapid_public_key', data.publicKey);
+                        return data.publicKey;
+                    }
+                }
+            } catch (e) {}
+            return localStorage.getItem('habla_vapid_public_key') || '';
+        }
+
         async function registerPushAndBadge(forcePrompt = false) {
             if (!('Notification' in window)) return;
             updatePushStatusButton();
@@ -1091,12 +1105,29 @@
                     const reg = swRegistration || await navigator.serviceWorker.register('/sw.js');
                     swRegistration = reg;
 
-                    const publicVapidKey = 'BP_THGEIwmo7Npka3AqDRmOnT-zXf_V6wC5j_mdo9qrA4JWin71UsPryXS2h4HzrxNqX4m6IqfWHTPT_xfbLVw';
-                    const existingSub = await reg.pushManager.getSubscription();
-                    const subscription = existingSub || await reg.pushManager.subscribe({
-                        userVisibleOnly: true,
-                        applicationServerKey: urlBase64ToUint8Array(publicVapidKey)
-                    });
+                    const publicVapidKey = await fetchServerVapidKey();
+                    if (!publicVapidKey) return;
+
+                    const convertedKey = urlBase64ToUint8Array(publicVapidKey);
+                    let subscription = await reg.pushManager.getSubscription();
+
+                    if (subscription && subscription.options && subscription.options.applicationServerKey) {
+                        const existingKeyArr = new Uint8Array(subscription.options.applicationServerKey);
+                        const keysMatch = existingKeyArr.length === convertedKey.length &&
+                            existingKeyArr.every((v, i) => v === convertedKey[i]);
+                        if (!keysMatch) {
+                            await subscription.unsubscribe().catch(() => {});
+                            subscription = null;
+                        }
+                    }
+
+                    if (!subscription) {
+                        subscription = await reg.pushManager.subscribe({
+                            userVisibleOnly: true,
+                            applicationServerKey: convertedKey
+                        });
+                    }
+
                     if (username && subscription) {
                         socket.emit('subscribe-push', { username, subscription });
                     }
