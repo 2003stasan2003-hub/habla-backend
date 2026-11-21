@@ -270,10 +270,10 @@
         .message-sender-tag { font-size: 0.65rem; color: #89a1b2; margin-bottom: 2px; font-weight: 600; }
         
         .dual-msg-wrapper { display: flex; flex-direction: column; gap: 4px; width: 100%; }
-        .msg-original-row { display: flex; align-items: flex-start; gap: 5px; font-size: 0.75rem; color: #89a1b2; border-bottom: 1px solid rgba(137, 161, 178, 0.2); padding-bottom: 3px; line-height: 1.28; }
-        .single-msg-row { display: flex; align-items: flex-start; gap: 6px; font-size: 0.84rem; color: #f5f5f5; line-height: 1.32; }
+        .msg-original-row { display: flex; align-items: flex-start; gap: 5px; font-size: 0.74rem; color: #89a1b2; border-bottom: 1px solid rgba(137, 161, 178, 0.2); padding-bottom: 4px; line-height: 1.28; }
+        .single-msg-row { display: flex; align-items: flex-start; gap: 6px; font-size: 0.92rem; font-weight: 500; color: #f5f5f5; line-height: 1.35; }
         .lang-badge { background: rgba(137, 161, 178, 0.2); color: #f5f5f5; font-size: 0.58rem; padding: 1px 4px; border-radius: 3px; font-weight: bold; text-transform: uppercase; flex-shrink: 0; margin-top: 2px; }
-        .msg-translation-row { font-size: 0.84rem; color: #f5f5f5; line-height: 1.32; }
+        .msg-translation-row { font-size: 0.92rem; font-weight: 500; color: #f5f5f5; line-height: 1.35; }
 
         .message-tts-btn {
             position: absolute; right: 6px; bottom: 6px; background: none; border: none;
@@ -1429,7 +1429,7 @@
             card.className = `message-card ${isSent ? 'sent' : 'received'}`;
             
             let contentHtml = '';
-            const hasDistinctOriginal = originalText && originalText.trim().toLowerCase() !== text.trim().toLowerCase();
+            const hasDistinctOriginal = Boolean(originalText && originalText.trim());
 
             if (hasDistinctOriginal) {
                 const detectedLang = detectMessageLanguage(originalText, isSent, senderLang);
@@ -1532,8 +1532,7 @@
                 sender: username,
                 senderLang: interfaceLangSelect.value,
                 recipient: selectedRecipientName,
-                text: text,
-                targetLang: interfaceLangSelect.value
+                text: text
             });
             testTextInput.value = '';
             testTextBox.classList.remove('active');
@@ -1577,8 +1576,7 @@
                                 sender: username,
                                 senderLang: interfaceLangSelect.value,
                                 recipient: selectedRecipientName, 
-                                audio: reader.result,
-                                targetLang: interfaceLangSelect.value 
+                                audio: reader.result
                             });
                         };
                         stream.getTracks().forEach(t => t.stop());
