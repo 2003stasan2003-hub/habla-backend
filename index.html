@@ -959,6 +959,33 @@
             safeRenderContactsGrid(lastUsersData);
         }
 
+        function detectDeviceDefaultLanguage() {
+            const supportedMap = {
+                uk: 'Ukrainian',
+                es: 'Spanish',
+                de: 'German',
+                fr: 'French',
+                en: 'English'
+            };
+
+            const candidates = Array.isArray(navigator.languages) && navigator.languages.length
+                ? navigator.languages
+                : [navigator.language || ''];
+
+            for (const rawLocale of candidates) {
+                const normalized = String(rawLocale || '').toLowerCase().trim();
+                if (!normalized) continue;
+                if (normalized.startsWith('ru')) return 'Ukrainian';
+
+                const baseCode = normalized.split('-')[0];
+                if (supportedMap[baseCode]) {
+                    return supportedMap[baseCode];
+                }
+            }
+
+            return 'Ukrainian';
+        }
+
         const authorModal = document.getElementById('author-modal');
         document.getElementById('top-watermark').addEventListener('click', () => {
             authorModal.classList.add('active');
@@ -1010,8 +1037,14 @@
             safeRenderContactsGrid(lastUsersData);
         });
 
-        let savedInterfaceLang = localStorage.getItem('habla_interface_lang') || 'Ukrainian';
-        if (savedInterfaceLang === 'Russian') savedInterfaceLang = 'Ukrainian';
+        let savedInterfaceLang = localStorage.getItem('habla_interface_lang');
+        if (!savedInterfaceLang) {
+            savedInterfaceLang = detectDeviceDefaultLanguage();
+            localStorage.setItem('habla_interface_lang', savedInterfaceLang);
+        } else if (savedInterfaceLang === 'Russian') {
+            savedInterfaceLang = 'Ukrainian';
+            localStorage.setItem('habla_interface_lang', savedInterfaceLang);
+        }
         interfaceLangSelect.value = savedInterfaceLang;
         applyLocalization(savedInterfaceLang);
 
