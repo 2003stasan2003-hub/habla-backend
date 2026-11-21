@@ -278,8 +278,14 @@
         .message-tts-btn {
             position: absolute; right: 6px; bottom: 6px; background: none; border: none;
             color: #89a1b2; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;
+            transition: color 0.2s ease, transform 0.2s ease, filter 0.2s ease;
         }
         .message-tts-btn svg { width: 16px; height: 16px; fill: currentColor; }
+        .message-tts-btn.speaking {
+            color: #4ade80;
+            transform: scale(1.15);
+            filter: drop-shadow(0 0 6px rgba(74, 222, 128, 0.7));
+        }
 
         .mic-dock-wrapper {
             flex-shrink: 0;
@@ -1410,9 +1416,10 @@
             syncUnreadIndicators();
 
             messagesToOpen.forEach((m, idx) => {
-                addMessageToStack(m.text, m.sender, false, m.originalText, m.senderLang);
+                const card = addMessageToStack(m.text, m.sender, false, m.originalText, m.senderLang);
                 if (idx === messagesToOpen.length - 1 && document.getElementById('sound-toggle').checked) {
-                    speakText(m.text);
+                    const ttsBtn = card ? card.querySelector('.message-tts-btn') : null;
+                    speakText(m.text, ttsBtn);
                 }
             });
         }
@@ -1453,7 +1460,11 @@
                 </button>
             `;
 
-            card.querySelector('.message-tts-btn').addEventListener('click', (e) => { e.stopPropagation(); speakText(text); });
+            const ttsBtn = card.querySelector('.message-tts-btn');
+            ttsBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                speakText(text, ttsBtn);
+            });
 
             const firstUnreadGroup = messagesStack.querySelector('.unread-group-card');
             if (firstUnreadGroup) {
@@ -1465,6 +1476,7 @@
             displayedMessages.push(card);
             updateStackStyles();
             card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            return card;
         }
 
         function updateStackStyles() {
@@ -1646,20 +1658,63 @@
                 selectedRecipientName.toLowerCase() === (data.sender || '').toLowerCase();
 
             if (isActiveChatWithSender) {
-                addMessageToStack(data.text, data.sender || 'Контакт', false, data.originalText, data.senderLang);
+                const card = addMessageToStack(data.text, data.sender || 'Контакт', false, data.originalText, data.senderLang);
                 recordTokenUsage(data.sender, 20);
-                if (document.getElementById('sound-toggle').checked) speakText(data.text);
+                if (document.getElementById('sound-toggle').checked) {
+                    const ttsBtn = card ? card.querySelector('.message-tts-btn') : null;
+                    speakText(data.text, ttsBtn);
+                }
             } else {
                 queueIncomingMessage(data);
             }
         });
 
         const ttsLangMap = { 'Ukrainian': 'uk-UA', 'English': 'en-US', 'Spanish': 'es-ES', 'German': 'de-DE', 'French': 'fr-FR' };
-        function speakText(text) {
+        let activeTtsBtn = null;
+        let ttsFallbackTimer = null;
+
+        function clearActiveTtsHighlight() {
+            if (ttsFallbackTimer) {
+                clearTimeout(ttsFallbackTimer);
+                ttsFallbackTimer = null;
+            }
+            if (activeTtsBtn) {
+                activeTtsBtn.classList.remove('speaking');
+                activeTtsBtn = null;
+            }
+            document.querySelectorAll('.message-tts-btn.speaking').forEach(btn => btn.classList.remove('speaking'));
+        }
+
+        function speakText(text, btnElement = null) {
             if (!('speechSynthesis' in window)) return;
+
+            const isSameBtnSpeaking = btnElement && activeTtsBtn === btnElement && window.speechSynthesis.speaking;
             window.speechSynthesis.cancel();
+            clearActiveTtsHighlight();
+
+            if (isSameBtnSpeaking) return;
+
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = ttsLangMap[interfaceLangSelect.value] || 'uk-UA';
+
+            if (btnElement) {
+                activeTtsBtn = btnElement;
+                btnElement.classList.add('speaking');
+            }
+
+            const estimatedMs = Math.max(2500, text.length * 95 + 1200);
+            ttsFallbackTimer = setTimeout(() => {
+                clearActiveTtsHighlight();
+            }, estimatedMs);
+
+            utterance.onend = () => {
+                clearActiveTtsHighlight();
+            };
+
+            utterance.onerror = () => {
+                clearActiveTtsHighlight();
+            };
+
             window.speechSynthesis.speak(utterance);
         }
 
