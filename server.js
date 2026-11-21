@@ -17,7 +17,6 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(express.static(path.join(__dirname)));
 
-// Автоматичне збереження VAPID ключів та підписок
 const PUSH_STATE_FILE = path.join(__dirname, 'push-state.json');
 const OFFLINE_MSGS_FILE = path.join(__dirname, 'offline-messages.json');
 
@@ -238,7 +237,6 @@ io.on('connection', (socket) => {
         if (recipientSocketId) {
             io.to(recipientSocketId).emit('incoming-message', messagePayload);
         } else {
-            // Зберігаємо повідомлення в чергу, якщо отримувач зараз офлайн або закрив додаток
             if (!offlineMessages[cleanRecipient]) {
                 offlineMessages[cleanRecipient] = [];
             }
