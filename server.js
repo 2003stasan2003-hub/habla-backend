@@ -223,11 +223,15 @@ io.on('connection', (socket) => {
         const foundKey = Object.keys(userLanguages).find(k => k.toLowerCase() === cleanRecipient);
         const recipientLang = foundKey ? userLanguages[foundKey] : (data.targetLang || 'Ukrainian');
 
+        const senderKey = Object.keys(userLanguages).find(k => k.toLowerCase() === senderName.toLowerCase().trim());
+        const senderLang = senderKey ? userLanguages[senderKey] : (data.senderLang || 'Ukrainian');
+
         const translatedText = await translateText(textToTranslate, recipientLang);
 
         const messagePayload = {
             id: Date.now() + '_' + Math.random().toString(36).slice(2, 7),
             sender: senderName,
+            senderLang: senderLang,
             recipient: data.recipient,
             text: translatedText,
             originalText: originalText,
