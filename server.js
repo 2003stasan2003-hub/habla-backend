@@ -86,6 +86,9 @@ async function polishAndTranslate(rawText, targetLang, nativeLang = 'Ukrainian')
         return { polishedOriginal: rawText, translatedText: rawText };
     }
 
+    const safeNativeLang = (nativeLang === 'Russian') ? 'Ukrainian' : (nativeLang || 'Ukrainian');
+    const safeTargetLang = (targetLang === 'Russian') ? 'Ukrainian' : (targetLang || 'Ukrainian');
+
     let modelsToTry = [...FALLBACK_MODELS];
 
     try {
@@ -118,19 +121,26 @@ async function polishAndTranslate(rawText, targetLang, nativeLang = 'Ukrainian')
                         {
                             role: "system",
                             content: `You are an expert bilingual interpreter and native-speaker editor.
-The speaker's native language is ${nativeLang}, and the listener's target language is ${targetLang || 'Ukrainian'}.
-The input comes from voice-to-text transcription. The speaker may speak in ${nativeLang}, OR attempt to speak in ${targetLang} (or Spanish/German/English/French) with a heavy accent, grammar mistakes, phonetic typos, or mixed ${nativeLang} words.
+The speaker's interface/native language is ${safeNativeLang}, and the listener's target language is ${safeTargetLang}.
+The input comes from voice-to-text transcription and may contain speech recognition errors, phonetic distortions, mixed words, or a heavy foreign accent.
 
-Your task:
-1. "polishedOriginal": Reconstruct and polish the speaker's input into completely natural, fluent, grammatically flawless speech in the primary language the speaker intended to speak (e.g., if they tried speaking broken Spanish/German/English, rewrite it so it sounds like a native speaker said it; if they spoke ${nativeLang}, fix any speech-to-text typos or misheard names like "Денізо" -> "Денисе" / "Denis").
-2. "translatedText": Translate that intended meaning into completely natural, idiomatic ${targetLang || 'Ukrainian'} as a native speaker would say it in everyday conversation. If the speaker was already trying to speak ${targetLang}, make "translatedText" identical to "polishedOriginal".
+CRITICAL STRICT RULES:
+1. RUSSIAN IS STRICTLY BANNED: Never output a single Russian word, Russian spelling, or Russian letter (like ы, э, ъ, ё) in either "polishedOriginal" or "translatedText".
+2. RESPECT SPEAKER'S NATIVE LANGUAGE (${safeNativeLang}):
+   - Speech-to-text often mishears Ukrainian speech as Russian (e.g., "Привет, что ты сегодня делаешь?") or produces phonetic distortions (e.g., "Денізо, сім з родині" instead of "Денисе, всім з родини").
+   - Whenever the input is in ${safeNativeLang}, contains Russian words, surzhyk, or misheard Cyrillic, you MUST restore the speaker's true intended meaning into pure, fluent, grammatically flawless ${safeNativeLang} (e.g., "Привіт, що ти сьогодні робиш?").
+3. POLISH FOREIGN LANGUAGE ATTEMPTS:
+   - If the speaker intentionally attempts to speak in ${safeTargetLang} (or Spanish/German/English/French) with a heavy accent, grammar mistakes, or mixed ${safeNativeLang} words, rewrite "polishedOriginal" in that foreign language so it sounds completely natural and fluent, as if spoken by a native speaker.
+4. TRANSLATION ("translatedText"):
+   - Translate the reconstructed, clean intended meaning into completely natural, idiomatic ${safeTargetLang} as a native speaker would say it in everyday conversation (NEVER Russian).
+   - If "polishedOriginal" is already in ${safeTargetLang}, make "translatedText" identical to "polishedOriginal".
 
 Return ONLY valid JSON with exact keys:
 {"polishedOriginal": "...", "translatedText": "..."}`
                         },
                         { role: "user", content: rawText }
                     ],
-                    temperature: 0.2
+                    temperature: 0.1
                 })
             });
 
@@ -166,7 +176,7 @@ async function transcribeAudio(base64Audio) {
         formData.append('temperature', '0');
         formData.append(
             'prompt',
-            'Привіт, як справи? Hola, ¿cómo estás? Hallo, wie geht es dir? Hello, how are you? Bonjour, comment ça va?'
+            'Привіт, що ти сьогодні робиш? Як справи? Дякую! Hola, ¿cómo estás? Hallo, wie geht es dir? Hello, how are you? Bonjour, comment ça va?'
         );
 
         const response = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
@@ -201,7 +211,11 @@ io.on('connection', (socket) => {
         if (!username) return;
         currentUsername = username.trim();
         activeSockets[socket.id] = currentUsername;
-        if (lang) userLanguages[currentUsername.toLowerCase()] = lang;
+        if (lang && lang !== 'Russian') {
+            userLanguages[currentUsername.toLowerCase()] = lang;
+        } else if (!userLanguages[currentUsername.toLowerCase()]) {
+            userLanguages[currentUsername.toLowerCase()] = 'Ukrainian';
+        }
         socket.emit('sync-customizations', userCustomizations);
         deliverPendingMessages(socket, currentUsername);
         broadcastUsers();
@@ -212,7 +226,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on('update-language', (lang) => {
-        if (currentUsername && lang) {
+        if (currentUsername && lang && lang !== 'Russian') {
             userLanguages[currentUsername.toLowerCase()] = lang;
         }
     });
