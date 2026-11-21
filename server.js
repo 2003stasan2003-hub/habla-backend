@@ -38,7 +38,7 @@ if (!pushState.vapidKeys) {
             privateKey: process.env.VAPID_PRIVATE_KEY
         };
     } else {
-        pushState.vapidKeys = webpush.generateVAPIDKeys();
+        pushState.vapidKeys = webpush.generateVIDKeys ? webpush.generateVIDKeys() : webpush.generateVAPIDKeys();
     }
     fs.writeFileSync(PUSH_STATE_FILE, JSON.stringify(pushState, null, 2));
 }
@@ -76,16 +76,20 @@ const GROQ_API_KEY = process.env.GROQ_API_KEY || '';
 
 const FALLBACK_MODELS = [
     "llama-3.3-70b-versatile",
-    "llama-3.3-70b-specdec",
     "llama-3.1-70b-versatile",
     "llama-3.1-8b-instant",
-    "llama3-70b-8192",
-    "llama3-8b-8192",
-    "gemma2-9b-it",
-    "mixtral-8x7b-32768"
+    "gemma2-9b-it"
 ];
 
-async function translateText(text, targetLang) {
+const WHISPER_LANG_MAP = {
+    'Ukrainian': 'uk',
+    'English': 'en',
+    'Spanish': 'es',
+    'German': 'de',
+    'French': 'fr'
+};
+
+async function translateText(text, targetLang, sourceLang = '') {
     if (!GROQ_API_KEY || !text) return text;
 
     let modelsToTry = [...FALLBACK_MODELS];
@@ -100,10 +104,12 @@ async function translateText(text, targetLang) {
                 .map(m => m.id)
                 .filter(id => !id.includes('whisper') && !id.includes('embed') && !id.includes('guard'));
             if (activeGroqModels.length > 0) {
-                modelsToTry = [...new Set([...activeGroqModels, ...FALLBACK_MODELS])];
+                modelsToTry = [...new Set([...FALLBACK_MODELS.filter(m => activeGroqModels.includes(m)), ...activeGroqModels])];
             }
         }
     } catch (e) {}
+
+    const sourceHint = sourceLang ? `from ${sourceLang} ` : '';
 
     for (const model of modelsToTry) {
         try {
@@ -118,11 +124,15 @@ async function translateText(text, targetLang) {
                     messages: [
                         {
                             role: "system",
-                            content: `You are a strict translation machine. Your ONLY task is to translate the user's text directly into ${targetLang || 'Ukrainian'}. Do not converse, do not answer questions, do not add greetings, do not explain anything, and do not act as an AI assistant. Return ONLY the direct translation of the text.`
+                            content: `You are an expert native-level interpreter translating live spoken conversation ${sourceHint}into natural, idiomatic ${targetLang || 'Ukrainian'}.
+Rules:
+1. The input comes from voice-to-text transcription and may contain minor phonetic typos or misheard proper names (e.g., "Денізо" -> "Denis", "сім з родині" -> "всім з родини" / "all the family"). Silently infer the intended spoken meaning before translating.
+2. Translate naturally and realistically as a native speaker would say it in everyday conversation — avoid stiff word-for-word literalism.
+3. Do NOT converse, answer questions, explain anything, or add quotation marks. Return ONLY the final natural translation.`
                         },
                         { role: "user", content: text }
                     ],
-                    temperature: 0.1
+                    temperature: 0.2
                 })
             });
 
@@ -137,16 +147,20 @@ async function translateText(text, targetLang) {
     return text;
 }
 
-async function transcribeAudio(base64Audio) {
+async function transcribeAudio(base64Audio, senderLang = 'Ukrainian') {
     if (!GROQ_API_KEY || !base64Audio) return "Voice message";
     try {
         const base64Data = base64Audio.split(';base64,').pop();
         const buffer = Buffer.from(base64Data, 'base64');
         const blob = new Blob([buffer], { type: 'audio/webm' });
 
+        const isoLang = WHISPER_LANG_MAP[senderLang] || 'uk';
+
         const formData = new FormData();
         formData.append('file', blob, 'audio.webm');
         formData.append('model', 'whisper-large-v3');
+        formData.append('language', isoLang);
+        formData.append('temperature', '0');
 
         const response = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
             method: 'POST',
@@ -154,7 +168,7 @@ async function transcribeAudio(base64Audio) {
             body: formData
         });
         const data = await response.json();
-        return data.text || "Voice message";
+        return data.text?.trim() || "Voice message";
     } catch (e) {
         return "Voice message";
     }
@@ -226,7 +240,7 @@ io.on('connection', (socket) => {
         const senderKey = Object.keys(userLanguages).find(k => k.toLowerCase() === senderName.toLowerCase().trim());
         const senderLang = senderKey ? userLanguages[senderKey] : (data.senderLang || 'Ukrainian');
 
-        const translatedText = await translateText(textToTranslate, recipientLang);
+        const translatedText = await translateText(textToTranslate, recipientLang, senderLang);
 
         const messagePayload = {
             id: Date.now() + '_' + Math.random().toString(36).slice(2, 7),
@@ -272,7 +286,11 @@ io.on('connection', (socket) => {
     });
 
     socket.on('voice-message', async (data) => {
-        const transcribedText = await transcribeAudio(data.audio);
+        const senderName = data.sender || 'Habla';
+        const senderKey = Object.keys(userLanguages).find(k => k.toLowerCase() === senderName.toLowerCase().trim());
+        const senderLang = senderKey ? userLanguages[senderKey] : (data.senderLang || 'Ukrainian');
+
+        const transcribedText = await transcribeAudio(data.audio, senderLang);
         await handleOutgoingMessage(data, transcribedText, transcribedText, socket);
     });
 
