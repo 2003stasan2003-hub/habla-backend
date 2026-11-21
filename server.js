@@ -19,6 +19,7 @@ app.use(express.static(path.join(__dirname)));
 
 const PUSH_STATE_FILE = path.join(__dirname, 'push-state.json');
 const OFFLINE_MSGS_FILE = path.join(__dirname, 'offline-messages.json');
+const USER_LANGS_FILE = path.join(__dirname, 'user-languages.json');
 
 let pushState = {
     vapidKeys: null,
@@ -56,6 +57,13 @@ if (fs.existsSync(OFFLINE_MSGS_FILE)) {
     } catch (e) {}
 }
 
+let userLanguages = {};
+if (fs.existsSync(USER_LANGS_FILE)) {
+    try {
+        userLanguages = JSON.parse(fs.readFileSync(USER_LANGS_FILE, 'utf8'));
+    } catch (e) {}
+}
+
 function saveOfflineMessages() {
     try {
         fs.writeFileSync(OFFLINE_MSGS_FILE, JSON.stringify(offlineMessages, null, 2));
@@ -66,6 +74,22 @@ function savePushState() {
     try {
         fs.writeFileSync(PUSH_STATE_FILE, JSON.stringify(pushState, null, 2));
     } catch (e) {}
+}
+
+function saveUserLanguages() {
+    try {
+        fs.writeFileSync(USER_LANGS_FILE, JSON.stringify(userLanguages, null, 2));
+    } catch (e) {}
+}
+
+function setUserLanguageSafe(username, lang) {
+    if (!username || !lang || lang === 'Russian') return;
+    const cleanKey = username.toLowerCase().trim();
+    if (!cleanKey) return;
+    if (userLanguages[cleanKey] !== lang) {
+        userLanguages[cleanKey] = lang;
+        saveUserLanguages();
+    }
 }
 
 app.get('/api/vapid-public-key', (req, res) => {
@@ -82,12 +106,15 @@ const FALLBACK_MODELS = [
 ];
 
 async function polishAndTranslate(rawText, targetLang, nativeLang = 'Ukrainian') {
-    if (!GROQ_API_KEY || !rawText) {
+    if (!rawText) {
+        return { polishedOriginal: '', translatedText: '' };
+    }
+    if (!GROQ_API_KEY) {
         return { polishedOriginal: rawText, translatedText: rawText };
     }
 
     const safeNativeLang = (nativeLang === 'Russian') ? 'Ukrainian' : (nativeLang || 'Ukrainian');
-    const safeTargetLang = (targetLang === 'Russian') ? 'Ukrainian' : (targetLang || 'Ukrainian');
+    const safeTargetLang = (targetLang === 'Russian') ? 'Ukrainian' : (targetLang || 'English');
 
     let modelsToTry = [...FALLBACK_MODELS];
 
@@ -122,18 +149,18 @@ async function polishAndTranslate(rawText, targetLang, nativeLang = 'Ukrainian')
                             role: "system",
                             content: `You are an expert bilingual interpreter and native-speaker editor.
 The speaker's interface/native language is ${safeNativeLang}, and the listener's target language is ${safeTargetLang}.
-The input comes from voice-to-text transcription and may contain speech recognition errors, phonetic distortions, mixed words, or a heavy foreign accent.
+The input comes from voice-to-text or text input and may contain speech recognition errors, phonetic distortions, mixed words, or a heavy foreign accent.
 
 CRITICAL STRICT RULES:
 1. RUSSIAN IS STRICTLY BANNED: Never output a single Russian word, Russian spelling, or Russian letter (like ы, э, ъ, ё) in either "polishedOriginal" or "translatedText".
 2. RESPECT SPEAKER'S NATIVE LANGUAGE (${safeNativeLang}):
-   - Speech-to-text often mishears Ukrainian speech as Russian (e.g., "Привет, что ты сегодня делаешь?") or produces phonetic distortions (e.g., "Денізо, сім з родині" instead of "Денисе, всім з родини").
-   - Whenever the input is in ${safeNativeLang}, contains Russian words, surzhyk, or misheard Cyrillic, you MUST restore the speaker's true intended meaning into pure, fluent, grammatically flawless ${safeNativeLang} (e.g., "Привіт, що ти сьогодні робиш?").
+  - Speech-to-text often mishears Ukrainian speech as Russian (e.g., "Привет, что ты сегодня делаешь?") or produces phonetic distortions (e.g., "Денізо, сім з родині" instead of "Денисе, всім з родини").
+  - Whenever the input is in ${safeNativeLang}, contains Russian words, surzhyk, or misheard Cyrillic, you MUST restore the speaker's true intended meaning into pure, fluent, grammatically flawless ${safeNativeLang} (e.g., "Привіт, що ти сьогодні робиш?").
 3. POLISH FOREIGN LANGUAGE ATTEMPTS:
-   - If the speaker intentionally attempts to speak in ${safeTargetLang} (or Spanish/German/English/French) with a heavy accent, grammar mistakes, or mixed ${safeNativeLang} words, rewrite "polishedOriginal" in that foreign language so it sounds completely natural and fluent, as if spoken by a native speaker.
+  - If the speaker intentionally attempts to speak in ${safeTargetLang} (or Spanish/German/English/French) with a heavy accent, grammar mistakes, or mixed ${safeNativeLang} words, rewrite "polishedOriginal" in that foreign language so it sounds completely natural and fluent, as if spoken by a native speaker.
 4. TRANSLATION ("translatedText"):
-   - Translate the reconstructed, clean intended meaning into completely natural, idiomatic ${safeTargetLang} as a native speaker would say it in everyday conversation (NEVER Russian).
-   - If "polishedOriginal" is already in ${safeTargetLang}, make "translatedText" identical to "polishedOriginal".
+  - ALWAYS translate the clean intended meaning into completely natural, idiomatic ${safeTargetLang} as a native speaker would say it in everyday conversation (NEVER Russian).
+  - Do NOT leave "translatedText" untranslated when ${safeTargetLang} differs from the message language.
 
 Return ONLY valid JSON with exact keys:
 {"polishedOriginal": "...", "translatedText": "..."}`
@@ -151,9 +178,42 @@ Return ONLY valid JSON with exact keys:
             if (content) {
                 const parsed = JSON.parse(content);
                 if (parsed.translatedText) {
+                    const cleanedOriginal = (parsed.polishedOriginal || rawText).trim();
+                    let cleanedTranslation = parsed.translatedText.trim();
+
+                    // Якщо цільова мова відрізняється від мови оригіналу, але переклад повернувся ідентичним — робимо ще одну спробу прямого перекладу
+                    if (
+                        safeTargetLang.toLowerCase() !== safeNativeLang.toLowerCase() &&
+                        cleanedTranslation.toLowerCase() === cleanedOriginal.toLowerCase()
+                    ) {
+                        const retryRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${GROQ_API_KEY}`,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                model: model,
+                                messages: [
+                                    {
+                                        role: "system",
+                                        content: `Translate the following text directly and naturally into ${safeTargetLang}. Output ONLY the translated text without quotes, explanations, or Russian words.`
+                                    },
+                                    { role: "user", content: cleanedOriginal }
+                                ],
+                                temperature: 0.1
+                            })
+                        });
+                        const retryData = await retryRes.json();
+                        const retryText = retryData.choices?.[0]?.message?.content?.trim();
+                        if (retryText) {
+                            cleanedTranslation = retryText;
+                        }
+                    }
+
                     return {
-                        polishedOriginal: (parsed.polishedOriginal || rawText).trim(),
-                        translatedText: parsed.translatedText.trim()
+                        polishedOriginal: cleanedOriginal,
+                        translatedText: cleanedTranslation
                     };
                 }
             }
@@ -192,7 +252,6 @@ async function transcribeAudio(base64Audio) {
 }
 
 let activeSockets = {};
-let userLanguages = {};
 let userCustomizations = {};
 
 function deliverPendingMessages(socket, username) {
@@ -211,11 +270,14 @@ io.on('connection', (socket) => {
         if (!username) return;
         currentUsername = username.trim();
         activeSockets[socket.id] = currentUsername;
+        const cleanKey = currentUsername.toLowerCase();
+
         if (lang && lang !== 'Russian') {
-            userLanguages[currentUsername.toLowerCase()] = lang;
-        } else if (!userLanguages[currentUsername.toLowerCase()]) {
-            userLanguages[currentUsername.toLowerCase()] = 'Ukrainian';
+            setUserLanguageSafe(currentUsername, lang);
+        } else if (!userLanguages[cleanKey]) {
+            setUserLanguageSafe(currentUsername, 'Ukrainian');
         }
+
         socket.emit('sync-customizations', userCustomizations);
         deliverPendingMessages(socket, currentUsername);
         broadcastUsers();
@@ -227,7 +289,7 @@ io.on('connection', (socket) => {
 
     socket.on('update-language', (lang) => {
         if (currentUsername && lang && lang !== 'Russian') {
-            userLanguages[currentUsername.toLowerCase()] = lang;
+            setUserLanguageSafe(currentUsername, lang);
         }
     });
 
@@ -250,16 +312,25 @@ io.on('connection', (socket) => {
 
     async function handleOutgoingMessage(data, rawInputText, socketEmitter) {
         const cleanRecipient = (data.recipient || '').toLowerCase().trim();
-        const senderName = data.sender || 'Habla';
+        const senderName = (data.sender || currentUsername || 'Habla').trim();
+        const cleanSenderKey = senderName.toLowerCase();
+
+        if (data.senderLang && data.senderLang !== 'Russian') {
+            setUserLanguageSafe(senderName, data.senderLang);
+        }
+
         const recipientSocketId = Object.keys(activeSockets).find(
             id => activeSockets[id] && activeSockets[id].toLowerCase().trim() === cleanRecipient
         );
 
-        const foundKey = Object.keys(userLanguages).find(k => k.toLowerCase() === cleanRecipient);
-        const recipientLang = foundKey ? userLanguages[foundKey] : (data.targetLang || 'Ukrainian');
+        const senderLang = userLanguages[cleanSenderKey] ||
+            ((data.senderLang && data.senderLang !== 'Russian') ? data.senderLang : 'Ukrainian');
 
-        const senderKey = Object.keys(userLanguages).find(k => k.toLowerCase() === senderName.toLowerCase().trim());
-        const senderLang = senderKey ? userLanguages[senderKey] : (data.senderLang || 'Ukrainian');
+        // Беремо виключно збережену мову отримувача; якщо вона ще невідома — підставляємо мову, відмінну від мови відправника
+        let recipientLang = userLanguages[cleanRecipient];
+        if (!recipientLang) {
+            recipientLang = (senderLang === 'Ukrainian') ? 'English' : 'Ukrainian';
+        }
 
         const { polishedOriginal, translatedText } = await polishAndTranslate(rawInputText, recipientLang, senderLang);
 
@@ -267,6 +338,7 @@ io.on('connection', (socket) => {
             id: Date.now() + '_' + Math.random().toString(36).slice(2, 7),
             sender: senderName,
             senderLang: senderLang,
+            targetLang: recipientLang,
             recipient: data.recipient,
             text: translatedText,
             originalText: polishedOriginal,
