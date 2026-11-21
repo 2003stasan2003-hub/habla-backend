@@ -271,7 +271,8 @@
         
         .dual-msg-wrapper { display: flex; flex-direction: column; gap: 4px; width: 100%; }
         .msg-original-row { display: flex; align-items: flex-start; gap: 5px; font-size: 0.75rem; color: #89a1b2; border-bottom: 1px solid rgba(137, 161, 178, 0.2); padding-bottom: 3px; line-height: 1.28; }
-        .lang-badge { background: rgba(137, 161, 178, 0.2); color: #f5f5f5; font-size: 0.58rem; padding: 1px 4px; border-radius: 3px; font-weight: bold; text-transform: uppercase; flex-shrink: 0; margin-top: 1px; }
+        .single-msg-row { display: flex; align-items: flex-start; gap: 6px; font-size: 0.84rem; color: #f5f5f5; line-height: 1.32; }
+        .lang-badge { background: rgba(137, 161, 178, 0.2); color: #f5f5f5; font-size: 0.58rem; padding: 1px 4px; border-radius: 3px; font-weight: bold; text-transform: uppercase; flex-shrink: 0; margin-top: 2px; }
         .msg-translation-row { font-size: 0.84rem; color: #f5f5f5; line-height: 1.32; }
 
         .message-tts-btn {
@@ -1276,20 +1277,21 @@
         };
 
         function detectMessageLanguage(text, isSent = false, senderLang = null) {
+            if (text) {
+                const lower = text.toLowerCase();
+                if (/[а-яіїєґ]/.test(lower)) return 'UK';
+                if (/[äöüß]/.test(lower) || /\b(das|ist|nicht|ich|und|der|die|wie|gut|danke|hallo|mein|dein|wir|ihr|bitte)\b/.test(lower)) return 'DE';
+                if (/[¿¡ñáéíóú]/.test(lower) || /\b(hola|que|está|estás|como|cómo|bien|gracias|por|para|buenos|días|favor|tengo)\b/.test(lower)) return 'ES';
+                if (/[àâçéèêëîïôûùüÿœ]/.test(lower) || /\b(bonjour|merci|oui|non|est|les|des|avec|pour|dans|salut|comment)\b/.test(lower)) return 'FR';
+                if (/\b(the|is|are|you|and|for|with|hello|hi|thanks|please|how|what|good|have)\b/.test(lower)) return 'EN';
+            }
+
             if (isSent) {
                 return langCodeMap[interfaceLangSelect.value] || 'UK';
             }
             if (senderLang && langCodeMap[senderLang]) {
                 return langCodeMap[senderLang];
             }
-            if (!text) return 'UK';
-
-            const lower = text.toLowerCase();
-            if (/[а-яіїєґ]/.test(lower)) return 'UK';
-            if (/[äöüß]/.test(lower) || /\b(das|ist|nicht|ich|und|der|die|wie|gut|danke|hallo)\b/.test(lower)) return 'DE';
-            if (/[¿¡ñáéíóú]/.test(lower) || /\b(hola|que|está|estás|como|cómo|bien|gracias|por|para)\b/.test(lower)) return 'ES';
-            if (/[àâçéèêëîïôûùüÿœ]/.test(lower) || /\b(bonjour|merci|oui|non|est|les|des|avec|pour|dans)\b/.test(lower)) return 'FR';
-
             return 'EN';
         }
 
@@ -1387,7 +1389,9 @@
             card.className = `message-card ${isSent ? 'sent' : 'received'}`;
             
             let contentHtml = '';
-            if (originalText && originalText.trim() !== text.trim()) {
+            const hasDistinctOriginal = originalText && originalText.trim().toLowerCase() !== text.trim().toLowerCase();
+
+            if (hasDistinctOriginal) {
                 const detectedLang = detectMessageLanguage(originalText, isSent, senderLang);
                 contentHtml = `
                     <div class="dual-msg-wrapper">
@@ -1399,7 +1403,13 @@
                     </div>
                 `;
             } else {
-                contentHtml = `<div>${escapeHtml(text)}</div>`;
+                const detectedLang = detectMessageLanguage(text, isSent, senderLang);
+                contentHtml = `
+                    <div class="single-msg-row">
+                        <span class="lang-badge">${detectedLang}</span>
+                        <span>${escapeHtml(text)}</span>
+                    </div>
+                `;
             }
 
             card.innerHTML = `
