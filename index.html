@@ -1265,14 +1265,30 @@
         const messagesStack = document.getElementById('messages-stack');
         let displayedMessages = [];
 
-        function detectMessageLanguage(text) {
-            if (!text) return 'uk';
-            const latinChars = text.match(/[a-zA-Z]/g);
-            const cyrillicChars = text.match(/[а-яА-ЯіїєґІЇЄҐ]/g);
-            if (latinChars && (!cyrillicChars || latinChars.length > cyrillicChars.length)) {
-                return 'en';
+        const langCodeMap = {
+            'Ukrainian': 'UK',
+            'English': 'EN',
+            'Spanish': 'ES',
+            'German': 'DE',
+            'French': 'FR'
+        };
+
+        function detectMessageLanguage(text, isSent = false, senderLang = null) {
+            if (isSent) {
+                return langCodeMap[interfaceLangSelect.value] || 'UK';
             }
-            return 'uk';
+            if (senderLang && langCodeMap[senderLang]) {
+                return langCodeMap[senderLang];
+            }
+            if (!text) return 'UK';
+
+            const lower = text.toLowerCase();
+            if (/[а-яіїєґ]/.test(lower)) return 'UK';
+            if (/[äöüß]/.test(lower) || /\b(das|ist|nicht|ich|und|der|die|wie|gut|danke|hallo)\b/.test(lower)) return 'DE';
+            if (/[¿¡ñáéíóú]/.test(lower) || /\b(hola|que|está|estás|como|cómo|bien|gracias|por|para)\b/.test(lower)) return 'ES';
+            if (/[àâçéèêëîïôûùüÿœ]/.test(lower) || /\b(bonjour|merci|oui|non|est|les|des|avec|pour|dans)\b/.test(lower)) return 'FR';
+
+            return 'EN';
         }
 
         function recordTokenUsage(contact, tokensUsed = 15) {
@@ -1357,20 +1373,20 @@
             syncUnreadIndicators();
 
             messagesToOpen.forEach((m, idx) => {
-                addMessageToStack(m.text, m.sender, false, m.originalText);
+                addMessageToStack(m.text, m.sender, false, m.originalText, m.senderLang);
                 if (idx === messagesToOpen.length - 1 && document.getElementById('sound-toggle').checked) {
                     speakText(m.text);
                 }
             });
         }
 
-        function addMessageToStack(text, sender, isSent = false, originalText = null) {
+        function addMessageToStack(text, sender, isSent = false, originalText = null, senderLang = null) {
             const card = document.createElement('div');
             card.className = `message-card ${isSent ? 'sent' : 'received'}`;
             
             let contentHtml = '';
             if (originalText && originalText.trim() !== text.trim()) {
-                const detectedLang = detectMessageLanguage(originalText);
+                const detectedLang = detectMessageLanguage(originalText, isSent, senderLang);
                 contentHtml = `
                     <div class="dual-msg-wrapper">
                         <div class="msg-original-row">
@@ -1457,6 +1473,7 @@
 
             socket.emit('text-message', {
                 sender: username,
+                senderLang: interfaceLangSelect.value,
                 recipient: selectedRecipientName,
                 text: text,
                 targetLang: interfaceLangSelect.value
@@ -1500,7 +1517,8 @@
                         reader.onloadend = () => {
                             recordTokenUsage(selectedRecipientName, 45);
                             socket.emit('voice-message', { 
-                                sender: username, 
+                                sender: username,
+                                senderLang: interfaceLangSelect.value,
                                 recipient: selectedRecipientName, 
                                 audio: reader.result,
                                 targetLang: interfaceLangSelect.value 
@@ -1543,6 +1561,7 @@
             unreadBySender[existingKey].push({
                 id: msg.id || Date.now(),
                 sender: existingKey,
+                senderLang: msg.senderLang || null,
                 text: msg.text,
                 originalText: msg.originalText,
                 timestamp: msg.timestamp || Date.now()
@@ -1570,7 +1589,7 @@
             const isSelf = data.sender === username || data.isSent;
 
             if (isSelf) {
-                addMessageToStack(data.text, data.sender || 'Ви', true, data.originalText);
+                addMessageToStack(data.text, data.sender || 'Ви', true, data.originalText, interfaceLangSelect.value);
                 return;
             }
 
@@ -1582,7 +1601,7 @@
                 selectedRecipientName.toLowerCase() === (data.sender || '').toLowerCase();
 
             if (isActiveChatWithSender) {
-                addMessageToStack(data.text, data.sender || 'Контакт', false, data.originalText);
+                addMessageToStack(data.text, data.sender || 'Контакт', false, data.originalText, data.senderLang);
                 recordTokenUsage(data.sender, 20);
                 if (document.getElementById('sound-toggle').checked) speakText(data.text);
             } else {
