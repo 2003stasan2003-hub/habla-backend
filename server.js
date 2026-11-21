@@ -81,16 +81,10 @@ const FALLBACK_MODELS = [
     "gemma2-9b-it"
 ];
 
-const WHISPER_LANG_MAP = {
-    'Ukrainian': 'uk',
-    'English': 'en',
-    'Spanish': 'es',
-    'German': 'de',
-    'French': 'fr'
-};
-
-async function translateText(text, targetLang, sourceLang = '') {
-    if (!GROQ_API_KEY || !text) return text;
+async function polishAndTranslate(rawText, targetLang, nativeLang = 'Ukrainian') {
+    if (!GROQ_API_KEY || !rawText) {
+        return { polishedOriginal: rawText, translatedText: rawText };
+    }
 
     let modelsToTry = [...FALLBACK_MODELS];
 
@@ -109,8 +103,6 @@ async function translateText(text, targetLang, sourceLang = '') {
         }
     } catch (e) {}
 
-    const sourceHint = sourceLang ? `from ${sourceLang} ` : '';
-
     for (const model of modelsToTry) {
         try {
             const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -121,16 +113,22 @@ async function translateText(text, targetLang, sourceLang = '') {
                 },
                 body: JSON.stringify({
                     model: model,
+                    response_format: { type: "json_object" },
                     messages: [
                         {
                             role: "system",
-                            content: `You are an expert native-level interpreter translating live spoken conversation ${sourceHint}into natural, idiomatic ${targetLang || 'Ukrainian'}.
-Rules:
-1. The input comes from voice-to-text transcription and may contain minor phonetic typos or misheard proper names (e.g., "Денізо" -> "Denis", "сім з родині" -> "всім з родини" / "all the family"). Silently infer the intended spoken meaning before translating.
-2. Translate naturally and realistically as a native speaker would say it in everyday conversation — avoid stiff word-for-word literalism.
-3. Do NOT converse, answer questions, explain anything, or add quotation marks. Return ONLY the final natural translation.`
+                            content: `You are an expert bilingual interpreter and native-speaker editor.
+The speaker's native language is ${nativeLang}, and the listener's target language is ${targetLang || 'Ukrainian'}.
+The input comes from voice-to-text transcription. The speaker may speak in ${nativeLang}, OR attempt to speak in ${targetLang} (or Spanish/German/English/French) with a heavy accent, grammar mistakes, phonetic typos, or mixed ${nativeLang} words.
+
+Your task:
+1. "polishedOriginal": Reconstruct and polish the speaker's input into completely natural, fluent, grammatically flawless speech in the primary language the speaker intended to speak (e.g., if they tried speaking broken Spanish/German/English, rewrite it so it sounds like a native speaker said it; if they spoke ${nativeLang}, fix any speech-to-text typos or misheard names like "Денізо" -> "Денисе" / "Denis").
+2. "translatedText": Translate that intended meaning into completely natural, idiomatic ${targetLang || 'Ukrainian'} as a native speaker would say it in everyday conversation. If the speaker was already trying to speak ${targetLang}, make "translatedText" identical to "polishedOriginal".
+
+Return ONLY valid JSON with exact keys:
+{"polishedOriginal": "...", "translatedText": "..."}`
                         },
-                        { role: "user", content: text }
+                        { role: "user", content: rawText }
                     ],
                     temperature: 0.2
                 })
@@ -139,28 +137,37 @@ Rules:
             const data = await response.json();
             if (data.error) continue;
 
-            const translated = data.choices?.[0]?.message?.content?.trim();
-            if (translated) return translated;
+            const content = data.choices?.[0]?.message?.content?.trim();
+            if (content) {
+                const parsed = JSON.parse(content);
+                if (parsed.translatedText) {
+                    return {
+                        polishedOriginal: (parsed.polishedOriginal || rawText).trim(),
+                        translatedText: parsed.translatedText.trim()
+                    };
+                }
+            }
         } catch (e) {}
     }
 
-    return text;
+    return { polishedOriginal: rawText, translatedText: rawText };
 }
 
-async function transcribeAudio(base64Audio, senderLang = 'Ukrainian') {
+async function transcribeAudio(base64Audio) {
     if (!GROQ_API_KEY || !base64Audio) return "Voice message";
     try {
         const base64Data = base64Audio.split(';base64,').pop();
         const buffer = Buffer.from(base64Data, 'base64');
         const blob = new Blob([buffer], { type: 'audio/webm' });
 
-        const isoLang = WHISPER_LANG_MAP[senderLang] || 'uk';
-
         const formData = new FormData();
         formData.append('file', blob, 'audio.webm');
         formData.append('model', 'whisper-large-v3');
-        formData.append('language', isoLang);
         formData.append('temperature', '0');
+        formData.append(
+            'prompt',
+            'Привіт, як справи? Hola, ¿cómo estás? Hallo, wie geht es dir? Hello, how are you? Bonjour, comment ça va?'
+        );
 
         const response = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
             method: 'POST',
@@ -227,7 +234,7 @@ io.on('connection', (socket) => {
         socket.emit('sync-customizations', userCustomizations);
     });
 
-    async function handleOutgoingMessage(data, textToTranslate, originalText, socketEmitter) {
+    async function handleOutgoingMessage(data, rawInputText, socketEmitter) {
         const cleanRecipient = (data.recipient || '').toLowerCase().trim();
         const senderName = data.sender || 'Habla';
         const recipientSocketId = Object.keys(activeSockets).find(
@@ -240,7 +247,7 @@ io.on('connection', (socket) => {
         const senderKey = Object.keys(userLanguages).find(k => k.toLowerCase() === senderName.toLowerCase().trim());
         const senderLang = senderKey ? userLanguages[senderKey] : (data.senderLang || 'Ukrainian');
 
-        const translatedText = await translateText(textToTranslate, recipientLang, senderLang);
+        const { polishedOriginal, translatedText } = await polishAndTranslate(rawInputText, recipientLang, senderLang);
 
         const messagePayload = {
             id: Date.now() + '_' + Math.random().toString(36).slice(2, 7),
@@ -248,7 +255,7 @@ io.on('connection', (socket) => {
             senderLang: senderLang,
             recipient: data.recipient,
             text: translatedText,
-            originalText: originalText,
+            originalText: polishedOriginal,
             timestamp: Date.now()
         };
 
@@ -282,16 +289,12 @@ io.on('connection', (socket) => {
     }
 
     socket.on('text-message', async (data) => {
-        await handleOutgoingMessage(data, data.text, data.text, socket);
+        await handleOutgoingMessage(data, data.text, socket);
     });
 
     socket.on('voice-message', async (data) => {
-        const senderName = data.sender || 'Habla';
-        const senderKey = Object.keys(userLanguages).find(k => k.toLowerCase() === senderName.toLowerCase().trim());
-        const senderLang = senderKey ? userLanguages[senderKey] : (data.senderLang || 'Ukrainian');
-
-        const transcribedText = await transcribeAudio(data.audio, senderLang);
-        await handleOutgoingMessage(data, transcribedText, transcribedText, socket);
+        const transcribedText = await transcribeAudio(data.audio);
+        await handleOutgoingMessage(data, transcribedText, socket);
     });
 
     socket.on('disconnect', () => {
